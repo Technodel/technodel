@@ -40,6 +40,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# aider AI coding tool history (contains prompt history)
+.aider.input.history
+
+# temporary / scratch HTML files
+tmp-*.html
+
 # sqlite database
 *.db
 *.db-journal

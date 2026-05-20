@@ -1,11 +1,13 @@
 {
-  "name": "techndodel",
+  "name": "technodel",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 4040",
     "build": "next build",
     "start": "next start -p 4040",
+    "seed": "node prisma/seed.mjs",
+    "db:check": "node check_db.cjs",
     "lint": "eslint"
   },
   "dependencies": {

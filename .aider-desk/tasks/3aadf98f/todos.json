@@ -1,20 +1,28 @@
 {
-  "initialUserPrompt": "Push the project to https://github.com/Technodel/technodel",
+  "initialUserPrompt": "Fix 8 code review issues in the technodel project: typo in package.json name, gitignore cleanup (aider history, tmp files), CI/CD workflow, seed script, Next.js version",
   "items": [
     {
-      "name": "Initialize git repo if needed",
-      "completed": true
-    },
-    {
-      "name": "Create .gitignore",
-      "completed": true
-    },
-    {
-      "name": "Commit all changes",
+      "name": "Fix typo in package.json name field",
       "completed": false
     },
     {
-      "name": "Add GitHub remote and push",
+      "name": "Add .gitignore entries and remove sensitive/temp files from repo",
+      "completed": false
+    },
+    {
+      "name": "Create GitHub Actions CI workflow",
+      "completed": false
+    },
+    {
+      "name": "Add seed script to package.json",
+      "completed": false
+    },
+    {
+      "name": "Fix Next.js version to real release",
+      "completed": false
+    },
+    {
+      "name": "Verify all changes work correctly",
       "completed": false
     }
   ]
