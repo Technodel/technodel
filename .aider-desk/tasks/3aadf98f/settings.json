@@ -4,22 +4,22 @@
   "name": "Revamp Technodel Website",
   "archived": false,
   "aiderTotalCost": 0,
-  "agentTotalCost": 2.838194268000004,
+  "agentTotalCost": 2.865522016000004,
   "mainModel": "",
   "currentMode": "agent",
   "weakModelLocked": false,
   "parentId": null,
   "lastAgentProviderMetadata": {
     "deepseek": {
-      "promptCacheHitTokens": 65024,
-      "promptCacheMissTokens": 373
+      "promptCacheHitTokens": 75136,
+      "promptCacheMissTokens": 146
     }
   },
   "autoApprove": true,
   "provider": "deepseek",
   "model": "deepseek-v4-flash",
   "workingMode": "local",
-  "updatedAt": "2026-05-20T15:50:55.889Z",
+  "updatedAt": "2026-05-20T15:52:26.404Z",
   "startedAt": "2026-05-20T15:47:03.622Z",
   "state": "IN_PROGRESS",
   "createdAt": "2026-05-19T21:30:38.355Z",

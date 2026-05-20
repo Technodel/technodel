@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start -p 4040",
     "seed": "node prisma/seed.mjs",
+    "seed:products": "node prisma/seed-products.mjs",
     "db:check": "node check_db.cjs",
     "lint": "eslint"
   },
