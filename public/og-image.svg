@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#040b14"/>
+      <stop offset="100%" stop-color="#071020"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00c8ff"/>
+      <stop offset="100%" stop-color="#7c3aff"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffd700"/>
+      <stop offset="100%" stop-color="#ff8c00"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- Grid pattern -->
+  <g opacity="0.03" stroke="#00c8ff" stroke-width="1">
+    <line x1="0" y1="0" x2="0" y2="630"/><line x1="60" y1="0" x2="60" y2="630"/>
+    <line x1="120" y1="0" x2="120" y2="630"/><line x1="180" y1="0" x2="180" y2="630"/>
+    <line x1="240" y1="0" x2="240" y2="630"/><line x1="300" y1="0" x2="300" y2="630"/>
+    <line x1="360" y1="0" x2="360" y2="630"/><line x1="420" y1="0" x2="420" y2="630"/>
+    <line x1="480" y1="0" x2="480" y2="630"/><line x1="540" y1="0" x2="540" y2="630"/>
+    <line x1="600" y1="0" x2="600" y2="630"/><line x1="660" y1="0" x2="660" y2="630"/>
+    <line x1="720" y1="0" x2="720" y2="630"/><line x1="780" y1="0" x2="780" y2="630"/>
+    <line x1="840" y1="0" x2="840" y2="630"/><line x1="900" y1="0" x2="900" y2="630"/>
+    <line x1="960" y1="0" x2="960" y2="630"/><line x1="1020" y1="0" x2="1020" y2="630"/>
+    <line x1="1080" y1="0" x2="1080" y2="630"/><line x1="1140" y1="0" x2="1140" y2="630"/>
+    <line x1="0" y1="0" x2="1200" y2="0"/><line x1="0" y1="63" x2="1200" y2="63"/>
+    <line x1="0" y1="126" x2="1200" y2="126"/><line x1="0" y1="189" x2="1200" y2="189"/>
+    <line x1="0" y1="252" x2="1200" y2="252"/><line x1="0" y1="315" x2="1200" y2="315"/>
+    <line x1="0" y1="378" x2="1200" y2="378"/><line x1="0" y1="441" x2="1200" y2="441"/>
+    <line x1="0" y1="504" x2="1200" y2="504"/><line x1="0" y1="567" x2="1200" y2="567"/>
+  </g>
+  <!-- Glowing orbs -->
+  <circle cx="200" cy="315" r="200" fill="rgba(0,200,255,0.06)"/>
+  <circle cx="900" cy="200" r="180" fill="rgba(124,58,255,0.06)"/>
+  <circle cx="1000" cy="450" r="120" fill="rgba(255,107,53,0.04)"/>
+  <!-- Accent gradient line -->
+  <rect x="0" y="0" width="1200" height="3" fill="url(#accent)"/>
+  <!-- Logo T -->
+  <rect x="60" y="80" width="80" height="80" rx="16" fill="#040b14" stroke="url(#accent)" stroke-width="2"/>
+  <text x="100" y="140" font-family="Arial Black,sans-serif" font-size="60" font-weight="900" fill="url(#accent)" text-anchor="middle">T</text>
+  <!-- Main headline -->
+  <text x="60" y="260" font-family="Inter,Arial,sans-serif" font-size="64" font-weight="800" fill="#e8edf5">Tech That</text>
+  <text x="60" y="340" font-family="Inter,Arial,sans-serif" font-size="64" font-weight="800" fill="url(#accent)">Elevates</text>
+  <!-- Subtitle -->
+  <text x="60" y="400" font-family="Inter,Arial,sans-serif" font-size="24" fill="#607080">Lebanon's #1 Tech Store</text>
+  <!-- Features -->
+  <rect x="60" y="440" width="340" height="40" rx="8" fill="rgba(0,200,255,0.08)"/>
+  <text x="80" y="467" font-family="Inter,Arial,sans-serif" font-size="18" fill="#c8d0dc">🇱🇧 Delivery across Lebanon  ·  1-3 days</text>
+  <!-- Right side - product showcase -->
+  <rect x="680" y="160" width="440" height="340" rx="24" fill="rgba(13,26,45,0.6)" stroke="rgba(0,200,255,0.2)" stroke-width="1"/>
+  <!-- Product icons -->
+  <text x="760" y="280" font-size="50">💻</text>
+  <text x="870" y="280" font-size="50">📱</text>
+  <text x="980" y="280" font-size="50">🎧</text>
+  <text x="760" y="380" font-size="50">🎮</text>
+  <text x="870" y="380" font-size="50">📷</text>
+  <text x="980" y="380" font-size="50">⌚</text>
+  <text x="900" y="470" font-family="Inter,Arial,sans-serif" font-size="20" fill="#607080" text-anchor="middle">5,000+ Products · 200+ Brands</text>
+  <!-- Bottom accent -->
+  <rect x="0" y="627" width="1200" height="3" fill="url(#accent)"/>
+  <!-- URL -->
+  <text x="60" y="570" font-family="Inter,Arial,sans-serif" font-size="20" fill="url(#accent)" font-weight="700">technodel.net</text>
+  <text x="1060" y="570" font-family="Inter,Arial,sans-serif" font-size="16" fill="#607080">technodel.net</text>
+</svg>

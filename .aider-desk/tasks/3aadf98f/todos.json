@@ -1,0 +1,21 @@
+{
+  "initialUserPrompt": "Push the project to https://github.com/Technodel/technodel",
+  "items": [
+    {
+      "name": "Initialize git repo if needed",
+      "completed": true
+    },
+    {
+      "name": "Create .gitignore",
+      "completed": true
+    },
+    {
+      "name": "Commit all changes",
+      "completed": false
+    },
+    {
+      "name": "Add GitHub remote and push",
+      "completed": false
+    }
+  ]
+}

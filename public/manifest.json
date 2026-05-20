@@ -1,0 +1,22 @@
+{
+  "name": "Technodel – Lebanon's #1 Tech Store",
+  "short_name": "Technodel",
+  "description": "Lebanon's premium tech destination. Shop laptops, smartphones, gaming gear, accessories & more at unbeatable prices.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#040b14",
+  "theme_color": "#00c8ff",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [
+    { "src": "/og-image.svg", "sizes": "1200x630", "type": "image/svg+xml", "label": "Technodel Homepage" }
+  ],
+  "categories": ["shopping", "technology", "electronics"],
+  "lang": "en-US",
+  "scope": "/",
+  "prefer_related_applications": false
+}
