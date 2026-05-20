@@ -3,27 +3,27 @@
   "items": [
     {
       "name": "Fix typo in package.json name field",
-      "completed": false
+      "completed": true
     },
     {
       "name": "Add .gitignore entries and remove sensitive/temp files from repo",
-      "completed": false
+      "completed": true
     },
     {
       "name": "Create GitHub Actions CI workflow",
-      "completed": false
+      "completed": true
     },
     {
       "name": "Add seed script to package.json",
-      "completed": false
+      "completed": true
     },
     {
       "name": "Fix Next.js version to real release",
-      "completed": false
+      "completed": true
     },
     {
       "name": "Verify all changes work correctly",
-      "completed": false
+      "completed": true
     }
   ]
 }

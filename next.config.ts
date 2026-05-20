@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  basePath: "/new",
+
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**" },
@@ -9,7 +11,7 @@ const nextConfig: NextConfig = {
     formats: ["image/webp", "image/avif"],
     deviceSizes: [480, 640, 768, 1024, 1280, 1536, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 86400, // 24 hours
+    minimumCacheTTL: 86400,
   },
   experimental: {
     optimizeCss: true,
@@ -21,7 +23,6 @@ const nextConfig: NextConfig = {
         ? { exclude: ["error", "warn"] }
         : false,
   },
-  // Enable brotli/gzip compression, caching headers & security
   async headers() {
     return [
       {
