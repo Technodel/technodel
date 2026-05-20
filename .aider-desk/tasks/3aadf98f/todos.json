@@ -1,29 +1,21 @@
 {
-  "initialUserPrompt": "Fix 8 code review issues in the technodel project: typo in package.json name, gitignore cleanup (aider history, tmp files), CI/CD workflow, seed script, Next.js version",
+  "initialUserPrompt": "Populate the staging site with all data (products, categories, featured items, deals), push images/logo to VPS, and rename BB Mode to Light",
   "items": [
     {
-      "name": "Fix typo in package.json name field",
-      "completed": true
+      "name": "Change BB Mode label to Light",
+      "completed": false
     },
     {
-      "name": "Add .gitignore entries and remove sensitive/temp files from repo",
-      "completed": true
+      "name": "Populate DB with categories, products, featured, deals",
+      "completed": false
     },
     {
-      "name": "Create GitHub Actions CI workflow",
-      "completed": true
+      "name": "Push images/logo assets to VPS",
+      "completed": false
     },
     {
-      "name": "Add seed script to package.json",
-      "completed": true
-    },
-    {
-      "name": "Fix Next.js version to real release",
-      "completed": true
-    },
-    {
-      "name": "Verify all changes work correctly",
-      "completed": true
+      "name": "Verify everything works on technodel.net/new",
+      "completed": false
     }
   ]
 }

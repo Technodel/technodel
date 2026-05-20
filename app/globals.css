@@ -45,7 +45,7 @@
 }
 
 /* ─── BESTBUY THEME ──────────────────────────────────────────────────────────── */
-html.theme-bb {
+html.theme-light {
   --c-bg:       #ffffff;
   --c-surface:  #f5f7fa;
   --c-surface2: #ebedf0;
@@ -94,7 +94,7 @@ body {
 
 /* ─── SELECTION ──────────────────────────────────────────────────────────────── */
 ::selection { background: rgba(0,200,255,0.3); color: #fff; }
-html.theme-bb ::selection { background: rgba(0,48,135,0.2); }
+html.theme-light ::selection { background: rgba(0,48,135,0.2); }
 
 /* ─── GLASS ──────────────────────────────────────────────────────────────────── */
 .glass {
@@ -190,7 +190,7 @@ html.theme-bb ::selection { background: rgba(0,48,135,0.2); }
   color: #fff;
   box-shadow: 0 4px 20px rgba(0,200,255,0.3);
 }
-html.theme-bb .btn-primary { color: #fff; }
+html.theme-light .btn-primary { color: #fff; }
 .btn-primary:hover {
   box-shadow: 0 8px 30px rgba(0,200,255,0.5);
   transform: translateY(-2px);

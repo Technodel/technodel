@@ -7,10 +7,10 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     const html = document.documentElement;
-    if (theme === "bestbuy") {
-      html.classList.add("theme-bb");
+    if (theme === "light") {
+      html.classList.add("theme-light");
     } else {
-      html.classList.remove("theme-bb");
+      html.classList.remove("theme-light");
     }
   }, [theme]);
 

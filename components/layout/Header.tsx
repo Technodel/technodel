@@ -22,7 +22,7 @@ export default function Header() {
     setScrolled(latest > 10);
   });
 
-  const isBB = theme === "bestbuy";
+  const isLight = theme === "light";
 
   // Parallax header shrink
   const headerHeight = scrolled ? "64px" : "94px";
@@ -39,12 +39,12 @@ export default function Header() {
         transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
         borderBottom: `1px solid ${scrolled ? "var(--c-border)" : "transparent"}`,
         background: scrolled
-          ? isBB ? "rgba(0,48,135,0.95)" : "rgba(4,11,20,0.88)"
-          : isBB ? "rgba(0,48,135,0.98)" : "transparent",
+          ? isLight ? "rgba(0,48,135,0.95)" : "rgba(4,11,20,0.88)"
+          : isLight ? "rgba(0,48,135,0.98)" : "transparent",
         backdropFilter: scrolled ? "blur(24px) saturate(1.8)" : "none",
         WebkitBackdropFilter: scrolled ? "blur(24px) saturate(1.8)" : "none",
         boxShadow: scrolled
-          ? isBB ? "0 4px 30px rgba(0,0,0,0.1)" : "0 4px 30px rgba(0,0,0,0.3)"
+          ? isLight ? "0 4px 30px rgba(0,0,0,0.1)" : "0 4px 30px rgba(0,0,0,0.3)"
           : "none",
       }}
     >
@@ -55,9 +55,9 @@ export default function Header() {
         style={{ overflow: "hidden" }}
       >
         <div style={{
-          background: isBB ? "#000" : "linear-gradient(135deg, rgba(0,200,255,0.06), rgba(124,58,255,0.04))",
+          background: isLight ? "#000" : "linear-gradient(135deg, rgba(0,200,255,0.06), rgba(124,58,255,0.04))",
           padding: "6px 0",
-          borderBottom: isBB ? "none" : "1px solid rgba(26,46,74,0.3)",
+          borderBottom: isLight ? "none" : "1px solid rgba(26,46,74,0.3)",
         }}>
           <div style={{
             maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px",
@@ -109,9 +109,9 @@ export default function Header() {
                   border: "1px solid var(--c-border)", background: "transparent",
                   color: "var(--c-muted)", cursor: "pointer",
                 }}
-                title="Toggle BestBuy theme"
+                title="Toggle theme"
               >
-                {isBB ? "🌙 Dark" : "🛍️ BB Mode"}
+                {isLight ? "🌙 Dark" : "☀️ Light"}
               </motion.button>
             </div>
           </div>
@@ -157,8 +157,8 @@ export default function Header() {
 
           {/* Right actions */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }} className="hide-mobile">
-            <NavLink href="/shop" label="Shop" active={pathname.startsWith("/shop")} isBB={isBB} />
-            <NavLink href="/deals" label="🔥 Deals" active={pathname === "/deals"} isBB={isBB} />
+            <NavLink href="/shop" label="Shop" active={pathname.startsWith("/shop")} isLight={isLight} />
+            <NavLink href="/deals" label="🔥 Deals" active={pathname === "/deals"} isLight={isLight} />
 
             {/* Cart — Premium glow button */}
             <motion.div
@@ -176,21 +176,21 @@ export default function Header() {
                   gap: 8,
                   padding: "10px 20px",
                   borderRadius: "var(--r-md)",
-                  background: isBB ? "#ffe000" : "var(--grad-primary)",
-                  color: isBB ? "#003087" : "#fff",
+                  background: isLight ? "#ffe000" : "var(--grad-primary)",
+                  color: isLight ? "#003087" : "#fff",
                   textDecoration: "none",
                   fontWeight: 700,
                   fontSize: 14,
-                  boxShadow: isBB
+                  boxShadow: isLight
                     ? "0 4px 16px rgba(255,224,0,0.3)"
                     : "0 4px 20px rgba(0,200,255,0.3)",
                   transition: "box-shadow 0.3s ease",
                 }}
                 onMouseEnter={(e) => {
-                  if (!isBB) e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,200,255,0.5)";
+                  if (!isLight) e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,200,255,0.5)";
                 }}
                 onMouseLeave={(e) => {
-                  if (!isBB) e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,200,255,0.3)";
+                  if (!isLight) e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,200,255,0.3)";
                 }}
               >
                 <motion.span
@@ -208,7 +208,7 @@ export default function Header() {
                       exit={{ scale: 0.3, opacity: 0 }}
                       transition={{ duration: 0.25, type: "spring", stiffness: 400, damping: 12 }}
                       style={{
-                        background: isBB ? "#003087" : "#ff4444",
+                        background: isLight ? "#003087" : "#ff4444",
                         color: "#fff", borderRadius: 99,
                         padding: "2px 7px", fontSize: 11, fontWeight: 800,
                         position: "absolute", top: -6, right: -6,
@@ -259,7 +259,7 @@ export default function Header() {
         style={{
           overflow: "hidden",
           borderTop: "1px solid var(--c-border)",
-          background: isBB ? "#003087" : "linear-gradient(180deg, rgba(13,26,45,0.6), var(--c-surface))",
+          background: isLight ? "#003087" : "linear-gradient(180deg, rgba(13,26,45,0.6), var(--c-surface))",
         }}
         className="hide-mobile"
       >
@@ -276,7 +276,7 @@ export default function Header() {
               transition={{ delay: 0.3 + i * 0.03, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               style={{ flexShrink: 0 }}
             >
-              <CatNavLink href={`/shop/${c.slug}`} icon={c.icon} label={c.name} active={pathname === `/shop/${c.slug}`} isBB={isBB} />
+              <CatNavLink href={`/shop/${c.slug}`} icon={c.icon} label={c.name} active={pathname === `/shop/${c.slug}`} isLight={isLight} />
             </motion.div>
           ))}
         </div>
@@ -292,7 +292,7 @@ export default function Header() {
             transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
             style={{
               overflow: "hidden",
-              background: isBB ? "rgba(0,48,135,0.98)" : "rgba(4,11,20,0.95)",
+              background: isLight ? "rgba(0,48,135,0.98)" : "rgba(4,11,20,0.95)",
               backdropFilter: "blur(24px)",
               borderTop: "1px solid var(--c-border)",
             }}
@@ -350,7 +350,7 @@ export default function Header() {
   );
 }
 
-function NavLink({ href, label, active, isBB }: { href: string; label: string; active: boolean; isBB: boolean }) {
+function NavLink({ href, label, active, isLight }: { href: string; label: string; active: boolean; isLight: boolean }) {
   const [hovered, setHovered] = useState(false);
   return (
     <motion.div
@@ -366,13 +366,13 @@ function NavLink({ href, label, active, isBB }: { href: string; label: string; a
           borderRadius: "var(--r-md)",
           fontSize: 14,
           fontWeight: active ? 700 : 500,
-          color: active ? (isBB ? "#ffe000" : "var(--c-accent)") : isBB ? "#fff" : "var(--c-muted)",
+          color: active ? (isLight ? "#ffe000" : "var(--c-accent)") : isLight ? "#fff" : "var(--c-muted)",
           textDecoration: "none",
           transition: "all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)",
           background: active
-            ? isBB ? "rgba(255,224,0,0.12)" : "rgba(0,200,255,0.1)"
+            ? isLight ? "rgba(255,224,0,0.12)" : "rgba(0,200,255,0.1)"
             : hovered
-              ? isBB ? "rgba(255,255,255,0.08)" : "rgba(0,200,255,0.05)"
+              ? isLight ? "rgba(255,255,255,0.08)" : "rgba(0,200,255,0.05)"
               : "transparent",
           position: "relative",
         }}
@@ -389,7 +389,7 @@ function NavLink({ href, label, active, isBB }: { href: string; label: string; a
               width: "60%",
               height: 2,
               borderRadius: 99,
-              background: isBB ? "#ffe000" : "var(--c-accent)",
+              background: isLight ? "#ffe000" : "var(--c-accent)",
             }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
           />
@@ -400,8 +400,8 @@ function NavLink({ href, label, active, isBB }: { href: string; label: string; a
 }
 
 // ─── CATEGORY NAV LINK ──────────────────────────────────────────────────────────
-function CatNavLink({ href, icon, label, active, isBB }: {
-  href: string; icon: string; label: string; active: boolean; isBB: boolean;
+function CatNavLink({ href, icon, label, active, isLight }: {
+  href: string; icon: string; label: string; active: boolean; isLight: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
   return (
@@ -412,12 +412,12 @@ function CatNavLink({ href, icon, label, active, isBB }: {
       style={{
         display: "flex", alignItems: "center", gap: 6,
         padding: "10px 14px", fontSize: 13, fontWeight: active ? 700 : 500,
-        color: active ? "var(--c-accent)" : isBB ? "rgba(255,255,255,0.75)" : "var(--c-muted)",
+        color: active ? "var(--c-accent)" : isLight ? "rgba(255,255,255,0.75)" : "var(--c-muted)",
         textDecoration: "none", whiteSpace: "nowrap",
         borderBottom: active ? "2px solid var(--c-accent)" : "2px solid transparent",
         transition: "all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)",
         background: hovered && !active
-          ? isBB ? "rgba(255,255,255,0.06)" : "rgba(0,200,255,0.04)"
+          ? isLight ? "rgba(255,255,255,0.06)" : "rgba(0,200,255,0.04)"
           : "transparent",
         borderRadius: "4px 4px 0 0",
       }}
