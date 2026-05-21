@@ -328,6 +328,17 @@ model AdminLog {
   createdAt DateTime @default(now())
 }
 
+model SyncReport {
+  id        Int      @id @default(autoincrement())
+  runAt     DateTime @default(now())
+  status    String   @default("running") // running | completed | failed
+  summary   String?  // JSON: { added, removed, priceChanged, imageChanged, availabilityChanged, errors }
+  details   String?  // JSON: array of per-product change records
+
+  @@index([runAt])
+  @@index([status])
+}
+
 model Setting {
   key       String   @id
   value     String

@@ -11,6 +11,7 @@ const NAV = [
   { href: "/admin/orders", label: "Orders", icon: "🛒" },
   { href: "/admin/competitors", label: "Competitors", icon: "🔍" },
   { href: "/admin/tools", label: "Import Tools", icon: "🛠️" },
+  { href: "/admin/sync-report", label: "Sync Report", icon: "🔄" },
   { href: "/admin/banners", label: "Banners", icon: "🖼️" },
   { href: "/admin/delivery", label: "Delivery Zones", icon: "🚚" },
   { href: "/admin/users", label: "Users", icon: "👥" },
@@ -37,7 +38,7 @@ export default function AdminSidebar() {
       {/* Logo */}
       <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid var(--c-border)" }}>
         <Link href="/" style={{ textDecoration: "none" }}>
-          <Image src="/logo.png" alt="Technodel" width={190} height={48} style={{ width: "auto", height: 42, objectFit: "contain", maxWidth: "100%" }} priority />
+          <Image src="/logo.png" alt="Technodel" width={190} height={48} style={{ width: "auto", height: 42, objectFit: "contain", maxWidth: "100%" }} priority unoptimized />
         </Link>
         <div style={{ fontSize: 11, color: "var(--c-muted)", marginTop: 2 }}>Admin Galaxy</div>
       </div>

@@ -47,13 +47,13 @@ export const metadata: Metadata = {
     title: "Technodel – Lebanon's #1 Tech Store",
     description: "Shop laptops, smartphones, gaming gear and accessories. Fast delivery across Lebanon.",
     url: "https://technodel.net",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Technodel Lebanon" }],
+    images: [{ url: "/new/og-image.svg", width: 1200, height: 630, alt: "Technodel Lebanon" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Technodel – Lebanon's #1 Tech Store",
     description: "Shop laptops, smartphones, gaming gear and accessories. Fast delivery across Lebanon.",
-    images: ["/og-image.png"],
+    images: ["/new/og-image.svg"],
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION_ID || "YOUR_GOOGLE_SEARCH_CONSOLE_ID",
@@ -70,7 +70,7 @@ const organizationSchema = {
   "@type": "Organization",
   name: "Technodel",
   url: "https://technodel.net",
-  logo: "https://technodel.net/logo.png",
+  logo: "https://technodel.net/new/logo.png",
   description: "Lebanon's premium tech store — laptops, smartphones, accessories and more.",
   address: { "@type": "PostalAddress", addressCountry: "LB" },
   contactPoint: {
@@ -106,8 +106,8 @@ const localBusinessSchema = {
   "@type": "ComputerStore",
   name: "Technodel",
   url: "https://technodel.net",
-  logo: "https://technodel.net/logo.png",
-  image: "https://technodel.net/og-image.png",
+  logo: "https://technodel.net/new/logo.png",
+  image: "https://technodel.net/new/og-image.svg",
   description: "Lebanon's premium computer and electronics store — laptops, smartphones, gaming gear, accessories and more with fast delivery across Lebanon.",
   address: { "@type": "PostalAddress", addressCountry: "LB", addressLocality: "Beirut" },
   telephone: process.env.NEXT_PUBLIC_CONTACT_PHONE || "+961-XX-XXX-XXX",
@@ -153,9 +153,9 @@ export default function RootLayout({
   return (
     <html lang="en-US" className={inter.variable} suppressHydrationWarning>
       <head>
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="alternate icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/logo.png" sizes="180x180" />
+        <link rel="icon" type="image/svg+xml" href="/new/favicon.svg" />
+        <link rel="alternate icon" href="/new/favicon.ico" />
+        <link rel="apple-touch-icon" href="/new/logo.png" sizes="180x180" />
         <link rel="preconnect" href="https://cdn11.bigcommerce.com" />
         <link rel="preconnect" href="https://ayoubcomputers.com" />
         <link rel="preconnect" href="https://ezone.com.lb" />

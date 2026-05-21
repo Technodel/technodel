@@ -24,8 +24,19 @@ export default async function SyncReportPage() {
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontSize: 24, fontWeight: 800 }}>🔄 Sync Report</h1>
         <p style={{ color: "var(--c-muted)", marginTop: 4 }}>
-          Track bidirectional sync between ALL-MALL and Technodel. Runs automatically every 6 hours.
+          Track bidirectional sync between ALL-MALL and Technodel. Runs automatically every 6 hours via cron.
         </p>
+        <div style={{ marginTop: 12, display: "flex", gap: 12, flexWrap: "wrap", fontSize: 13, color: "var(--c-muted)" }}>
+          <code style={{ background: "var(--c-surface)", padding: "4px 10px", borderRadius: 6, fontSize: 12 }}>
+            🖥️ VPS: bash setup/cron-sync.sh
+          </code>
+          <code style={{ background: "var(--c-surface)", padding: "4px 10px", borderRadius: 6, fontSize: 12 }}>
+            🌐 Web: GET /api/cron/sync?key=your-secret
+          </code>
+          <code style={{ background: "var(--c-surface)", padding: "4px 10px", borderRadius: 6, fontSize: 12 }}>
+            🪟 Windows: .\setup\cron-sync.ps1
+          </code>
+        </div>
       </div>
 
       {/* Stats cards */}
