@@ -1,7 +1,8 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 // import Image from "next/image";
 import { motion, AnimatePresence, useMotionValueEvent, useScroll } from "framer-motion";
 import { useCartStore } from "@/store/cart";
@@ -24,9 +25,6 @@ export default function Header() {
   });
 
   const isLight = theme === "light";
-
-  // Parallax header shrink
-  const headerHeight = scrolled ? "64px" : "94px";
 
   return (
     <motion.header
@@ -121,21 +119,25 @@ export default function Header() {
       </motion.div>
 
       {/* Main nav */}
-      <div style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px" }}>
+      <div style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 clamp(14px, 4vw, 24px)" }}>
         <motion.div
           animate={{ height: scrolled ? "clamp(48px, 8vw, 64px)" : "clamp(56px, 10vw, 94px)" }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          style={{ display: "flex", alignItems: "center", gap: "clamp(8px, 2vw, 24px)", overflow: "hidden" }}
+          style={{ display: "flex", alignItems: "center", gap: "clamp(8px, 2vw, 24px)", overflow: "hidden", minWidth: 0 }}
         >
           {/* Logo — responsive sizing */}
           <motion.div
             animate={{ scale: scrolled ? 0.85 : 1 }}
             transition={{ duration: 0.3 }}
+            className="header-logo"
           >
             <Link href="/" style={{ textDecoration: "none", flexShrink: 0, display: "flex", alignItems: "center" }}>
-              <img
+              <Image
                 src="/new/logo.png"
                 alt="Technodel"
+                width={220}
+                height={110}
+                priority
                 style={{
                   width: "auto",
                   height: "clamp(60px, 9vw, 110px)",
@@ -158,7 +160,7 @@ export default function Header() {
 
           {/* Right actions */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }} className="hide-mobile">
-            <NavLink href="/shop" label="Shop" active={pathname.startsWith("/shop")} isLight={isLight} />
+            <NavLink href="/shop" label={<><Icon emoji="🛍️" size={16} /> Shop</>} active={pathname.startsWith("/shop")} isLight={isLight} />
             <NavLink href="/deals" label={<><Icon emoji="🔥" size={16} /> Deals</>} active={pathname === "/deals"} isLight={isLight} />
 
             {/* Cart — Premium glow button */}
@@ -233,9 +235,11 @@ export default function Header() {
             style={{
               background: "transparent", border: "none",
               color: "var(--c-text)", fontSize: 24,
-              cursor: "pointer", padding: 4,
+              cursor: "pointer", padding: 10,
             }}
             className="hide-desktop"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
           >
             <motion.span
               key={menuOpen ? "close" : "open"}
@@ -439,6 +443,12 @@ function NavLink({ href, label, active, isLight }: { href: string; label: string
       <Link
         href={href}
         style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 6,
+          whiteSpace: "nowrap",
+          lineHeight: 1,
           padding: "8px 16px",
           borderRadius: "var(--r-md)",
           fontSize: 14,

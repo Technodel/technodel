@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
-import { sectionReveal, staggerContainer, fadeInUp, fadeInLeft, perspectiveReveal, springBouncy } from "@/lib/animations";
+import { sectionReveal, staggerContainer, fadeInUp } from "@/lib/animations";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -63,7 +63,7 @@ export default function Footer() {
             Get exclusive deals, new arrivals, and tech tips delivered to your inbox.
             No spam, ever.
           </p>
-          <form onSubmit={handleSubscribe} style={{ display: "flex", gap: 8, maxWidth: 440, margin: "0 auto" }}>
+          <form onSubmit={handleSubscribe} className="newsletter-form" style={{ display: "flex", gap: 8, maxWidth: 440, margin: "0 auto", flexWrap: "wrap" }}>
             <input
               type="email"
               placeholder="your@email.com"
@@ -89,6 +89,7 @@ export default function Footer() {
       {/* ═══ MAIN FOOTER GRID ═════════════════════════════════════════════ */}
       <div style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "60px 24px 40px" }}>
         <motion.div
+          className="footer-grid"
           variants={staggerContainer}
           style={{
             display: "grid",
@@ -300,7 +301,7 @@ export default function Footer() {
           background: "var(--c-surface2)",
         }}
       >
-        <div style={{
+        <div className="footer-bottom" style={{
           maxWidth: "var(--max-w)", margin: "0 auto",
           display: "flex", justifyContent: "space-between",
           alignItems: "center", flexWrap: "wrap", gap: 12,

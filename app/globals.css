@@ -767,6 +767,7 @@ html.theme-light .btn-primary { color: #fff; }
   .hero-grid > div:last-child { display: none; }
   .hero-stats { gap: 24px !important; flex-wrap: wrap; }
   .hero-stats > div { min-width: 100px; }
+  .section-header { align-items: flex-start !important; }
 }
 
 /* Mobile - general */
@@ -807,9 +808,12 @@ html.theme-light .btn-primary { color: #fff; }
   .hero-section { min-height: auto !important; padding-bottom: 60px !important; }
   .hero-section .hero-content { padding-top: 40px !important; }
   .hero-section .hero-stats { margin-top: 32px !important; padding-top: 20px !important; }
+  .hero-grid { min-height: 0 !important; }
+  .stats-row > div { min-width: calc(50% - 8px); }
+  .section-header a { width: 100%; justify-content: flex-start; }
 
   /* Category horizontal row - smaller tiles */
-  .cat-row { gap: 10px !important; padding-bottom: 4px !important; }
+  .cat-row { gap: 10px !important; padding-bottom: 4px !important; display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .cat-tile { padding: 16px 18px !important; min-width: 80px !important; gap: 6px !important; }
   .cat-tile .cat-icon { font-size: 22px !important; }
   .cat-tile .cat-label { font-size: 11px !important; }
@@ -826,6 +830,7 @@ html.theme-light .btn-primary { color: #fff; }
   .newsletter-section { padding: 32px 20px !important; }
   .newsletter-section .newsletter-flex { flex-direction: column !important; text-align: center !important; }
   .newsletter-section .newsletter-form { max-width: 100% !important; }
+  .newsletter-form > * { width: 100%; }
 
   /* Hero banner carousel */
   .hero-banner { aspect-ratio: 3/2 !important; border-radius: var(--r-lg) !important; }
@@ -841,6 +846,7 @@ html.theme-light .btn-primary { color: #fff; }
   .header-logo img { height: 48px !important; }
   .header-top-bar { padding: 4px 0 !important; }
   .header-top-bar span { font-size: 11px !important; }
+  .section-lazy { contain-intrinsic-size: 1px 640px; }
 
   /* Section headers */
   .section-header h2 { font-size: 18px !important; }
@@ -866,7 +872,7 @@ html.theme-light .btn-primary { color: #fff; }
 /* Small phones */
 @media (max-width: 400px) {
   .products-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
-  .cat-row { gap: 8px !important; }
+  .cat-row { gap: 8px !important; grid-template-columns: 1fr !important; }
   .cat-tile { padding: 14px 14px !important; min-width: 72px !important; }
   .cat-tile .cat-icon { font-size: 20px !important; }
   .cat-tile .cat-label { font-size: 10px !important; }

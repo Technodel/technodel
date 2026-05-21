@@ -2,36 +2,43 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { ReactNode } from "react";
+import dynamic from "next/dynamic";
+import type { ComponentProps } from "react";
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
-import ProductCard from "@/components/product/ProductCard";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 import { Icon } from "@/components/ui/Icon";
-import AnimatedSection, { FadeInUp, ScaleIn } from "@/components/ui/AnimatedSection";
 import {
-  heroText, heroChildren, staggerContainer, fadeInUp,
-  scaleIn, springBouncy, smoothEase, sectionReveal,
-  blurReveal, clipReveal, staggerHero, easeOutExpo,
-  staggerSlowWithDelay, floatSlow, perspectiveReveal,
-  fadeInLeft, fadeInRight, easeOutBack,
+  heroText, staggerContainer, fadeInUp,
+  blurReveal, clipReveal, staggerHero,
 } from "@/lib/animations";
 
 interface Category { id: string; name: string; slug: string; icon?: string | null; image?: string | null; }
 interface Banner { id: string; title: string; subtitle?: string | null; imageUrl: string; linkUrl?: string | null; badge?: string | null; }
 interface HeroSlide { id: string; title: string; subtitle?: string; imageUrl: string; linkUrl?: string; badge?: string; }
+type HomeBelowFoldProps = ComponentProps<typeof HomeBelowFold>;
+type HomeProduct = HomeBelowFoldProps["featured"][number];
 
 interface Props {
-  featured: any[];
+  featured: HomeProduct[];
   categories: Category[];
   banners: Banner[];
-  newArrivals: any[];
-  deals: any[];
+  newArrivals: HomeProduct[];
+  deals: HomeProduct[];
 }
 
 const FEATURED_TAGS = [
   "Smartphones", "Laptops", "Gaming", "Audio",
   "Accessories", "Tablets", "Networking", "Cameras",
 ];
+
+const HomeBelowFold = dynamic(() => import("@/components/home/HomeBelowFold"), {
+  ssr: false,
+  loading: () => (
+    <div className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
+      <div style={{ height: 220, borderRadius: "var(--r-xl)", border: "1px solid var(--c-border)", background: "var(--c-surface)" }} />
+    </div>
+  ),
+});
 
 // ─── PARALLAX MOUSE TRACKER ─────────────────────────────────────────────────────
 function useMousePosition(enabled: boolean) {
@@ -144,9 +151,11 @@ function CountUp({ end, duration = 2000, prefix = "", suffix = "" }: {
 export default function HomeClient({ featured, categories, banners, newArrivals, deals }: Props) {
   const router = useRouter();
   const performanceMode = true;
+  const [showBelowFold, setShowBelowFold] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const [tagIndex, setTagIndex] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const belowFoldRef = useRef<HTMLDivElement>(null);
   const mouse = useMousePosition(!performanceMode);
   const { scrollY } = useScroll();
 
@@ -154,6 +163,8 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
   const heroParallaxY = useTransform(scrollY, [0, 600], [0, performanceMode ? 0 : 150]);
   const heroOpacity = useTransform(scrollY, [0, 500], [1, performanceMode ? 1 : 0]);
   const heroScale = useTransform(scrollY, [0, 500], [1, performanceMode ? 1 : 0.95]);
+  const gridParallaxX = useTransform(mouse.x, [-1, 1], [-20, 20]);
+  const gridParallaxY = useTransform(mouse.y, [-1, 1], [-20, 20]);
 
   // Typewriter-like tag cycling
   useEffect(() => {
@@ -161,10 +172,11 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
     return () => clearInterval(t);
   }, []);
 
-  const dealSlides: HeroSlide[] = (deals || []).slice(0, 5).map((p: any) => {
+  const dealSlides: HeroSlide[] = (deals || []).slice(0, 5).map((p) => {
     const img = parseFirstImage(p.images);
-    const hasDiscount = typeof p.comparePrice === "number" && typeof p.displayPrice === "number" && p.comparePrice > p.displayPrice;
-    const pct = hasDiscount ? Math.round(((p.comparePrice - p.displayPrice) / p.comparePrice) * 100) : 0;
+    const comparePrice = typeof p.comparePrice === "number" ? p.comparePrice : null;
+    const hasDiscount = comparePrice !== null && typeof p.displayPrice === "number" && comparePrice > p.displayPrice;
+    const pct = hasDiscount ? Math.round(((comparePrice - p.displayPrice) / comparePrice) * 100) : 0;
     return {
       id: p.id,
       title: p.title,
@@ -199,6 +211,23 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [heroBanners.length]);
 
+  useEffect(() => {
+    if (showBelowFold) return;
+    const node = belowFoldRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShowBelowFold(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "320px 0px" }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [showBelowFold]);
+
   return (
     <div className="page-enter">
 
@@ -206,7 +235,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
           HERO SECTION — Immersive 3D Parallax Experience
           ═══════════════════════════════════════════════════════════════════ */}
       <motion.section
-        className="hero-gradient"
+        className="hero-gradient hero-section"
         style={{
           padding: "0 0 100px",
           position: "relative",
@@ -236,14 +265,15 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
                 linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px)
               `,
               backgroundSize: "60px 60px",
-              x: useTransform(mouse.x, [-1, 1], [-20, 20]),
-              y: useTransform(mouse.y, [-1, 1], [-20, 20]),
+              x: gridParallaxX,
+              y: gridParallaxY,
               pointerEvents: "none",
             }}
           />
         )}
 
         <motion.div
+          className="hero-content"
           style={{
             maxWidth: "var(--max-w)",
             margin: "0 auto",
@@ -387,7 +417,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
                   { label: "Brands", end: 200, suffix: "+" },
                   { label: "Delivery", value: "1-3 Days", end: 0 },
                   { label: "Happy Clients", end: 15000, suffix: "+" },
-                ].map((stat, i) => (
+                ].map((stat: { label: string; end: number; suffix?: string; value?: string }, i) => (
                   <motion.div
                     key={stat.label}
                     variants={fadeInUp}
@@ -406,7 +436,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
                       {stat.value ? (
                         stat.value
                       ) : (
-                        <CountUp end={(stat as any).end || 0} duration={2000 + i * 300} />
+                        <CountUp end={stat.end} duration={2000 + i * 300} />
                       )}
                       {stat.suffix || ""}
                     </motion.div>
@@ -435,7 +465,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
                   overflow: "hidden",
                   aspectRatio: "4/3",
                   boxShadow: "0 40px 80px rgba(0,0,0,0.4), 0 0 60px rgba(0,200,255,0.06)",
-                }} className="grad-border-accent">
+                }} className="grad-border-accent hero-banner">
                   <AnimatePresence mode="wait">
                     {heroBanners.map((b, i) =>
                       i === activeSlide ? (
@@ -504,7 +534,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
                             position: "absolute", bottom: 0, left: 0, right: 0,
                             padding: "40px 28px 32px",
                             background: "linear-gradient(to top, rgba(4,11,20,0.95) 0%, rgba(4,11,20,0.4) 50%, transparent 100%)",
-                          }}>
+                          }} className="banner-content">
                             {b.badge && (
                               <motion.span
                                 className="badge badge-hot"
@@ -591,477 +621,16 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
         </motion.div>
       </motion.section>
 
-      {/* ═══ CATEGORIES — Colored Tiles Grid ══════════════════════════════ */}
-      <AnimatedSection className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
-        <FadeInUp>
-          <SectionHeader title="Browse by Category" link="/shop" linkLabel="All categories →" />
-        </FadeInUp>
-        <div className="cat-row">
-          {(categories.length > 0 ? categories : DEMO_CATS).map((cat, i) => {
-            const c = CAT_COLORS[cat.slug] || CAT_COLORS.default;
-            return (
-              <motion.div
-                key={cat.id || cat.slug}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04, duration: 0.35 }}
-              >
-                <Link href={`/shop/${cat.slug}`} style={{ textDecoration: "none" }}>
-                  <motion.div
-                    className="cat-tile"
-                    style={{
-                      background: `linear-gradient(135deg, ${c.bg}, ${c.bg}dd)`,
-                      borderColor: c.border,
-                      color: c.text,
-                    }}
-                    whileHover={{
-                      y: -6,
-                      borderColor: c.accent,
-                      boxShadow: `0 12px 32px ${c.shadow}`,
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <motion.div
-                      className="cat-icon"
-                      style={{ color: c.text }}
-                      whileHover={{ scale: 1.2, rotate: [0, -10, 10, 0] }}
-                      transition={{ duration: 0.35 }}
-                    >
-                      <Icon emoji={cat.icon || "📦"} size={28} />
-                    </motion.div>
-                    <span className="cat-label" style={{ color: c.text }}>{cat.name}</span>
-                  </motion.div>
-                </Link>
-              </motion.div>
-            );
-          })}
-        </div>
-      </AnimatedSection>
-
-      {/* ═══ FEATURED PRODUCTS ═══════════════════════════════════════════ */}
-      <AnimatedSection className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
-        <FadeInUp>
-          <SectionHeader title={<><Icon emoji="⭐" size={22} /> Featured Products</>} link="/shop?featured=1" linkLabel="View all →" />
-        </FadeInUp>
-        {featured.length > 0 ? (
-          <motion.div
-            className="products-grid"
-            variants={staggerGrid}
-          >
-            {featured.map((p) => (
-              <motion.div key={p.id} variants={fadeInUp}>
-                <ProductCard product={p} />
-              </motion.div>
-            ))}
-          </motion.div>
+      <div ref={belowFoldRef}>
+        {showBelowFold ? (
+          <HomeBelowFold featured={featured} categories={categories} deals={deals} newArrivals={newArrivals} />
         ) : (
-          <EmptyState message="Featured products will appear here" icon="⭐" />
-        )}
-      </AnimatedSection>
-
-      {/* ═══ HOT DEALS ════════════════════════════════════════════════════ */}
-      <AnimatedSection className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
-        <FadeInUp>
-          <SectionHeader title={<><Icon emoji="🔥" size={22} /> Hot Deals</>} link="/deals" linkLabel="View all deals →" />
-        </FadeInUp>
-        {deals.length > 0 ? (
-          <motion.div
-            className="products-grid"
-            variants={staggerGrid}
-          >
-            {deals.map((p: any) => (
-              <motion.div key={p.id} variants={fadeInUp}>
-                <ProductCard product={p} />
-              </motion.div>
-            ))}
-          </motion.div>
-        ) : (
-          <EmptyState message="Hot deals are loading — check back soon!" icon="🔥" />
-        )}
-      </AnimatedSection>
-
-      {/* ═══ PROMO BANNER STRIP — Why Technodel ═══════════════════════════ */}
-      <AnimatedSection className="section-lazy" stagger style={{ margin: "0 0 80px" }}>
-        <motion.div
-          className="glass-strong"
-          style={{
-            borderTop: "1px solid var(--c-border)",
-            borderBottom: "1px solid var(--c-border)",
-            overflow: "hidden",
-            position: "relative",
-          }}
-        >
-          <FloatingOrb colorClass="orb-cyan" size={300} initialX={-5} initialY={20} speed={0.5} />
-          <div style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "48px 24px" }}>
-            <motion.div
-              variants={staggerContainer}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: 40,
-              }}
-            >
-              {[
-                { icon: "🚚", title: "Lightning Delivery", desc: "1-3 days across Lebanon", color: "var(--c-accent)" },
-                { icon: "✅", title: "100% Authentic", desc: "Only genuine, warrantied products", color: "var(--c-success)" },
-                { icon: "💰", title: "Price Match", desc: "Matched with competitors daily", color: "var(--c-warning)" },
-                { icon: "🔄", title: "Easy Returns", desc: "7-day hassle-free returns", color: "var(--c-accent2)" },
-              ].map((f, i) => (
-                <motion.div
-                  key={f.title}
-                  variants={perspectiveReveal}
-                  custom={i}
-                  style={{
-                    display: "flex", gap: 18,
-                    alignItems: "flex-start",
-                    padding: "8px",
-                  }}
-                >
-                  <motion.div
-                    style={{
-                      width: 52, height: 52, borderRadius: "var(--r-md)",
-                      background: `rgba(from ${f.color} r g b / 0.1)`,
-                      display: "flex", alignItems: "center",
-                      justifyContent: "center", flexShrink: 0,
-                      border: `1px solid rgba(from ${f.color} r g b / 0.2)`,
-                    }}
-                    whileHover={{ scale: 1.15, rotate: [0, -8, 8, 0] }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <Icon emoji={f.icon} size={24} />
-                  </motion.div>
-                  <div style={{ paddingTop: 4 }}>
-                    <div style={{
-                      fontWeight: 700, fontSize: 15,
-                      marginBottom: 4, color: "var(--c-text)",
-                    }}>
-                      {f.title}
-                    </div>
-                    <div style={{
-                      fontSize: 13, color: "var(--c-muted)",
-                      lineHeight: 1.5,
-                    }}>
-                      {f.desc}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
+          <div className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
+            <div style={{ height: 800, borderRadius: "var(--r-xl)", border: "1px solid var(--c-border)", background: "var(--c-surface)" }} />
           </div>
-        </motion.div>
-      </AnimatedSection>
-
-      {/* ═══ NEW ARRIVALS ════════════════════════════════════════════════ */}
-      <AnimatedSection className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
-        <FadeInUp>
-          <SectionHeader title={<><Icon emoji="🆕" size={22} /> New Arrivals</>} link="/shop?new=1" linkLabel="See all new →" />
-        </FadeInUp>
-        {newArrivals.length > 0 ? (
-          <motion.div
-            className="products-grid"
-            variants={staggerGrid}
-          >
-            {newArrivals.map((p) => (
-              <motion.div key={p.id} variants={fadeInUp}>
-                <ProductCard product={p} />
-              </motion.div>
-            ))}
-          </motion.div>
-        ) : (
-          <EmptyState message="New products will appear here once added" icon="🆕" />
         )}
-      </AnimatedSection>
-
-      {/* ═══ BRANDS SHOWCASE ════════════════════════════════════════════ */}
-      <AnimatedSection className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
-        <FadeInUp>
-          <h2 style={{
-            fontSize: 24, fontWeight: 800,
-            marginBottom: 32, letterSpacing: "-0.3px",
-            textAlign: "center",
-          }}>
-            Trusted Brands
-          </h2>
-        </FadeInUp>
-        <motion.div
-          variants={staggerContainer}
-          style={{
-            display: "flex", flexWrap: "wrap", gap: 16,
-            justifyContent: "center", alignItems: "center",
-          }}
-        >
-          {["Apple", "Samsung", "Sony", "HP", "Dell", "Lenovo", "ASUS", "Acer", "MSI", "Logitech", "JBL", "Canon"].map((brand, i) => (
-            <motion.div
-              key={brand}
-              variants={scaleIn}
-              custom={i}
-              whileHover={{ scale: 1.08, y: -4 }}
-            >
-              <Link
-                href={`/shop?brand=${brand}`}
-                style={{
-                  textDecoration: "none",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  padding: "10px 22px",
-                  borderRadius: "var(--r-md)",
-                  background: "var(--c-surface)",
-                  border: "1px solid var(--c-border-light)",
-                  color: "var(--c-muted)",
-                  fontSize: 14,
-                  fontWeight: 700,
-                  letterSpacing: "0.5px",
-                  transition: "all 0.25s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(0,200,255,0.3)";
-                  e.currentTarget.style.color = "var(--c-accent)";
-                  e.currentTarget.style.background = "rgba(0,200,255,0.05)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "var(--c-border-light)";
-                  e.currentTarget.style.color = "var(--c-muted)";
-                  e.currentTarget.style.background = "var(--c-surface)";
-                }}
-              >
-                {brand}
-              </Link>
-            </motion.div>
-          ))}
-        </motion.div>
-      </AnimatedSection>
-
-      {/* ═══ NEWSLETTER + WHATSAPP CTA ══════════════════════════════════ */}
-      <AnimatedSection className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
-        <motion.div
-          style={{
-            borderRadius: "var(--r-xxl)",
-            padding: "56px 48px",
-            position: "relative",
-            overflow: "hidden",
-            background: "linear-gradient(135deg, rgba(0,200,255,0.08), rgba(124,58,255,0.08))",
-            border: "1px solid var(--c-border)",
-          }}
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <FloatingOrb colorClass="orb-cyan" size={400} initialX={80} initialY={-20} speed={0.7} />
-          <FloatingOrb colorClass="orb-purple" size={300} initialX={-10} initialY={60} speed={0.5} />
-
-          <div style={{
-            display: "flex", gap: 40,
-            alignItems: "center",
-            flexWrap: "wrap",
-            position: "relative",
-            zIndex: 1,
-          }}>
-            <div style={{ flex: 1, minWidth: 260 }}>
-              <motion.h2
-                style={{
-                  fontSize: 30, fontWeight: 900,
-                  marginBottom: 12,
-                  letterSpacing: "-0.5px",
-                  lineHeight: 1.15,
-                }}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 }}
-              >
-                <span className="grad-text">Order via WhatsApp</span> <Icon emoji="💬" size={22} />
-              </motion.h2>
-              <motion.p
-                style={{
-                  color: "var(--c-muted)",
-                  fontSize: 16,
-                  lineHeight: 1.7,
-                  marginBottom: 24,
-                }}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
-              >
-                Prefer personal service? Chat with us on WhatsApp.
-                We&apos;ll help you find the perfect product and arrange
-                fast delivery anywhere in Lebanon.
-              </motion.p>
-
-              {/* WhatsApp CTA */}
-              <motion.a
-                href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "961XXXXXXXX"}?text=Hi%20Technodel%2C%20I%20need%20help%20choosing%20tech`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 12,
-                  padding: "16px 32px",
-                  background: "#25d366",
-                  color: "#fff",
-                  borderRadius: "var(--r-md)",
-                  fontWeight: 700,
-                  fontSize: 17,
-                  textDecoration: "none",
-                  boxShadow: "0 8px 32px rgba(37,211,102,0.3)",
-                  position: "relative",
-                  overflow: "hidden",
-                }}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                <motion.svg
-                  width="24" height="24" viewBox="0 0 24 24" fill="currentColor"
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                >
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.845L.057 23.512a.5.5 0 0 0 .612.612l5.716-1.465A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.955 0-3.792-.537-5.368-1.472l-.385-.229-3.99 1.023 1.037-3.898-.247-.4A9.961 9.961 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
-                </motion.svg>
-                Chat on WhatsApp
-              </motion.a>
-            </div>
-
-            <div style={{ flex: "0 0 auto", textAlign: "center" }}>
-              <motion.div
-                style={{
-                  width: 140, height: 140,
-                  borderRadius: "50%",
-                  background: "rgba(37,211,102,0.08)",
-                  border: "1px solid rgba(37,211,102,0.2)",
-                  display: "flex", alignItems: "center",
-                  justifyContent: "center",
-                }}
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
-                <Icon emoji="💬" size={64} />
-              </motion.div>
-              <div style={{
-                fontSize: 12, color: "var(--c-muted)",
-                marginTop: 8, fontWeight: 600,
-              }}>
-                Response in minutes
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </AnimatedSection>
+      </div>
 
     </div>
   );
 }
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION HEADER
-// ═══════════════════════════════════════════════════════════════════════════════
-function SectionHeader({ title, link, linkLabel }: { title: string | ReactNode; link: string; linkLabel: string }) {
-  const [isHovered, setIsHovered] = useState(false);
-  return (
-    <motion.div
-      style={{
-        display: "flex", justifyContent: "space-between",
-        alignItems: "center", marginBottom: 28,
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <h2 style={{
-        fontSize: 26, fontWeight: 800,
-        letterSpacing: "-0.3px",
-        background: isHovered ? "var(--grad-accent)" : "none",
-        WebkitBackgroundClip: isHovered ? "text" : "none",
-        WebkitTextFillColor: isHovered ? "transparent" : "var(--c-text)",
-        backgroundClip: isHovered ? "text" : "none",
-        transition: "all 0.3s ease",
-      }}>
-        {title}
-      </h2>
-      <Link href={link} style={{
-        fontSize: 14, color: isHovered ? "var(--c-accent)" : "var(--c-muted)",
-        textDecoration: "none", fontWeight: 600,
-        display: "flex", alignItems: "center", gap: 6,
-        transition: "color 0.3s ease",
-      }}>
-        {linkLabel}
-        <motion.span
-          animate={{ x: isHovered ? 4 : 0 }}
-          transition={{ duration: 0.2 }}
-          style={{ display: "inline-flex" }}
-        >
-          <Icon name="arrow-right" size={14} />
-        </motion.span>
-      </Link>
-    </motion.div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// EMPTY STATE
-// ═══════════════════════════════════════════════════════════════════════════════
-function EmptyState({ message, icon = "📦" }: { message: string; icon?: string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      style={{
-        textAlign: "center", padding: "60px 24px",
-        color: "var(--c-muted)",
-        background: "var(--c-surface)",
-        borderRadius: "var(--r-xl)",
-        border: "1px dashed var(--c-border)",
-      }}
-    >
-      <motion.div
-        style={{ marginBottom: 12, display: "inline-flex" }}
-        animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
-        transition={{ duration: 3, repeat: Infinity }}
-      >
-        <Icon emoji={icon} size={48} />
-      </motion.div>
-      <p style={{ fontSize: 15 }}>{message}</p>
-    </motion.div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// STARTER DATA
-// ═══════════════════════════════════════════════════════════════════════════════
-const staggerGrid = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.05, delayChildren: 0.1 },
-  },
-};
-
-const DEMO_CATS = [
-  { id: "1", slug: "smartphones",  name: "Smartphones",  icon: "📱" },
-  { id: "2", slug: "laptops",      name: "Laptops",      icon: "💻" },
-  { id: "3", slug: "tablets",      name: "Tablets",      icon: "📲" },
-  { id: "4", slug: "gaming",       name: "Gaming",       icon: "🎮" },
-  { id: "5", slug: "audio",        name: "Audio",        icon: "🎧" },
-  { id: "6", slug: "accessories",  name: "Accessories",  icon: "🔌" },
-  { id: "7", slug: "networking",   name: "Networking",   icon: "📡" },
-  { id: "8", slug: "cameras",      name: "Cameras",      icon: "📷" },
-  { id: "9", slug: "printers",     name: "Printers",     icon: "🖨️" },
-  { id: "10", slug: "smart-home",  name: "Smart Home",   icon: "🏠" },
-  { id: "11", slug: "wearables",   name: "Wearables",    icon: "⌚" },
-  { id: "12", slug: "storage",     name: "Storage",      icon: "💾" },
-];
-
-const CAT_COLORS: Record<string, { bg: string; border: string; text: string; accent: string; shadow: string }> = {
-  default:       { bg: "#1a1a2e", border: "#2a2a4e", text: "#e0e0e0", accent: "#4a4a7e", shadow: "rgba(30,30,60,0.4)" },
-  smartphones:   { bg: "#0d47a1", border: "#1565c0", text: "#fff", accent: "#42a5f5", shadow: "rgba(13,71,161,0.5)" },
-  laptops:       { bg: "#006064", border: "#00838f", text: "#fff", accent: "#26c6da", shadow: "rgba(0,96,100,0.5)" },
-  tablets:       { bg: "#004d40", border: "#00695c", text: "#fff", accent: "#26a69a", shadow: "rgba(0,77,64,0.5)" },
-  gaming:        { bg: "#4a148c", border: "#6a1b9a", text: "#fff", accent: "#ab47bc", shadow: "rgba(74,20,140,0.5)" },
-  audio:         { bg: "#880e4f", border: "#ad1457", text: "#fff", accent: "#ec407a", shadow: "rgba(136,14,79,0.5)" },
-  accessories:   { bg: "#e65100", border: "#ef6c00", text: "#fff", accent: "#ffa726", shadow: "rgba(230,81,0,0.5)" },
-  networking:    { bg: "#1b5e20", border: "#2e7d32", text: "#fff", accent: "#66bb6a", shadow: "rgba(27,94,32,0.5)" },
-  cameras:       { bg: "#b71c1c", border: "#c62828", text: "#fff", accent: "#ef5350", shadow: "rgba(183,28,28,0.5)" },
-  printers:      { bg: "#3e2723", border: "#4e342e", text: "#fff", accent: "#8d6e63", shadow: "rgba(62,39,35,0.5)" },
-  "smart-home":  { bg: "#1a237e", border: "#283593", text: "#fff", accent: "#5c6bc0", shadow: "rgba(26,35,126,0.5)" },
-  wearables:     { bg: "#f57f17", border: "#f9a825", text: "#1a1a2e", accent: "#ffd54f", shadow: "rgba(245,127,23,0.4)" },
-  storage:       { bg: "#37474f", border: "#455a64", text: "#fff", accent: "#78909c", shadow: "rgba(55,71,79,0.5)" },
-};
