@@ -560,41 +560,50 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
         </motion.div>
       </motion.section>
 
-      {/* ═══ CATEGORIES — Horizontal Scroll Row ═══════════════════════════ */}
+      {/* ═══ CATEGORIES — Colored Tiles Grid ══════════════════════════════ */}
       <AnimatedSection style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
         <FadeInUp>
           <SectionHeader title="Browse by Category" link="/shop" linkLabel="All categories →" />
         </FadeInUp>
         <div className="cat-row">
-          {(categories.length > 0 ? categories : DEMO_CATS).map((cat, i) => (
-            <motion.div
-              key={cat.id || cat.slug}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.04, duration: 0.35 }}
-            >
-              <Link href={`/shop/${cat.slug}`} style={{ textDecoration: "none" }}>
-                <motion.div
-                  className="glass cat-tile"
-                  whileHover={{
-                    y: -6,
-                    borderColor: "rgba(0,200,255,0.3)",
-                    boxShadow: "0 12px 32px rgba(0,0,0,0.25)",
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                >
+          {(categories.length > 0 ? categories : DEMO_CATS).map((cat, i) => {
+            const c = CAT_COLORS[cat.slug] || CAT_COLORS.default;
+            return (
+              <motion.div
+                key={cat.id || cat.slug}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.04, duration: 0.35 }}
+              >
+                <Link href={`/shop/${cat.slug}`} style={{ textDecoration: "none" }}>
                   <motion.div
-                    className="cat-icon"
-                    whileHover={{ scale: 1.15, rotate: [0, -8, 8, 0] }}
-                    transition={{ duration: 0.35 }}
+                    className="cat-tile"
+                    style={{
+                      background: `linear-gradient(135deg, ${c.bg}, ${c.bg}dd)`,
+                      borderColor: c.border,
+                      color: c.text,
+                    }}
+                    whileHover={{
+                      y: -6,
+                      borderColor: c.accent,
+                      boxShadow: `0 12px 32px ${c.shadow}`,
+                    }}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    <Icon emoji={cat.icon || "📦"} size={28} />
+                    <motion.div
+                      className="cat-icon"
+                      style={{ color: c.text }}
+                      whileHover={{ scale: 1.2, rotate: [0, -10, 10, 0] }}
+                      transition={{ duration: 0.35 }}
+                    >
+                      <Icon emoji={cat.icon || "📦"} size={28} />
+                    </motion.div>
+                    <span className="cat-label" style={{ color: c.text }}>{cat.name}</span>
                   </motion.div>
-                  <span className="cat-label">{cat.name}</span>
-                </motion.div>
-              </Link>
-            </motion.div>
-          ))}
+                </Link>
+              </motion.div>
+            );
+          })}
         </div>
       </AnimatedSection>
 
@@ -1009,3 +1018,19 @@ const DEMO_CATS = [
   { id: "11", slug: "wearables",   name: "Wearables",    icon: "⌚" },
   { id: "12", slug: "storage",     name: "Storage",      icon: "💾" },
 ];
+
+const CAT_COLORS: Record<string, { bg: string; border: string; text: string; accent: string; shadow: string }> = {
+  default:       { bg: "#1a1a2e", border: "#2a2a4e", text: "#e0e0e0", accent: "#4a4a7e", shadow: "rgba(30,30,60,0.4)" },
+  smartphones:   { bg: "#0d47a1", border: "#1565c0", text: "#fff", accent: "#42a5f5", shadow: "rgba(13,71,161,0.5)" },
+  laptops:       { bg: "#006064", border: "#00838f", text: "#fff", accent: "#26c6da", shadow: "rgba(0,96,100,0.5)" },
+  tablets:       { bg: "#004d40", border: "#00695c", text: "#fff", accent: "#26a69a", shadow: "rgba(0,77,64,0.5)" },
+  gaming:        { bg: "#4a148c", border: "#6a1b9a", text: "#fff", accent: "#ab47bc", shadow: "rgba(74,20,140,0.5)" },
+  audio:         { bg: "#880e4f", border: "#ad1457", text: "#fff", accent: "#ec407a", shadow: "rgba(136,14,79,0.5)" },
+  accessories:   { bg: "#e65100", border: "#ef6c00", text: "#fff", accent: "#ffa726", shadow: "rgba(230,81,0,0.5)" },
+  networking:    { bg: "#1b5e20", border: "#2e7d32", text: "#fff", accent: "#66bb6a", shadow: "rgba(27,94,32,0.5)" },
+  cameras:       { bg: "#b71c1c", border: "#c62828", text: "#fff", accent: "#ef5350", shadow: "rgba(183,28,28,0.5)" },
+  printers:      { bg: "#3e2723", border: "#4e342e", text: "#fff", accent: "#8d6e63", shadow: "rgba(62,39,35,0.5)" },
+  "smart-home":  { bg: "#1a237e", border: "#283593", text: "#fff", accent: "#5c6bc0", shadow: "rgba(26,35,126,0.5)" },
+  wearables:     { bg: "#f57f17", border: "#f9a825", text: "#1a1a2e", accent: "#ffd54f", shadow: "rgba(245,127,23,0.4)" },
+  storage:       { bg: "#37474f", border: "#455a64", text: "#fff", accent: "#78909c", shadow: "rgba(55,71,79,0.5)" },
+};

@@ -475,41 +475,37 @@ html.theme-light .btn-primary { color: #fff; }
   transform: translateY(-1px);
 }
 
-/* ─── CATEGORY HORIZONTAL ROW ──────────────────────────────────────────────── */
+/* ─── CATEGORY WRAPPING GRID ────────────────────────────────────────────────── */
 .cat-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 8px;
-  scrollbar-width: none;
+  justify-content: center;
+  padding-bottom: 4px;
 }
-.cat-row::-webkit-scrollbar { display: none; }
 
 .cat-tile {
   display: flex; flex-direction: column;
   align-items: center; gap: 8px;
-  padding: 20px 24px;
+  padding: 18px 22px;
   border-radius: var(--r-lg);
   text-align: center;
   cursor: pointer;
   border: 1px solid var(--c-border-light);
   transition: all 0.25s ease;
-  scroll-snap-align: start;
-  min-width: 100px;
-  flex-shrink: 0;
+  min-width: 90px;
 }
 
 .cat-icon {
   display: inline-flex; align-items: center; justify-content: center;
+  transition: color 0.25s ease;
 }
 
 .cat-label {
   font-size: 12px; font-weight: 600;
-  color: var(--c-text);
   letter-spacing: -0.2px;
   white-space: nowrap;
+  opacity: 0.95;
 }
 
 /* ─── ADMIN SIDEBAR ──────────────────────────────────────────────────────────── */
