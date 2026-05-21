@@ -545,7 +545,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: post.title,
       description: post.description,
-      url: `https://technodel.net/blog/${slug}`,
+      url: `https://technodel.net/new/blog/${slug}`,
       type: "article",
       publishedTime: post.date,
       authors: [post.author],
@@ -558,7 +558,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: post.title,
       description: post.description,
     },
-    alternates: { canonical: `https://technodel.net/blog/${slug}` },
+    alternates: { canonical: `https://technodel.net/new/blog/${slug}` },
   };
 }
 
@@ -609,17 +609,17 @@ export default async function BlogPostPage({ params }: Props) {
     description: post.description,
     author: { "@type": "Person", name: post.author },
     datePublished: post.date,
-    publisher: { "@type": "Organization", name: "Technodel", url: "https://technodel.net" },
-    mainEntityOfPage: { "@type": "WebPage", "@id": `https://technodel.net/blog/${slug}` },
+    publisher: { "@type": "Organization", name: "Technodel", url: "https://technodel.net/new" },
+    mainEntityOfPage: { "@type": "WebPage", "@id": `https://technodel.net/new/blog/${slug}` },
   };
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://technodel.net" },
-      { "@type": "ListItem", position: 2, name: "Blog", item: "https://technodel.net/blog" },
-      { "@type": "ListItem", position: 3, name: post.title, item: `https://technodel.net/blog/${slug}` },
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://technodel.net/new" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://technodel.net/new/blog" },
+      { "@type": "ListItem", position: 3, name: post.title, item: `https://technodel.net/new/blog/${slug}` },
     ],
   };
 

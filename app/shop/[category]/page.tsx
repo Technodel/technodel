@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      url: `https://technodel.net/shop/${cat.slug}`,
+      url: `https://technodel.net/new/shop/${cat.slug}`,
       siteName: "Technodel",
       type: "website",
       locale: "en_US",
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
     },
     alternates: {
-      canonical: `https://technodel.net/shop/${cat.slug}`,
+      canonical: `https://technodel.net/new/shop/${cat.slug}`,
     },
   };
 }

@@ -5,11 +5,11 @@ export const metadata: Metadata = {
   title: "About Technodel – Lebanon's Premium Tech Store",
   description:
     "Learn about Technodel, Lebanon's most trusted online tech store. We offer genuine products, competitive prices, and fast delivery across all Lebanon.",
-  alternates: { canonical: "https://technodel.net/about" },
+  alternates: { canonical: "https://technodel.net/new/about" },
   openGraph: {
     title: "About Technodel – Lebanon's #1 Tech Store",
     description: "Discover the story behind Technodel — Lebanon's premier destination for laptops, smartphones, gaming gear and accessories.",
-    url: "https://technodel.net/about",
+    url: "https://technodel.net/new/about",
     siteName: "Technodel",
     type: "website",
     locale: "en_US",
@@ -27,8 +27,8 @@ const aboutSchema = {
   "@type": "AboutPage",
   name: "About Technodel",
   description: "Lebanon's premium tech store — laptops, smartphones, gaming, and accessories.",
-  url: "https://technodel.net/about",
-  isPartOf: { "@type": "WebSite", name: "Technodel", url: "https://technodel.net" },
+  url: "https://technodel.net/new/about",
+  isPartOf: { "@type": "WebSite", name: "Technodel", url: "https://technodel.net/new" },
 };
 
 export default function AboutPage() {

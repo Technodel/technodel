@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Contact Us – Technodel Lebanon",
     description: "Get in touch with Technodel Lebanon. Call, WhatsApp, email or visit us.",
-    url: "https://technodel.net/contact",
+    url: "https://technodel.net/new/contact",
     siteName: "Technodel",
     type: "website",
     locale: "en_US",
@@ -16,14 +16,14 @@ export const metadata: Metadata = {
     title: "Contact Us – Technodel Lebanon",
     description: "Get in touch with Technodel Lebanon.",
   },
-  alternates: { canonical: "https://technodel.net/contact" },
+  alternates: { canonical: "https://technodel.net/new/contact" },
 };
 
 const contactSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "Technodel",
-  url: "https://technodel.net",
+  url: "https://technodel.net/new",
   contactPoint: {
     "@type": "ContactPoint",
     telephone: process.env.NEXT_PUBLIC_CONTACT_PHONE || "+961-XX-XXX-XXX",
@@ -46,8 +46,8 @@ const breadcrumbSchema = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Home", item: "https://technodel.net" },
-    { "@type": "ListItem", position: 2, name: "Contact", item: "https://technodel.net/contact" },
+    { "@type": "ListItem", position: 1, name: "Home", item: "https://technodel.net/new" },
+    { "@type": "ListItem", position: 2, name: "Contact", item: "https://technodel.net/new/contact" },
   ],
 };
 

@@ -4,12 +4,12 @@ export const metadata: Metadata = {
   title: "Privacy Policy – Technodel Lebanon",
   description:
     "Technodel's privacy policy explains how we collect, use, and protect your personal information when you shop with us in Lebanon.",
-  alternates: { canonical: "https://technodel.net/privacy" },
+  alternates: { canonical: "https://technodel.net/new/privacy" },
   robots: { index: false, follow: true },
   openGraph: {
     title: "Privacy Policy – Technodel Lebanon",
     description: "Learn how Technodel protects your personal data and privacy when shopping online.",
-    url: "https://technodel.net/privacy",
+    url: "https://technodel.net/new/privacy",
     siteName: "Technodel",
     type: "website",
     locale: "en_US",

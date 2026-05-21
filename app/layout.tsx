@@ -3,14 +3,13 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import ThemeProvider from "@/components/layout/ThemeProvider";
 import AppShell from "@/components/layout/AppShell";
-import LoadingScreen from "@/components/ui/LoadingScreen";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   manifest: "/manifest.json",
-  metadataBase: new URL("https://technodel.net"),
+  metadataBase: new URL("https://technodel.net/new"),
   title: {
     default: "Technodel – Lebanon's #1 Tech Store | Laptops, Smartphones & More",
     template: "%s | Technodel Lebanon",
@@ -33,11 +32,11 @@ export const metadata: Metadata = {
     "max-video-preview": -1,
   },
   alternates: {
-    canonical: "https://technodel.net",
+    canonical: "https://technodel.net/new",
     languages: {
-      "en": "https://technodel.net",
-      "ar": "https://technodel.net/ar",
-      "x-default": "https://technodel.net",
+      "en": "https://technodel.net/new",
+      "ar": "https://technodel.net/new/ar",
+      "x-default": "https://technodel.net/new",
     },
   },
   openGraph: {
@@ -46,7 +45,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     title: "Technodel – Lebanon's #1 Tech Store",
     description: "Shop laptops, smartphones, gaming gear and accessories. Fast delivery across Lebanon.",
-    url: "https://technodel.net",
+    url: "https://technodel.net/new",
     images: [{ url: "/new/og-image.svg", width: 1200, height: 630, alt: "Technodel Lebanon" }],
   },
   twitter: {
@@ -69,7 +68,7 @@ const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "Technodel",
-  url: "https://technodel.net",
+  url: "https://technodel.net/new",
   logo: "https://technodel.net/new/logo.png",
   description: "Lebanon's premium tech store — laptops, smartphones, accessories and more.",
   address: { "@type": "PostalAddress", addressCountry: "LB" },
@@ -90,12 +89,12 @@ const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "Technodel",
-  url: "https://technodel.net",
+  url: "https://technodel.net/new",
   potentialAction: {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate: "https://technodel.net/search?q={search_term_string}",
+      urlTemplate: "https://technodel.net/new/search?q={search_term_string}",
     },
     "query-input": "required name=search_term_string",
   },
@@ -105,7 +104,7 @@ const localBusinessSchema = {
   "@context": "https://schema.org",
   "@type": "ComputerStore",
   name: "Technodel",
-  url: "https://technodel.net",
+  url: "https://technodel.net/new",
   logo: "https://technodel.net/new/logo.png",
   image: "https://technodel.net/new/og-image.svg",
   description: "Lebanon's premium computer and electronics store — laptops, smartphones, gaming gear, accessories and more with fast delivery across Lebanon.",
@@ -133,9 +132,9 @@ const localBusinessSchema = {
     "@type": "OfferCatalog",
     name: "Tech Products",
     itemListElement: [
-      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Laptops", url: "https://technodel.net/shop/laptops" } },
-      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Smartphones", url: "https://technodel.net/shop/smartphones" } },
-      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Gaming", url: "https://technodel.net/shop/gaming" } },
+      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Laptops", url: "https://technodel.net/new/shop/laptops" } },
+      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Smartphones", url: "https://technodel.net/new/shop/smartphones" } },
+      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Gaming", url: "https://technodel.net/new/shop/gaming" } },
     ],
   },
   sameAs: [
@@ -178,7 +177,6 @@ export default function RootLayout({
         />
         <GoogleAnalytics />
         <ThemeProvider>
-          <LoadingScreen />
           <AppShell>{children}</AppShell>
         </ThemeProvider>
       </body>

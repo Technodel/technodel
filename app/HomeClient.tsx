@@ -1,9 +1,11 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
 import ProductCard from "@/components/product/ProductCard";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 import { Icon } from "@/components/ui/Icon";
 import AnimatedSection, { FadeInUp, ScaleIn } from "@/components/ui/AnimatedSection";
 import {
@@ -16,6 +18,7 @@ import {
 
 interface Category { id: string; name: string; slug: string; icon?: string | null; image?: string | null; }
 interface Banner { id: string; title: string; subtitle?: string | null; imageUrl: string; linkUrl?: string | null; badge?: string | null; }
+interface HeroSlide { id: string; title: string; subtitle?: string; imageUrl: string; linkUrl?: string; badge?: string; }
 
 interface Props {
   featured: any[];
@@ -31,7 +34,7 @@ const FEATURED_TAGS = [
 ];
 
 // ─── PARALLAX MOUSE TRACKER ─────────────────────────────────────────────────────
-function useMousePosition() {
+function useMousePosition(enabled: boolean) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const springX = useSpring(x, { stiffness: 100, damping: 30 });
@@ -45,9 +48,10 @@ function useMousePosition() {
   }, [x, y]);
 
   useEffect(() => {
+    if (!enabled) return;
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [handleMouseMove]);
+  }, [enabled, handleMouseMove]);
 
   return { x: springX, y: springY };
 }
@@ -78,40 +82,32 @@ function FloatingOrb({ colorClass, size, initialX, initialY, speed = 1 }: {
 }
 
 // ─── 3D TILT CARD ────────────────────────────────────────────────────────────────
-function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const rotateX = useMotionValue(0);
-  const rotateY = useMotionValue(0);
+function parseFirstImage(images: unknown): string {
+  if (!images) return "";
+  if (Array.isArray(images)) return typeof images[0] === "string" ? images[0] : "";
+  if (typeof images === "string") {
+    try {
+      const arr = JSON.parse(images);
+      return Array.isArray(arr) && typeof arr[0] === "string" ? arr[0] : "";
+    } catch {
+      return "";
+    }
+  }
+  return "";
+}
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    rotateX.set(-y * 8);
-    rotateY.set(x * 8);
-  };
-
-  const handleMouseLeave = () => {
-    rotateX.set(0);
-    rotateY.set(0);
-  };
-
-  return (
-    <motion.div
-      ref={ref}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{
-        rotateX, rotateY,
-        transformStyle: "preserve-3d",
-        perspective: 1000,
-      }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
+function normalizeHeroLink(link?: string | null): string {
+  if (!link) return "/shop";
+  if (link.startsWith("/product/")) return link;
+  if (link.startsWith("/shop") || link.startsWith("/deals") || link.startsWith("/product")) return link;
+  try {
+    const u = new URL(link);
+    if (u.pathname.startsWith("/new/product/")) return u.pathname.replace("/new", "");
+    if (u.pathname.startsWith("/product/")) return u.pathname;
+  } catch {
+    // non-URL string fallback below
+  }
+  return "/shop";
 }
 
 // ─── PRICE COUNTER ───────────────────────────────────────────────────────────────
@@ -146,23 +142,18 @@ function CountUp({ end, duration = 2000, prefix = "", suffix = "" }: {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export default function HomeClient({ featured, categories, banners, newArrivals, deals }: Props) {
+  const router = useRouter();
+  const performanceMode = true;
   const [activeSlide, setActiveSlide] = useState(0);
   const [tagIndex, setTagIndex] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const mouse = useMousePosition();
+  const mouse = useMousePosition(!performanceMode);
   const { scrollY } = useScroll();
 
   // Parallax values
-  const heroParallaxY = useTransform(scrollY, [0, 600], [0, 150]);
-  const heroOpacity = useTransform(scrollY, [0, 500], [1, 0]);
-  const heroScale = useTransform(scrollY, [0, 500], [1, 0.95]);
-
-  // Auto-rotate hero banner
-  useEffect(() => {
-    if (banners.length < 2) return;
-    timerRef.current = setInterval(() => setActiveSlide((p) => (p + 1) % banners.length), 5000);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [banners.length]);
+  const heroParallaxY = useTransform(scrollY, [0, 600], [0, performanceMode ? 0 : 150]);
+  const heroOpacity = useTransform(scrollY, [0, 500], [1, performanceMode ? 1 : 0]);
+  const heroScale = useTransform(scrollY, [0, 500], [1, performanceMode ? 1 : 0.95]);
 
   // Typewriter-like tag cycling
   useEffect(() => {
@@ -170,9 +161,43 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
     return () => clearInterval(t);
   }, []);
 
-  const heroBanners = banners.length > 0 ? banners : [
-    { id: "fallback-1", title: "New Arrivals Daily", subtitle: "Discover the latest tech at Technodel", imageUrl: "", badge: "🔥 Hot", linkUrl: "/shop" },
-  ];
+  const dealSlides: HeroSlide[] = (deals || []).slice(0, 5).map((p: any) => {
+    const img = parseFirstImage(p.images);
+    const hasDiscount = typeof p.comparePrice === "number" && typeof p.displayPrice === "number" && p.comparePrice > p.displayPrice;
+    const pct = hasDiscount ? Math.round(((p.comparePrice - p.displayPrice) / p.comparePrice) * 100) : 0;
+    return {
+      id: p.id,
+      title: p.title,
+      subtitle: p.category?.name ? `${p.category.name} Deal` : "Hot Deal",
+      imageUrl: img,
+      linkUrl: `/product/${p.slug}`,
+      badge: hasDiscount && pct > 0 ? `🔥 -${pct}%` : "🔥 Deal",
+    };
+  }).filter((s) => !!s.imageUrl && !!s.linkUrl);
+
+  const bannerSlides: HeroSlide[] = (banners || []).map((b) => ({
+    id: b.id,
+    title: b.title,
+    subtitle: b.subtitle || undefined,
+    imageUrl: b.imageUrl,
+    linkUrl: normalizeHeroLink(b.linkUrl),
+    badge: b.badge || undefined,
+  })).filter((s) => !!s.imageUrl);
+
+  const heroBanners: HeroSlide[] = dealSlides.length > 0
+    ? dealSlides
+    : bannerSlides.length > 0
+    ? bannerSlides
+    : [
+        { id: "fallback-1", title: "New Arrivals Daily", subtitle: "Discover the latest tech at Technodel", imageUrl: "", badge: "🔥 Hot", linkUrl: "/shop" },
+      ];
+
+  // Auto-rotate hero banner
+  useEffect(() => {
+    if (heroBanners.length < 2) return;
+    timerRef.current = setInterval(() => setActiveSlide((p) => (p + 1) % heroBanners.length), 5000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [heroBanners.length]);
 
   return (
     <div className="page-enter">
@@ -192,25 +217,31 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
         }}
       >
         {/* Animated floating orbs */}
-        <FloatingOrb colorClass="orb-cyan" size={600} initialX={5} initialY={-10} speed={1.2} />
-        <FloatingOrb colorClass="orb-purple" size={400} initialX={75} initialY={5} speed={0.8} />
-        <FloatingOrb colorClass="orb-green" size={300} initialX={50} initialY={60} speed={0.6} />
-        <FloatingOrb colorClass="orb-orange" size={250} initialX={85} initialY={70} speed={0.9} />
+        {!performanceMode && (
+          <>
+            <FloatingOrb colorClass="orb-cyan" size={600} initialX={5} initialY={-10} speed={1.2} />
+            <FloatingOrb colorClass="orb-purple" size={400} initialX={75} initialY={5} speed={0.8} />
+            <FloatingOrb colorClass="orb-green" size={300} initialX={50} initialY={60} speed={0.6} />
+            <FloatingOrb colorClass="orb-orange" size={250} initialX={85} initialY={70} speed={0.9} />
+          </>
+        )}
 
         {/* Mouse-parallax decorative grid lines */}
-        <motion.div
-          style={{
-            position: "absolute", inset: 0,
-            backgroundImage: `
-              linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px)
-            `,
-            backgroundSize: "60px 60px",
-            x: useTransform(mouse.x, [-1, 1], [-20, 20]),
-            y: useTransform(mouse.y, [-1, 1], [-20, 20]),
-            pointerEvents: "none",
-          }}
-        />
+        {!performanceMode && (
+          <motion.div
+            style={{
+              position: "absolute", inset: 0,
+              backgroundImage: `
+                linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px)
+              `,
+              backgroundSize: "60px 60px",
+              x: useTransform(mouse.x, [-1, 1], [-20, 20]),
+              y: useTransform(mouse.y, [-1, 1], [-20, 20]),
+              pointerEvents: "none",
+            }}
+          />
+        )}
 
         <motion.div
           style={{
@@ -397,7 +428,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
               transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="tilt-3d"
             >
-              <TiltCard>
+              <div>
                 <div style={{
                   position: "relative",
                   borderRadius: "var(--r-xxl)",
@@ -415,17 +446,17 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
                           exit={{ opacity: 0, scale: 0.92 }}
                           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                           style={{ position: "absolute", inset: 0, cursor: b.linkUrl ? "pointer" : "default" }}
-                          onClick={() => b.linkUrl && window.location.assign(b.linkUrl)}
+                          onClick={() => {
+                            if (b.linkUrl) router.push(normalizeHeroLink(b.linkUrl));
+                          }}
                         >
                           {b.imageUrl ? (
-                            <img
+                            <OptimizedImage
                               src={b.imageUrl}
                               alt={b.title}
-                              style={{
-                                width: "100%", height: "100%",
-                                objectFit: "cover",
-                              }}
-                              loading="lazy"
+                              fill
+                              priority={activeSlide === i}
+                              objectFit="cover"
                             />
                           ) : (
                             <div style={{
@@ -554,14 +585,14 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
                     </div>
                   )}
                 </div>
-              </TiltCard>
+              </div>
             </motion.div>
           </div>
         </motion.div>
       </motion.section>
 
       {/* ═══ CATEGORIES — Colored Tiles Grid ══════════════════════════════ */}
-      <AnimatedSection style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
+      <AnimatedSection className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
         <FadeInUp>
           <SectionHeader title="Browse by Category" link="/shop" linkLabel="All categories →" />
         </FadeInUp>
@@ -608,7 +639,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
       </AnimatedSection>
 
       {/* ═══ FEATURED PRODUCTS ═══════════════════════════════════════════ */}
-      <AnimatedSection style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
+      <AnimatedSection className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
         <FadeInUp>
           <SectionHeader title={<><Icon emoji="⭐" size={22} /> Featured Products</>} link="/shop?featured=1" linkLabel="View all →" />
         </FadeInUp>
@@ -629,7 +660,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
       </AnimatedSection>
 
       {/* ═══ HOT DEALS ════════════════════════════════════════════════════ */}
-      <AnimatedSection style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
+      <AnimatedSection className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
         <FadeInUp>
           <SectionHeader title={<><Icon emoji="🔥" size={22} /> Hot Deals</>} link="/deals" linkLabel="View all deals →" />
         </FadeInUp>
@@ -650,7 +681,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
       </AnimatedSection>
 
       {/* ═══ PROMO BANNER STRIP — Why Technodel ═══════════════════════════ */}
-      <AnimatedSection stagger style={{ margin: "0 0 80px" }}>
+      <AnimatedSection className="section-lazy" stagger style={{ margin: "0 0 80px" }}>
         <motion.div
           className="glass-strong"
           style={{
@@ -721,7 +752,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
       </AnimatedSection>
 
       {/* ═══ NEW ARRIVALS ════════════════════════════════════════════════ */}
-      <AnimatedSection style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
+      <AnimatedSection className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
         <FadeInUp>
           <SectionHeader title={<><Icon emoji="🆕" size={22} /> New Arrivals</>} link="/shop?new=1" linkLabel="See all new →" />
         </FadeInUp>
@@ -742,7 +773,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
       </AnimatedSection>
 
       {/* ═══ BRANDS SHOWCASE ════════════════════════════════════════════ */}
-      <AnimatedSection style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
+      <AnimatedSection className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
         <FadeInUp>
           <h2 style={{
             fontSize: 24, fontWeight: 800,
@@ -801,7 +832,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
       </AnimatedSection>
 
       {/* ═══ NEWSLETTER + WHATSAPP CTA ══════════════════════════════════ */}
-      <AnimatedSection style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
+      <AnimatedSection className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
         <motion.div
           style={{
             borderRadius: "var(--r-xxl)",

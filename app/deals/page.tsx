@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Hot Deals & Discounts – Technodel Lebanon",
     description: "Find the hottest tech deals in Lebanon! Discounted laptops, smartphones, gaming gear.",
-    url: "https://technodel.net/deals",
+    url: "https://technodel.net/new/deals",
     siteName: "Technodel",
     type: "website",
     locale: "en_US",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     title: "Hot Deals & Discounts – Technodel Lebanon",
     description: "Find the hottest tech deals in Lebanon!",
   },
-  alternates: { canonical: "https://technodel.net/deals" },
+  alternates: { canonical: "https://technodel.net/new/deals" },
 };
 
 export default async function DealsPage() {
@@ -55,8 +55,8 @@ export default async function DealsPage() {
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Home", item: "https://technodel.net" },
-              { "@type": "ListItem", position: 2, name: "Deals", item: "https://technodel.net/deals" },
+              { "@type": "ListItem", position: 1, name: "Home", item: "https://technodel.net/new" },
+              { "@type": "ListItem", position: 2, name: "Deals", item: "https://technodel.net/new/deals" },
             ],
           }),
         }}

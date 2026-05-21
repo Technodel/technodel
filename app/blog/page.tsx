@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Technodel Blog – Tech News & Reviews Lebanon",
     description: "Expert tech reviews, buying guides, and news for the Lebanese market.",
-    url: "https://technodel.net/blog",
+    url: "https://technodel.net/new/blog",
     siteName: "Technodel",
     type: "website",
     locale: "en_US",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     title: "Technodel Blog – Tech News & Reviews Lebanon",
     description: "Expert tech reviews, buying guides, and news for the Lebanese market.",
   },
-  alternates: { canonical: "https://technodel.net/blog" },
+  alternates: { canonical: "https://technodel.net/new/blog" },
 };
 
 const posts = [
@@ -184,8 +184,8 @@ const breadcrumbSchema = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Home", item: "https://technodel.net" },
-    { "@type": "ListItem", position: 2, name: "Blog", item: "https://technodel.net/blog" },
+    { "@type": "ListItem", position: 1, name: "Home", item: "https://technodel.net/new" },
+    { "@type": "ListItem", position: 2, name: "Blog", item: "https://technodel.net/new/blog" },
   ],
 };
 
@@ -194,7 +194,7 @@ const blogSchema = {
   "@type": "Blog",
   name: "Technodel Blog",
   description: "Tech news, reviews and buying guides for Lebanon.",
-  url: "https://technodel.net/blog",
+  url: "https://technodel.net/new/blog",
 };
 
 export default function BlogPage() {

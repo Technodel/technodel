@@ -5,11 +5,11 @@ export const metadata: Metadata = {
   title: "Computer Store Locations in Lebanon | Technodel",
   description: "Find Technodel computer store locations across Lebanon. Shop laptops, smartphones, and electronics in Beirut, Tripoli, Jounieh, Saida, Zahle and more cities.",
   keywords: "technodel locations lebanon, computer store beirut, laptop shop tripoli, electronics jounieh, tech store saida, computer shop zahle",
-  alternates: { canonical: "https://technodel.net/locations" },
+  alternates: { canonical: "https://technodel.net/new/locations" },
   openGraph: {
     title: "Computer Store Locations in Lebanon | Technodel",
     description: "Shop laptops, smartphones, and electronics across Lebanon. Best prices, fast delivery.",
-    url: "https://technodel.net/locations",
+    url: "https://technodel.net/new/locations",
     siteName: "Technodel",
     type: "website",
   },

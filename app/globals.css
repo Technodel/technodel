@@ -876,6 +876,12 @@ html.theme-light .btn-primary { color: #fff; }
 
 /* Desktop only */
 @media (min-width: 769px) { .hide-desktop { display: none !important; } }
+
+/* Improve rendering performance for below-the-fold sections */
+.section-lazy {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 900px;
+}
 @media (min-width: 769px) { .show-mobile { display: none !important; } }
 
 /* Touch-friendly improvements */

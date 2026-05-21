@@ -5,11 +5,11 @@ export const metadata: Metadata = {
   title: "Returns & Exchanges Policy – Technodel Lebanon",
   description:
     "Easy 7-day return and exchange policy for all tech products purchased from Technodel in Lebanon. Full refund or replacement guaranteed.",
-  alternates: { canonical: "https://technodel.net/returns" },
+  alternates: { canonical: "https://technodel.net/new/returns" },
   openGraph: {
     title: "Returns & Exchanges – Technodel Lebanon",
     description: "Shop with confidence. 7-day return policy on all tech products with fast processing and full refunds.",
-    url: "https://technodel.net/returns",
+    url: "https://technodel.net/new/returns",
     siteName: "Technodel",
     type: "website",
     locale: "en_US",
@@ -20,8 +20,8 @@ const returnsSchema = {
   "@context": "https://schema.org",
   "@type": "WebPage",
   name: "Returns & Exchanges Policy – Technodel Lebanon",
-  url: "https://technodel.net/returns",
-  isPartOf: { "@type": "WebSite", name: "Technodel", url: "https://technodel.net" },
+  url: "https://technodel.net/new/returns",
+  isPartOf: { "@type": "WebSite", name: "Technodel", url: "https://technodel.net/new" },
 };
 
 const faqSchema = {

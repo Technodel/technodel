@@ -5,11 +5,11 @@ export const metadata: Metadata = {
   title: "Warranty Policy – Technodel Lebanon",
   description:
     "Technodel's warranty policy for all tech products purchased in Lebanon. Learn about manufacturer warranty, extended coverage, and how to claim.",
-  alternates: { canonical: "https://technodel.net/warranty" },
+  alternates: { canonical: "https://technodel.net/new/warranty" },
   openGraph: {
     title: "Warranty Policy – Technodel Lebanon",
     description: "Learn about our comprehensive warranty coverage for laptops, smartphones, gaming gear and accessories in Lebanon.",
-    url: "https://technodel.net/warranty",
+    url: "https://technodel.net/new/warranty",
     siteName: "Technodel",
     type: "website",
     locale: "en_US",
@@ -21,8 +21,8 @@ const warrantySchema = {
   "@type": "WebPage",
   name: "Warranty Policy – Technodel Lebanon",
   description: "Technodel's warranty policy for all tech products purchased in Lebanon.",
-  url: "https://technodel.net/warranty",
-  isPartOf: { "@type": "WebSite", name: "Technodel", url: "https://technodel.net" },
+  url: "https://technodel.net/new/warranty",
+  isPartOf: { "@type": "WebSite", name: "Technodel", url: "https://technodel.net/new" },
 };
 
 const faqSchema = {

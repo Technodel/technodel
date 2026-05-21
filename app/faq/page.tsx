@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "FAQ – Technodel Lebanon",
     description: "Find answers about shipping, warranty, payment, returns and more at Technodel.",
-    url: "https://technodel.net/faq",
+    url: "https://technodel.net/new/faq",
     siteName: "Technodel",
     type: "website",
     locale: "en_US",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     title: "FAQ – Technodel Lebanon",
     description: "Find answers about shipping, warranty, payment, returns and more.",
   },
-  alternates: { canonical: "https://technodel.net/faq" },
+  alternates: { canonical: "https://technodel.net/new/faq" },
 };
 
 const faqs = [
@@ -89,8 +89,8 @@ const breadcrumbSchema = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Home", item: "https://technodel.net" },
-    { "@type": "ListItem", position: 2, name: "FAQ", item: "https://technodel.net/faq" },
+    { "@type": "ListItem", position: 1, name: "Home", item: "https://technodel.net/new" },
+    { "@type": "ListItem", position: 2, name: "FAQ", item: "https://technodel.net/new/faq" },
   ],
 };
 

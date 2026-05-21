@@ -13,11 +13,11 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     title,
     description,
     robots: { index: false, follow: true },
-    alternates: { canonical: "https://technodel.net/search" },
+    alternates: { canonical: "https://technodel.net/new/search" },
     openGraph: {
       title,
       description,
-      url: q ? `https://technodel.net/search?q=${encodeURIComponent(q)}` : "https://technodel.net/search",
+      url: q ? `https://technodel.net/new/search?q=${encodeURIComponent(q)}` : "https://technodel.net/new/search",
       siteName: "Technodel",
       type: "website",
       locale: "en_US",

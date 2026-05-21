@@ -31,11 +31,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     keywords: product.seoKeywords || `${product.brand || ""}, ${product.title}, buy ${product.title} Lebanon, best price Lebanon`.toLowerCase(),
-    alternates: { canonical: `https://technodel.net/product/${product.slug}` },
+    alternates: { canonical: `https://technodel.net/new/product/${product.slug}` },
     openGraph: {
       title,
       description,
-      url: `https://technodel.net/product/${product.slug}`,
+      url: `https://technodel.net/new/product/${product.slug}`,
       siteName: "Technodel",
       type: "website" as const,
       locale: "en_US",
@@ -114,9 +114,9 @@ export default async function ProductPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://technodel.net" },
-      { "@type": "ListItem", position: 2, name: product.category.name, item: `https://technodel.net/shop/${product.category.slug}` },
-      { "@type": "ListItem", position: 3, name: product.title, item: `https://technodel.net/product/${product.slug}` },
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://technodel.net/new" },
+      { "@type": "ListItem", position: 2, name: product.category.name, item: `https://technodel.net/new/shop/${product.category.slug}` },
+      { "@type": "ListItem", position: 3, name: product.title, item: `https://technodel.net/new/product/${product.slug}` },
     ],
   };
 
@@ -129,7 +129,7 @@ export default async function ProductPage({ params }: Props) {
     sku: product.sku,
     brand: product.brand ? { "@type": "Brand", name: product.brand } : undefined,
     image: parsed.images,
-    url: `https://technodel.net/product/${product.slug}`,
+    url: `https://technodel.net/new/product/${product.slug}`,
     category: product.category.name,
     offers: {
       "@type": "Offer",
@@ -139,8 +139,8 @@ export default async function ProductPage({ params }: Props) {
       ...(product.comparePrice ? { wasPrice: product.comparePrice } : {}),
       availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
-      seller: { "@type": "Organization", name: "Technodel", url: "https://technodel.net" },
-      url: `https://technodel.net/product/${product.slug}`,
+      seller: { "@type": "Organization", name: "Technodel", url: "https://technodel.net/new" },
+      url: `https://technodel.net/new/product/${product.slug}`,
     },
     aggregateRating: product.reviewCount > 0 ? {
       "@type": "AggregateRating",

@@ -4,12 +4,12 @@ export const metadata: Metadata = {
   title: "Terms & Conditions – Technodel Lebanon",
   description:
     "Terms and conditions for using Technodel's website and purchasing products in Lebanon. Read about payments, delivery, and legal agreements.",
-  alternates: { canonical: "https://technodel.net/terms" },
+  alternates: { canonical: "https://technodel.net/new/terms" },
   robots: { index: false, follow: true },
   openGraph: {
     title: "Terms & Conditions – Technodel Lebanon",
     description: "Read the terms and conditions governing your use of Technodel's website and services in Lebanon.",
-    url: "https://technodel.net/terms",
+    url: "https://technodel.net/new/terms",
     siteName: "Technodel",
     type: "website",
     locale: "en_US",
