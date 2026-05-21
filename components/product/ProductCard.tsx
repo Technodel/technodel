@@ -211,7 +211,7 @@ export default function ProductCard({ product }: Props) {
             <div style={{ fontSize: 11, color: "var(--c-muted)" }}>{product.category?.name || ""}</div>
 
             {/* Market price badge */}
-            {product.competitorPrice && (
+            {product.competitorPrice && product.competitorPrice > product.displayPrice && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

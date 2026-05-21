@@ -13,6 +13,11 @@ import {
   scaleIn, spring, sectionReveal,
 } from "@/lib/animations";
 
+function proxyUrl(src: string): string {
+  if (!src || src.startsWith("/") || src.startsWith("data:")) return src;
+  return `/new/api/img-proxy?url=${encodeURIComponent(src)}`;
+}
+
 interface Variant { id: string; label: string; value: string; priceAdj: number; stock: number; }
 interface Review { id: string; rating: number; title?: string | null; body?: string | null; createdAt: Date | string; user: { id: string; name: string | null } | null; }
 interface Product {
@@ -185,7 +190,7 @@ export default function ProductDetail({ product, related }: { product: Product; 
                       exit={{ opacity: 0 }}
                       style={{
                         position: "absolute", inset: 0, pointerEvents: "none",
-                        backgroundImage: `url(${product.images[activeImg]})`,
+                        backgroundImage: `url(${proxyUrl(product.images[activeImg])})`,
                         backgroundSize: "200% 200%",
                         backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
                       }}
@@ -546,7 +551,7 @@ export default function ProductDetail({ product, related }: { product: Product; 
           </motion.div>
 
           {/* Market Price Comparison */}
-          {product.sourcePrice && (
+          {product.sourcePrice && product.sourcePrice > price && (
             <motion.div
               variants={fadeInUp}
               style={{
@@ -574,22 +579,20 @@ export default function ProductDetail({ product, related }: { product: Product; 
                   </span>
                   <span style={{
                     fontSize: 16, fontWeight: 700,
-                    color: product.sourcePrice > price ? "#ff6b6b" : "var(--c-muted)",
-                    textDecoration: product.sourcePrice > price ? "line-through" : "none",
+                    color: "#ff6b6b",
+                    textDecoration: "line-through",
                   }}>
                     {format(product.sourcePrice)}
                   </span>
                 </div>
-                {product.sourcePrice > price && (
-                  <motion.span
-                    className="badge badge-sale"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    Save {format(product.sourcePrice - price)}
-                  </motion.span>
-                )}
+                <motion.span
+                  className="badge badge-sale"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  Save {format(product.sourcePrice - price)}
+                </motion.span>
               </div>
               <div style={{ fontSize: 11, color: "var(--c-muted)", marginTop: 6 }}>
                 Prices updated daily. Market price as of last check.

@@ -25,7 +25,7 @@ export default function Footer() {
       viewport={{ once: true, margin: "-80px" }}
       variants={sectionReveal}
       style={{
-        background: "linear-gradient(180deg, var(--c-surface) 0%, #030912 100%)",
+        background: "linear-gradient(180deg, var(--c-surface) 0%, var(--c-surface2) 100%)",
         borderTop: "1px solid var(--c-border)",
         marginTop: 80,
         position: "relative",
@@ -297,7 +297,7 @@ export default function Footer() {
         style={{
           borderTop: "1px solid var(--c-border)",
           padding: "20px 24px",
-          background: "rgba(0,0,0,0.3)",
+          background: "var(--c-surface2)",
         }}
       >
         <div style={{

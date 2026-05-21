@@ -11,7 +11,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await prisma.product.findUnique({ where: { slug } }).catch(() => null);
   if (!product) return { title: "Product Not Found" };
-  const images = (() => { try { const imgs = JSON.parse(product.images); return imgs[0] ? [imgs[0]] : []; } catch { return []; } })();
+  const rawImage = (() => {
+    try {
+      const imgs = JSON.parse(product.images);
+      return imgs[0] || "";
+    } catch {
+      return "";
+    }
+  })();
+  const ogImage = rawImage
+    ? rawImage.startsWith("http")
+      ? `https://technodel.net/new/api/img-proxy?url=${encodeURIComponent(rawImage)}`
+      : `https://technodel.net/new${rawImage.startsWith("/") ? rawImage : `/${rawImage}`}`
+    : "";
+  const images = ogImage ? [ogImage] : [];
   const title = product.seoTitle || `${product.title} – Best Price in Lebanon | Technodel`;
   const description = product.seoDescription || product.shortDescription || `Buy ${product.title} at the best price in Lebanon. Genuine product, fast delivery, warranty included.`;
   return {
