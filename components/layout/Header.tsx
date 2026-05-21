@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import Image from "next/image";
+// import Image from "next/image";
 import { motion, AnimatePresence, useMotionValueEvent, useScroll } from "framer-motion";
 import { useCartStore } from "@/store/cart";
 import { useThemeStore } from "@/store/theme";
@@ -133,18 +133,15 @@ export default function Header() {
             transition={{ duration: 0.3 }}
           >
             <Link href="/" style={{ textDecoration: "none", flexShrink: 0, display: "flex", alignItems: "center" }}>
-              <Image
-                src="/logo.png"
+              <img
+                src="/new/logo.png"
                 alt="Technodel"
-                width={1536}
-                height={1024}
                 style={{
                   width: "auto",
-                  height: "clamp(40px, 6vw, 72px)",
+                  height: "clamp(60px, 9vw, 110px)",
                   objectFit: "contain",
                   maxWidth: "100%",
                 }}
-                priority
               />
             </Link>
           </motion.div>

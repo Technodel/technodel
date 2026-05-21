@@ -38,9 +38,10 @@ export default function OptimizedImage({
   priority = false, objectFit = "contain", onLoad,
 }: Props) {
   const [loaded, setLoaded] = useState(false);
+  const [errored, setErrored] = useState(false);
 
   // Better fallback for missing images — show branded placeholder
-  if (!src || src === "/placeholder.png") {
+  if (!src || src === "/placeholder.png" || errored) {
     // Extract initials from alt text
     const initials = alt
       ? alt.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase().substring(0, 2)
@@ -89,14 +90,6 @@ export default function OptimizedImage({
         }}>
           {initials}
         </span>
-        <span style={{
-          fontSize: 11, fontWeight: 500,
-          color: "rgba(255,255,255,0.25)",
-          position: "relative",
-          zIndex: 1,
-        }}>
-          No Image
-        </span>
       </div>
     );
   }
@@ -141,6 +134,10 @@ export default function OptimizedImage({
         onLoad={() => {
           setLoaded(true);
           onLoad?.();
+        }}
+        onError={() => {
+          setErrored(true);
+          setLoaded(false);
         }}
       />
     </div>

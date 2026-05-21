@@ -11,6 +11,37 @@ import { execSync } from "child_process";
 
 const SRC_DB = "/var/www/all-mall/dev.db";
 
+// ─── ALLOWED SUPPLIERS ────────────────────────────────────────────────────────
+// Only import products from these 5 Lebanese tech suppliers.
+// Matched against ALL-MALL's Site.url and Site.name (case-insensitive substring).
+const ALLOWED_SITE_PATTERNS = ["ezone", "ayoub", "pacmax", "dslr", "jak"];
+
+// DSLR restriction: never import laptops from DSLR.
+const DSLR_SITE_PATTERN = "dslr";
+const DSLR_EXCLUDED_CATEGORY_SLUG = "laptops";
+
+// ─── STATIONERY / NON-TECH TITLE BLACKLIST ────────────────────────────────────
+// Products whose titles contain any of these strings are NEVER imported,
+// regardless of which category they appear in. This blocks Antoine Library
+// copybooks, Molang notebooks, etc. from being treated as laptops.
+const NON_TECH_TITLE_BLACKLIST = [
+  "spiral notebook", "spiral-notebook", "copybook", "copy book",
+  "ring binder", "exercise book", "sketchbook", "drawing book",
+  "ruled notebook", "lined notebook", "composition book",
+  "paper notebook", "stationery", "pencil case", "ballpoint pen",
+  "highlighter pen", "marker pen", "sticky note", "post-it",
+  "molang", "antoine library", "birthday card", "greeting card",
+  "gift wrap",
+];
+
+function isNonTechProduct(title, displayPrice, mappedCategorySlug) {
+  const t = (title || "").toLowerCase();
+  if (NON_TECH_TITLE_BLACKLIST.some((kw) => t.includes(kw))) return true;
+  // Paper notebooks priced as "laptops" ($30 or less)
+  if (mappedCategorySlug === "laptops" && displayPrice <= 30) return true;
+  return false;
+}
+
 // ─── CATEGORY MAPPING ──────────────────────────────────────────────────────────
 // Maps ALL-MALL category name (case-insensitive) → Technodel category slug
 const CATEGORY_MAP = {
@@ -260,10 +291,13 @@ function slugify(text) {
     .substring(0, 100) || "product";
 }
 
-function generateSku(brand, cat, index) {
-  const b = (brand || "GEN").substring(0, 4).toUpperCase();
-  const c = (cat || "GEN").substring(0, 4).toUpperCase();
-  return `TN-${b}-${c}-${String(index).padStart(5, "0")}`;
+// Global counter for sequential SK-format SKUs.
+// Seeded from existing max SK number before migration starts.
+let _skuCounter = 0;
+
+function generateSku() {
+  _skuCounter++;
+  return `SK${String(_skuCounter).padStart(6, "0")}`;
 }
 
 // Run sqlite3 query and return rows as array of objects
@@ -301,6 +335,31 @@ async function main() {
   for (const c of existingCats) catBySlug[c.slug] = c.id;
   console.log(`Technodel categories: ${existingCats.length}\n`);
 
+  // 4.5. Resolve allowed supplier site IDs from ALL-MALL's Site table
+  const allSites = query(SRC_DB, "SELECT id, name, url FROM Site");
+  const allowedSiteIds = [];
+  const dslrSiteIds = new Set();
+  for (const site of allSites) {
+    const urlLower = (site.url || "").toLowerCase();
+    const nameLower = (site.name || "").toLowerCase();
+    const isAllowed = ALLOWED_SITE_PATTERNS.some(
+      (p) => urlLower.includes(p) || nameLower.includes(p)
+    );
+    if (isAllowed) {
+      allowedSiteIds.push(`'${String(site.id).replace(/'/g, "''")}'`);
+      if (urlLower.includes(DSLR_SITE_PATTERN) || nameLower.includes(DSLR_SITE_PATTERN)) {
+        dslrSiteIds.add(site.id);
+      }
+    }
+  }
+  if (allowedSiteIds.length === 0) {
+    console.error("ERROR: No matching supplier sites found in ALL-MALL's Site table. Check ALLOWED_SITE_PATTERNS.");
+    process.exit(1);
+  }
+  const siteConditions = allowedSiteIds.join(",");
+  console.log(`Allowed supplier sites: ${allowedSiteIds.length} (DSLR sites: ${dslrSiteIds.size})`);
+  console.log(`  IDs: ${siteConditions}\n`);
+
   // 5. Build category ID mapping from name → Technodel category ID
   let mappedCount = 0;
   let unmappedCount = 0;
@@ -330,31 +389,40 @@ async function main() {
   }
   console.log();
 
-  // 6. Check existing products to avoid duplicates
-  const existingProducts = await dst.product.findMany({ select: { slug: true } });
+  // 6. Check existing products to avoid duplicates; also seed SKU counter
+  const existingProducts = await dst.product.findMany({ select: { slug: true, sku: true } });
   const existingSlugs = new Set(existingProducts.map((p) => p.slug));
   console.log(`Existing products in Technodel: ${existingSlugs.size}\n`);
 
-  // 7. Get total mapped products (fast count)
+  // Seed _skuCounter from highest existing SK-format SKU to avoid collisions
+  for (const p of existingProducts) {
+    const m = /^SK(\d+)$/i.exec(p.sku || "");
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (n > _skuCounter) _skuCounter = n;
+    }
+  }
+  console.log(`SKU counter seeded at ${_skuCounter} (next will be SK${String(_skuCounter + 1).padStart(6, "0")})\n`);
+
+  // 7. Get total mapped products (fast count) — only from allowed suppliers
   const catConditions = Object.keys(catNameToId)
     .map((name) => `'${name.replace(/'/g, "''")}'`)
     .join(",");
   const countMapped = query(
     SRC_DB,
-    `SELECT COUNT(*) as c FROM Product WHERE category IN (${catConditions})`
+    `SELECT COUNT(*) as c FROM Product WHERE category IN (${catConditions}) AND siteId IN (${siteConditions})`
   );
   const totalMapped = countMapped[0]?.c || 0;
-  console.log(`Products in mapped categories: ~${totalMapped}\n`);
+  console.log(`Products in mapped categories (allowed suppliers only): ~${totalMapped}\n`);
 
-  // We only import products from specific tech categories
-  // Let's also check which source sites have the best tech data
+  // Show breakdown per allowed supplier site
   const siteBreakdown = query(
     SRC_DB,
-    `SELECT siteId, COUNT(*) as c FROM Product WHERE category IN (${catConditions}) GROUP BY siteId ORDER BY c DESC LIMIT 10`
+    `SELECT s.name, s.url, COUNT(p.id) as c FROM Site s JOIN Product p ON p.siteId = s.id WHERE p.category IN (${catConditions}) AND p.siteId IN (${siteConditions}) GROUP BY s.id ORDER BY c DESC`
   );
-  console.log("Tech products by source site:");
+  console.log("Tech products by allowed supplier:");
   for (const s of siteBreakdown) {
-    console.log(`  ${s.siteId}: ${s.c} products`);
+    console.log(`  ${s.name} (${s.url}): ${s.c} products`);
   }
   console.log();
 
@@ -372,7 +440,7 @@ async function main() {
   while (offset < totalMapped) {
     const rows = query(
       SRC_DB,
-      `SELECT * FROM Product WHERE category IN (${catConditions}) ORDER BY id LIMIT ${BATCH_SIZE} OFFSET ${offset}`
+      `SELECT * FROM Product WHERE category IN (${catConditions}) AND siteId IN (${siteConditions}) ORDER BY id LIMIT ${BATCH_SIZE} OFFSET ${offset}`
     );
 
     batchNum++;
@@ -395,11 +463,24 @@ async function main() {
         continue;
       }
 
+      // DSLR restriction: skip laptops from DSLR supplier
+      const mappedSlug = CATEGORY_MAP[normalizeCat(row.category)];
+      if (dslrSiteIds.has(row.siteId) && mappedSlug === DSLR_EXCLUDED_CATEGORY_SLUG) {
+        skipped++;
+        continue;
+      }
+
+      // Stationery / non-tech products: block regardless of supplier
+      if (isNonTechProduct(row.title, row.displayPrice || row.sourcePrice || 0, mappedSlug)) {
+        skipped++;
+        continue;
+      }
+
       // Generate unique SKU
-      let sku = generateSku(row.brand, row.category, offset + created + 1);
+      let sku = generateSku();
       let skuAttempts = 0;
       while (usedSkus.has(sku) && skuAttempts < 10) {
-        sku = generateSku(row.brand, row.category, offset + created + 1 + skuAttempts + 1);
+        sku = generateSku();
         skuAttempts++;
       }
       usedSkus.add(sku);

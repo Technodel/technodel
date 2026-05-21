@@ -28,11 +28,11 @@ export function generateSlug(text: string): string {
     .trim();
 }
 
-export function generateSku(title: string, id?: string): string {
-  const clean = (title || "").replace(/[^a-zA-Z]/g, "").toUpperCase();
-  const prefix = (clean.substring(0, 4) || "ITEM").padEnd(4, "X");
-  const source = (id || Math.random().toString(36).slice(2, 8)).toUpperCase();
-  return `${prefix}-${source.substring(0, 6)}`;
+export function generateSku(_title?: string, _id?: string): string {
+  // Generate a non-supplier-revealing SKU: SK + 8 random alphanumeric chars
+  const rand = Math.random().toString(36).slice(2, 6).toUpperCase() +
+               Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `SK${rand.substring(0, 8)}`;
 }
 
 export function truncate(text: string, max: number): string {
