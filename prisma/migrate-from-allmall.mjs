@@ -14,7 +14,7 @@ const SRC_DB = "/var/www/all-mall/dev.db";
 // ─── ALLOWED SUPPLIERS ────────────────────────────────────────────────────────
 // Only import products from these 5 Lebanese tech suppliers.
 // Matched against ALL-MALL's Site.url and Site.name (case-insensitive substring).
-const ALLOWED_SITE_PATTERNS = ["ezone", "ayoub", "pacmax", "dslr", "jak"];
+const ALLOWED_SITE_PATTERNS = ["ezone", "ayoub", "pacmax", "comparts", "jak"];
 
 // DSLR restriction: never import laptops from DSLR.
 const DSLR_SITE_PATTERN = "dslr";
