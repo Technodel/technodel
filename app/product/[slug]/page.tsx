@@ -7,9 +7,32 @@ export const revalidate = 60;
 
 interface Props { params: Promise<{ slug: string }> }
 
+function extractSourceProductId(slug: string): string | null {
+  const match = slug.match(/(?:^|-)p=(\d+)(?:$|[-_])/i);
+  return match?.[1] ?? null;
+}
+
+async function findProductBySlugWithFallback(slug: string) {
+  const bySlug = await prisma.product.findUnique({ where: { slug } }).catch(() => null);
+  if (bySlug) return bySlug;
+
+  const sourceId = extractSourceProductId(slug);
+  if (!sourceId) return null;
+
+  return prisma.product.findFirst({
+    where: {
+      OR: [
+        { sourceUrl: { contains: `/p=${sourceId}` } },
+        { sourceUrl: { contains: `p=${sourceId}` } },
+      ],
+    },
+    orderBy: { updatedAt: "desc" },
+  }).catch(() => null);
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const product = await prisma.product.findUnique({ where: { slug } }).catch(() => null);
+  const product = await findProductBySlugWithFallback(slug);
   if (!product) return { title: "Product Not Found" };
   const rawImage = (() => {
     try {
@@ -53,8 +76,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
 
-  const product = await prisma.product.findUnique({
-    where: { slug, isVisible: true },
+  const sourceId = extractSourceProductId(slug);
+  const product = await prisma.product.findFirst({
+    where: {
+      isVisible: true,
+      OR: [
+        { slug },
+        ...(sourceId
+          ? [
+              { sourceUrl: { contains: `/p=${sourceId}` } },
+              { sourceUrl: { contains: `p=${sourceId}` } },
+            ]
+          : []),
+      ],
+    },
     include: {
       category: { select: { name: true, slug: true } },
       variants: true,
@@ -66,6 +101,7 @@ export default async function ProductPage({ params }: Props) {
       },
       competitor: { select: { id: true, name: true, url: true, logoUrl: true } },
     },
+    orderBy: { updatedAt: "desc" },
   }).catch(() => null);
 
   if (!product) notFound();
@@ -73,7 +109,19 @@ export default async function ProductPage({ params }: Props) {
   // Related products
   const related = await prisma.product.findMany({
     where: { categoryId: product.categoryId, isVisible: true, id: { not: product.id } },
-    include: {
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      brand: true,
+      displayPrice: true,
+      comparePrice: true,
+      images: true,
+      isNew: true,
+      isFeatured: true,
+      stock: true,
+      lowStockThresh: true,
+      sourcePrice: true,
       category: { select: { name: true } },
       competitor: { select: { name: true, url: true } },
     },
@@ -81,24 +129,19 @@ export default async function ProductPage({ params }: Props) {
     orderBy: { orderCount: "desc" },
   }).catch(() => []);
 
-  // Check for actual orders to determine verified purchases
-  const verifiedUserIds = product.reviews
-    ? new Set(
-        (await Promise.all(
-          product.reviews.map(async (r) => {
-            const order = await prisma.order.findFirst({
-              where: {
-                userId: r.userId,
-                items: { some: { productId: product.id } },
-                status: { in: ["delivered", "completed"] },
-              },
-              select: { id: true },
-            }).catch(() => null);
-            return order ? r.userId : null;
-          })
-        )).filter(Boolean) as string[]
-      )
-    : new Set<string>();
+  // Determine verified purchases in one query instead of one query per review.
+  const reviewUserIds = Array.from(new Set(product.reviews.map((r) => r.userId).filter(Boolean)));
+  const verifiedOrders = reviewUserIds.length > 0
+    ? await prisma.order.findMany({
+        where: {
+          userId: { in: reviewUserIds },
+          items: { some: { productId: product.id } },
+          status: { in: ["delivered", "completed"] },
+        },
+        select: { userId: true },
+      }).catch(() => [])
+    : [];
+  const verifiedUserIds = new Set(verifiedOrders.map((o) => o.userId).filter(Boolean) as string[]);
 
   const parsed = {
     ...product,

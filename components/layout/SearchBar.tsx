@@ -1,7 +1,9 @@
 "use client";
+import Image from "next/image";
+import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 interface SearchResult {
   id: string;
@@ -25,6 +27,7 @@ export default function SearchBar() {
   const ref = useRef<HTMLDivElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     const fn = (e: MouseEvent) => {
@@ -34,16 +37,13 @@ export default function SearchBar() {
     return () => document.removeEventListener("mousedown", fn);
   }, []);
 
-  // Reset selected index when results change
-  useEffect(() => { setSelectedIdx(-1); }, [results]);
-
   const search = useCallback((q: string) => {
     setQuery(q);
     setError(false);
     if (timer.current) clearTimeout(timer.current);
     if (abortRef.current) abortRef.current.abort();
 
-    if (!q.trim()) { setResults([]); setOpen(false); setNoResults(false); return; }
+    if (q.trim().length < 2) { setResults([]); setOpen(false); setNoResults(false); setLoading(false); return; }
 
     timer.current = setTimeout(async () => {
       setLoading(true);
@@ -51,7 +51,7 @@ export default function SearchBar() {
       abortRef.current = controller;
 
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=8`, {
+        const res = await fetch(`api/search?q=${encodeURIComponent(q)}&limit=6`, {
           signal: controller.signal,
         });
         if (!res.ok) throw new Error("Search failed");
@@ -59,6 +59,7 @@ export default function SearchBar() {
         if (!controller.signal.aborted) {
           const r = data.results || [];
           setResults(r);
+          setSelectedIdx(-1);
           setOpen(r.length > 0);
           setNoResults(r.length === 0);
         }
@@ -69,7 +70,7 @@ export default function SearchBar() {
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
-    }, 120); // Ultra-fast debounce
+    }, 220);
   }, []);
 
   const go = useCallback(() => {
@@ -134,11 +135,11 @@ export default function SearchBar() {
 
       <AnimatePresence>
         {/* Loading skeleton */}
-        {loading && query.trim() && !results.length && (
+        {loading && query.trim().length >= 2 && !results.length && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: -8 }}
+            animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+            exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
             style={{
               position: "absolute", top: "calc(100% + 6px)",
               left: 0, right: 0,
@@ -167,9 +168,9 @@ export default function SearchBar() {
         {/* Results dropdown */}
         {open && results.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: -8 }}
+            animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+            exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
             style={{
               position: "absolute", top: "calc(100% + 6px)",
               left: 0, right: 0,
@@ -182,7 +183,7 @@ export default function SearchBar() {
             }}
           >
             {results.map((r, i) => (
-              <a
+              <Link
                 key={r.id}
                 href={`/product/${r.slug}`}
                 onClick={() => setOpen(false)}
@@ -213,7 +214,7 @@ export default function SearchBar() {
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
                   {r.imageUrl ? (
-                    <img src={r.imageUrl} alt={r.title} style={{ width: 40, height: 40, objectFit: "contain" }} />
+                    <Image src={r.imageUrl} alt={r.title} width={40} height={40} style={{ objectFit: "contain" }} />
                   ) : (
                     <span style={{ fontSize: 18 }}>📦</span>
                   )}
@@ -234,7 +235,7 @@ export default function SearchBar() {
                 <span style={{ fontSize: 14, fontWeight: 700, color: "var(--c-accent)", flexShrink: 0 }}>
                   ${r.displayPrice?.toFixed(2)}
                 </span>
-              </a>
+              </Link>
             ))}
             <div
               style={{
@@ -242,13 +243,13 @@ export default function SearchBar() {
                 padding: "8px 16px", borderTop: "1px solid var(--c-border)",
               }}
             >
-              <a
+              <Link
                 href={`/search?q=${encodeURIComponent(query)}`}
                 style={{ fontSize: 13, color: "var(--c-accent)", textDecoration: "none", fontWeight: 500 }}
                 onClick={() => setOpen(false)}
               >
                 See all results for &quot;{query}&quot; →
-              </a>
+              </Link>
               <span style={{ fontSize: 11, color: "var(--c-muted)" }}>
                 ↑↓ navigate · ↵ open
               </span>
@@ -257,11 +258,11 @@ export default function SearchBar() {
         )}
 
         {/* No results state */}
-        {!loading && !error && noResults && query.trim() && (
+        {!loading && !error && noResults && query.trim().length >= 2 && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: -8 }}
+            animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+            exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
             style={{
               position: "absolute", top: "calc(100% + 6px)",
               left: 0, right: 0,
@@ -281,22 +282,22 @@ export default function SearchBar() {
             <div style={{ fontSize: 13, color: "var(--c-muted)", marginBottom: 12 }}>
               Try different keywords or browse categories
             </div>
-            <a
+            <Link
               href="/shop"
               style={{ fontSize: 13, color: "var(--c-accent)", textDecoration: "none", fontWeight: 600 }}
               onClick={() => setNoResults(false)}
             >
               Browse all products →
-            </a>
+            </Link>
           </motion.div>
         )}
 
         {/* Error state */}
-        {error && query.trim() && (
+        {error && query.trim().length >= 2 && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={shouldReduceMotion ? false : { opacity: 0 }}
+            animate={shouldReduceMotion ? undefined : { opacity: 1 }}
+            exit={shouldReduceMotion ? undefined : { opacity: 0 }}
             style={{
               position: "absolute", top: "calc(100% + 6px)",
               left: 0, right: 0,

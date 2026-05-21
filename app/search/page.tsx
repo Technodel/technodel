@@ -49,7 +49,20 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const [products, total, categories] = await Promise.all([
     prisma.product.findMany({
       where,
-      include: { category: { select: { name: true, slug: true } } },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        brand: true,
+        displayPrice: true,
+        comparePrice: true,
+        images: true,
+        isNew: true,
+        isFeatured: true,
+        stock: true,
+        lowStockThresh: true,
+        category: { select: { name: true, slug: true } },
+      },
       orderBy,
       take: limit,
       skip: (page - 1) * limit,
@@ -58,7 +71,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     prisma.category.findMany({
       where: { isVisible: true, parentId: null },
       orderBy: { sortOrder: "asc" },
-      include: { _count: { select: { products: { where: { isVisible: true } } } } },
+      select: { id: true, name: true, slug: true, icon: true },
     }).catch(() => []),
   ]);
 

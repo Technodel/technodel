@@ -1,15 +1,14 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { useCartStore } from "@/store/cart";
 import Link from "next/link";
+import Image from "next/image";
 
 type PaymentMethod = "cod" | "wish_money" | "crypto";
 
 export default function CheckoutPage() {
   const { items, total, count, clear } = useCartStore();
-  const router = useRouter();
   const [step, setStep] = useState<"info" | "payment" | "success">("info");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -35,7 +34,7 @@ export default function CheckoutPage() {
     }
     setLoading(true); setError("");
     try {
-      const res = await fetch("/api/orders", {
+      const res = await fetch("api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -57,7 +56,7 @@ export default function CheckoutPage() {
           total: grandTotal,
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) { setError(data.error || "Failed to place order."); return; }
       setOrderId(data.orderNumber);
       clear();
@@ -115,14 +114,14 @@ export default function CheckoutPage() {
           <Section title="📋 Contact Information">
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <Field label="Full Name *">
-                <input className="input" value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="John Doe" />
+                <input className="input" value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Sami Darwich" />
               </Field>
               <Field label="Phone *">
                 <input className="input" type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+961 XX XXX XXX" />
               </Field>
             </div>
             <Field label="Email (optional)">
-              <input className="input" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="john@example.com" />
+              <input className="input" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="sami.darwich@example.com" />
             </Field>
           </Section>
 
@@ -145,7 +144,7 @@ export default function CheckoutPage() {
               { id: "cod", icon: "💵", label: "Cash on Delivery", desc: "Pay when you receive your order" },
               { id: "wish_money", icon: "📱", label: "Wish Money", desc: "Transfer via OMT / Wish Money app" },
               { id: "crypto", icon: "🪙", label: "Crypto (USDT/BTC)", desc: "Pay with USDT, BTC, or ETH — zero fees" },
-            ].map((pm) => (
+            ].map((pm: { id: PaymentMethod; icon: string; label: string; desc: string }) => (
               <label key={pm.id} style={{
                 display: "flex", gap: 14, alignItems: "flex-start", padding: "14px 16px",
                 borderRadius: "var(--r-md)", border: `2px solid ${form.paymentMethod === pm.id ? "var(--c-accent)" : "var(--c-border)"}`,
@@ -156,7 +155,7 @@ export default function CheckoutPage() {
                   type="radio"
                   name="payment"
                   value={pm.id}
-                  checked={form.paymentMethod === pm.id as any}
+                  checked={form.paymentMethod === pm.id}
                   onChange={() => set("paymentMethod", pm.id)}
                   style={{ marginTop: 2, accentColor: "var(--c-accent)" }}
                 />
@@ -186,7 +185,15 @@ export default function CheckoutPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
             {items.map((item) => (
               <div key={`${item.productId}-${item.variantId}`} style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                {item.imageUrl && <img src={item.imageUrl} alt={item.title} style={{ width: 40, height: 40, objectFit: "contain", borderRadius: 4, flexShrink: 0 }} />}
+                {item.imageUrl && (
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.title}
+                    width={40}
+                    height={40}
+                    style={{ objectFit: "contain", borderRadius: 4, flexShrink: 0 }}
+                  />
+                )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.title}</div>
                   <div style={{ fontSize: 12, color: "var(--c-muted)" }}>×{item.quantity}</div>

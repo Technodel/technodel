@@ -8,6 +8,8 @@ function proxyUrl(src: string): string {
   return `/new/api/img-proxy?url=${encodeURIComponent(src)}`;
 }
 
+const FALLBACK_LOGO_SRC = "/new/logo.png";
+
 interface Props {
   src: string;
   alt: string;
@@ -49,15 +51,14 @@ export default function OptimizedImage({
   // Route external images through proxy to bypass hotlink blocking
   const resolvedSrc = errored ? "" : proxyUrl(src);
 
-  // Fallback to brand logo when image is missing or fails.
+  // Fallback when image is missing or fails.
   if (!src || src === "/placeholder.png" || errored) {
     return (
       <div
-        className={className || "skeleton"}
+        className={className}
         style={{
           width: width || "100%",
           height: height || "100%",
-          display: "flex", alignItems: "center", justifyContent: "center",
           background: "var(--c-surface2)",
           borderRadius: "var(--r-sm)",
           position: "relative",
@@ -66,12 +67,16 @@ export default function OptimizedImage({
         }}
       >
         <NextImage
-          src="/logo.png"
-          alt="Technodel"
+          src={FALLBACK_LOGO_SRC}
+          alt={alt}
+          width={fill ? undefined : (width || 400)}
+          height={fill ? undefined : (height || 400)}
           fill={fill}
-          width={fill ? undefined : (width || 200)}
-          height={fill ? undefined : (height || 200)}
-          style={{ objectFit: "contain", padding: 14 }}
+          priority={priority}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          className={className}
+          style={{ objectFit: "contain", ...style }}
         />
       </div>
     );
@@ -99,16 +104,18 @@ export default function OptimizedImage({
         />
       )}
       <NextImage
-        src={resolvedSrc || "/placeholder.png"}
+        src={resolvedSrc || FALLBACK_LOGO_SRC}
         alt={alt}
         unoptimized={resolvedSrc.startsWith("/new/api/img-proxy")}
         width={fill ? undefined : (width || 400)}
         height={fill ? undefined : (height || 400)}
         fill={fill}
         priority={priority}
+        loading={priority ? "eager" : "lazy"}
+        decoding="async"
         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-        placeholder="blur"
-        blurDataURL={`data:image/svg+xml;base64,${toBase64(shimmer(400, 400))}`}
+        placeholder={priority ? "blur" : "empty"}
+        blurDataURL={priority ? `data:image/svg+xml;base64,${toBase64(shimmer(400, 400))}` : undefined}
         className={className}
         style={{
           objectFit,

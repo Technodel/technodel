@@ -26,6 +26,19 @@ interface Props {
   deals: HomeProduct[];
 }
 
+function shuffleItems<T>(items: T[]): T[] {
+  const next = items.slice();
+  for (let index = next.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
+  }
+  return next;
+}
+
+function pickRandomItems<T>(items: T[], take: number): T[] {
+  return shuffleItems(items).slice(0, take);
+}
+
 const FEATURED_TAGS = [
   "Smartphones", "Laptops", "Gaming", "Audio",
   "Accessories", "Tablets", "Networking", "Cameras",
@@ -158,6 +171,9 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
   const belowFoldRef = useRef<HTMLDivElement>(null);
   const mouse = useMousePosition(!performanceMode);
   const { scrollY } = useScroll();
+  const [featuredProducts] = useState(() => pickRandomItems(featured, 8));
+  const [dealProducts] = useState(() => pickRandomItems(deals, 8));
+  const [newArrivalProducts] = useState(() => pickRandomItems(newArrivals, 8));
 
   // Parallax values
   const heroParallaxY = useTransform(scrollY, [0, 600], [0, performanceMode ? 0 : 150]);
@@ -172,7 +188,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
     return () => clearInterval(t);
   }, []);
 
-  const dealSlides: HeroSlide[] = (deals || []).slice(0, 5).map((p) => {
+  const dealSlides: HeroSlide[] = (dealProducts || []).slice(0, 5).map((p) => {
     const img = parseFirstImage(p.images);
     const comparePrice = typeof p.comparePrice === "number" ? p.comparePrice : null;
     const hasDiscount = comparePrice !== null && typeof p.displayPrice === "number" && comparePrice > p.displayPrice;
@@ -196,8 +212,28 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
     badge: b.badge || undefined,
   })).filter((s) => !!s.imageUrl);
 
+  const featuredSlides: HeroSlide[] = (featuredProducts || [])
+    .slice()
+    .sort((left, right) => {
+      const leftLaptop = left.category?.name?.toLowerCase().includes("laptop") ? 1 : 0;
+      const rightLaptop = right.category?.name?.toLowerCase().includes("laptop") ? 1 : 0;
+      return rightLaptop - leftLaptop;
+    })
+    .slice(0, 4)
+    .map((product) => ({
+      id: `featured-${product.id}`,
+      title: product.title,
+      subtitle: product.category?.name ? `Featured ${product.category.name}` : "Featured Product",
+      imageUrl: parseFirstImage(product.images),
+      linkUrl: `/product/${product.slug}`,
+      badge: product.category?.name?.toLowerCase().includes("laptop") ? "💻 Featured Laptops" : "⭐ Featured",
+    }))
+    .filter((slide) => !!slide.imageUrl);
+
   const heroBanners: HeroSlide[] = dealSlides.length > 0
-    ? dealSlides
+    ? [...dealSlides, ...featuredSlides].slice(0, 6)
+    : featuredSlides.length > 0
+    ? [...featuredSlides, ...bannerSlides].slice(0, 6)
     : bannerSlides.length > 0
     ? bannerSlides
     : [
@@ -623,7 +659,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
 
       <div ref={belowFoldRef}>
         {showBelowFold ? (
-          <HomeBelowFold featured={featured} categories={categories} deals={deals} newArrivals={newArrivals} />
+          <HomeBelowFold featured={featuredProducts} categories={categories} deals={dealProducts} newArrivals={newArrivalProducts} />
         ) : (
           <div className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
             <div style={{ height: 800, borderRadius: "var(--r-xl)", border: "1px solid var(--c-border)", background: "var(--c-surface)" }} />

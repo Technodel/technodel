@@ -33,7 +33,19 @@ export async function GET(req: NextRequest) {
     const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
-        include: {
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          brand: true,
+          displayPrice: true,
+          comparePrice: true,
+          images: true,
+          isNew: true,
+          isFeatured: true,
+          stock: true,
+          lowStockThresh: true,
+          sourcePrice: true,
           category: { select: { name: true, slug: true } },
           competitor: { select: { name: true, url: true } },
         },
@@ -58,6 +70,10 @@ export async function GET(req: NextRequest) {
       total,
       pages: Math.ceil(total / limit),
       page,
+    }, {
+      headers: {
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+      },
     });
   } catch (err) {
     return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });

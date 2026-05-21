@@ -55,7 +55,19 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   const [products, total, categories] = await Promise.all([
     prisma.product.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        brand: true,
+        displayPrice: true,
+        comparePrice: true,
+        images: true,
+        isNew: true,
+        isFeatured: true,
+        stock: true,
+        lowStockThresh: true,
+        sourcePrice: true,
         category: { select: { name: true, slug: true } },
         competitor: { select: { name: true, url: true } },
       },
@@ -67,7 +79,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
     prisma.category.findMany({
       where: { isVisible: true, parentId: null },
       orderBy: { sortOrder: "asc" },
-      include: { _count: { select: { products: { where: { isVisible: true } } } } },
+      select: { id: true, name: true, slug: true, icon: true },
     }).catch(() => []),
   ]);
 

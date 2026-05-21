@@ -2,9 +2,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 // import Image from "next/image";
-import { motion, AnimatePresence, useMotionValueEvent, useScroll } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useCartStore } from "@/store/cart";
 import { useThemeStore } from "@/store/theme";
 import { useCurrencyStore } from "@/store/currency";
@@ -18,19 +18,39 @@ export default function Header() {
   const { currency, setCurrency } = useCurrencyStore();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const { scrollY } = useScroll();
+  const shouldReduceMotion = useReducedMotion();
+  const scrolledRef = useRef(false);
 
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    setScrolled(latest > 10);
-  });
+  useEffect(() => {
+    let ticking = false;
+
+    const updateScrolled = () => {
+      ticking = false;
+      const nextScrolled = window.scrollY > 10;
+      if (scrolledRef.current !== nextScrolled) {
+        scrolledRef.current = nextScrolled;
+        setScrolled(nextScrolled);
+      }
+    };
+
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(updateScrolled);
+    };
+
+    updateScrolled();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const isLight = theme === "light";
 
   return (
     <motion.header
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      initial={shouldReduceMotion ? false : { y: -100, opacity: 0 }}
+      animate={shouldReduceMotion ? undefined : { y: 0, opacity: 1 }}
+      transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       style={{
         position: "sticky",
         top: 0,
@@ -50,8 +70,8 @@ export default function Header() {
       {/* Top bar — premium announcement strip (hidden on mobile) */}
       <motion.div
         className="hide-mobile"
-        animate={{ height: scrolled ? 0 : "auto", opacity: scrolled ? 0 : 1 }}
-        transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+        animate={shouldReduceMotion ? undefined : { height: scrolled ? 0 : "auto", opacity: scrolled ? 0 : 1 }}
+        transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
         style={{ overflow: "hidden" }}
       >
         <div style={{
@@ -121,14 +141,14 @@ export default function Header() {
       {/* Main nav */}
       <div style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 clamp(14px, 4vw, 24px)" }}>
         <motion.div
-          animate={{ height: scrolled ? "clamp(48px, 8vw, 64px)" : "clamp(56px, 10vw, 94px)" }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
+          animate={shouldReduceMotion ? undefined : { height: scrolled ? "clamp(48px, 8vw, 64px)" : "clamp(56px, 10vw, 94px)" }}
+          transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.3, ease: "easeInOut" }}
           style={{ display: "flex", alignItems: "center", gap: "clamp(8px, 2vw, 24px)", overflow: "hidden", minWidth: 0 }}
         >
           {/* Logo — responsive sizing */}
           <motion.div
-            animate={{ scale: scrolled ? 0.85 : 1 }}
-            transition={{ duration: 0.3 }}
+            animate={shouldReduceMotion ? undefined : { scale: scrolled ? 0.85 : 1 }}
+            transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.3 }}
             className="header-logo"
           >
             <Link href="/" style={{ textDecoration: "none", flexShrink: 0, display: "flex", alignItems: "center" }}>
@@ -150,8 +170,8 @@ export default function Header() {
 
           {/* Search — grows to fill space */}
           <motion.div
-            animate={{ width: scrolled ? "60%" : "100%" }}
-            transition={{ duration: 0.3 }}
+            animate={shouldReduceMotion ? undefined : { width: scrolled ? "60%" : "100%" }}
+            transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.3 }}
             style={{ flex: 1, maxWidth: 560 }}
             className="hide-mobile"
           >

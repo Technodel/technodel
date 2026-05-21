@@ -23,11 +23,6 @@ export async function GET(req: NextRequest) {
     return new NextResponse("Malformed URL", { status: 400 });
   }
 
-  // Reject non-image paths for safety
-  const ext = parsed.pathname.split(".").pop()?.toLowerCase() ?? "";
-  const ALLOWED_EXTENSIONS = new Set(["jpg","jpeg","png","gif","webp","avif","svg","bmp","ico"]);
-  // Also allow paths with no extension (some CDNs serve without extension)
-
   try {
     const upstream = await fetch(rawUrl, {
       headers: {
@@ -37,10 +32,12 @@ export async function GET(req: NextRequest) {
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
         "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
-        "Cache-Control": "no-cache",
       },
       // Don't follow redirects endlessly
       redirect: "follow",
+      cache: "force-cache",
+      next: { revalidate: 60 * 60 * 24 },
+      signal: AbortSignal.timeout(7000),
     });
 
     if (!upstream.ok) {
