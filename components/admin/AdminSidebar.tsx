@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
+import { Icon } from "@/components/ui/Icon";
 
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: "🏠", exact: true },
@@ -47,7 +48,7 @@ export default function AdminSidebar() {
           const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
           return (
             <Link key={item.href} href={item.href} className={`admin-nav-item ${active ? "active" : ""}`}>
-              <span style={{ fontSize: 16 }}>{item.icon}</span>
+              <span style={{ display: "inline-flex" }}><Icon emoji={item.icon} size={18} /></span>
               <span>{item.label}</span>
             </Link>
           );

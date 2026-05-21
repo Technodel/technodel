@@ -4,7 +4,7 @@ import HomeClient from "./HomeClient";
 export const revalidate = 300;
 
 export default async function HomePage() {
-  const [featured, categories, banners, newArrivals] = await Promise.all([
+  const [featured, categories, banners, newArrivals, deals] = await Promise.all([
     prisma.product.findMany({
       where: { isVisible: true, isFeatured: true },
       include: {
@@ -20,7 +20,7 @@ export default async function HomePage() {
       take: 12,
     }).catch(() => []),
     prisma.banner.findMany({
-      where: { isActive: true, position: "hero" },
+      where: { isActive: true },
       orderBy: { sortOrder: "asc" },
       take: 5,
     }).catch(() => []),
@@ -33,6 +33,18 @@ export default async function HomePage() {
       orderBy: { createdAt: "desc" },
       take: 8,
     }).catch(() => []),
+    prisma.product.findMany({
+      where: {
+        isVisible: true,
+        comparePrice: { not: null },
+      },
+      include: {
+        category: { select: { name: true } },
+        competitor: { select: { name: true, url: true } },
+      },
+      orderBy: { orderCount: "desc" },
+      take: 8,
+    }).catch(() => []),
   ]);
 
   return (
@@ -41,6 +53,7 @@ export default async function HomePage() {
       categories={JSON.parse(JSON.stringify(categories))}
       banners={JSON.parse(JSON.stringify(banners))}
       newArrivals={JSON.parse(JSON.stringify(newArrivals))}
+      deals={JSON.parse(JSON.stringify(deals))}
     />
   );
 }

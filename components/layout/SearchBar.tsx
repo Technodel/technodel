@@ -1,6 +1,7 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface SearchResult {
   id: string;
@@ -9,6 +10,7 @@ interface SearchResult {
   imageUrl?: string;
   displayPrice: number;
   category: string;
+  brand?: string;
 }
 
 export default function SearchBar() {
@@ -16,9 +18,13 @@ export default function SearchBar() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [noResults, setNoResults] = useState(false);
+  const [selectedIdx, setSelectedIdx] = useState(-1);
   const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const fn = (e: MouseEvent) => {
@@ -28,28 +34,66 @@ export default function SearchBar() {
     return () => document.removeEventListener("mousedown", fn);
   }, []);
 
-  const search = (q: string) => {
+  // Reset selected index when results change
+  useEffect(() => { setSelectedIdx(-1); }, [results]);
+
+  const search = useCallback((q: string) => {
     setQuery(q);
+    setError(false);
     if (timer.current) clearTimeout(timer.current);
-    if (!q.trim()) { setResults([]); setOpen(false); return; }
+    if (abortRef.current) abortRef.current.abort();
+
+    if (!q.trim()) { setResults([]); setOpen(false); setNoResults(false); return; }
+
     timer.current = setTimeout(async () => {
       setLoading(true);
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=6`);
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=8`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error("Search failed");
         const data = await res.json();
-        setResults(data.results || []);
-        setOpen(true);
-      } catch {
+        if (!controller.signal.aborted) {
+          const r = data.results || [];
+          setResults(r);
+          setOpen(r.length > 0);
+          setNoResults(r.length === 0);
+        }
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === "AbortError") return;
+        setError(true);
         setResults([]);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
-    }, 280);
-  };
+    }, 120); // Ultra-fast debounce
+  }, []);
 
-  const go = () => {
+  const go = useCallback(() => {
     if (query.trim()) {
       router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+      setOpen(false);
+    }
+  }, [query, router]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      if (selectedIdx >= 0 && results[selectedIdx]) {
+        router.push(`/product/${results[selectedIdx].slug}`);
+        setOpen(false);
+      } else {
+        go();
+      }
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIdx((prev) => Math.min(prev + 1, results.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIdx((prev) => Math.max(prev - 1, -1));
+    } else if (e.key === "Escape") {
       setOpen(false);
     }
   };
@@ -60,71 +104,214 @@ export default function SearchBar() {
         <input
           className="input"
           style={{ borderRadius: "var(--r-sm) 0 0 var(--r-sm)", borderRight: "none" }}
-          placeholder="Search products, brands..."
+          placeholder="Search 60,000+ products..."
           value={query}
           onChange={(e) => search(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && go()}
+          onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setOpen(true)}
+          aria-label="Search products"
+          autoComplete="off"
         />
         <button
           className="btn btn-primary"
           style={{ borderRadius: "0 var(--r-sm) var(--r-sm) 0", padding: "0 18px", flexShrink: 0 }}
           onClick={go}
+          aria-label="Search"
         >
-          {loading ? "⏳" : "🔍"}
+          {loading ? (
+            <motion.span
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              style={{ display: "inline-block" }}
+            >
+              ⌛
+            </motion.span>
+          ) : (
+            <span>🔍</span>
+          )}
         </button>
       </div>
 
-      {open && results.length > 0 && (
-        <div
-          style={{
-            position: "absolute",
-            top: "calc(100% + 6px)",
-            left: 0, right: 0,
-            background: "var(--c-surface)",
-            border: "1px solid var(--c-border)",
-            borderRadius: "var(--r-md)",
-            overflow: "hidden",
-            zIndex: 200,
-            boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
-          }}
-        >
-          {results.map((r) => (
-            <a
-              key={r.id}
-              href={`/product/${r.slug}`}
-              onClick={() => setOpen(false)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "10px 16px",
-                textDecoration: "none",
-                color: "var(--c-text)",
-                borderBottom: "1px solid var(--c-border)",
-                transition: "background 0.15s",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--c-surface2)")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-            >
-              {r.imageUrl && (
-                <img src={r.imageUrl} alt={r.title} style={{ width: 40, height: 40, objectFit: "contain", borderRadius: 6, background: "var(--c-surface2)", flexShrink: 0 }} />
-              )}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</div>
-                <div style={{ fontSize: 12, color: "var(--c-muted)" }}>{r.category}</div>
-              </div>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--c-accent)", flexShrink: 0 }}>${r.displayPrice.toFixed(2)}</span>
-            </a>
-          ))}
-          <a
-            href={`/search?q=${encodeURIComponent(query)}`}
-            style={{ display: "block", padding: "10px 16px", fontSize: 13, color: "var(--c-accent)", textDecoration: "none", fontWeight: 500, textAlign: "center" }}
+      <AnimatePresence>
+        {/* Loading skeleton */}
+        {loading && query.trim() && !results.length && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            style={{
+              position: "absolute", top: "calc(100% + 6px)",
+              left: 0, right: 0,
+              padding: "20px 16px",
+              background: "var(--c-surface)",
+              border: "1px solid var(--c-border)",
+              borderRadius: "var(--r-md)",
+              zIndex: 200,
+              boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
+            }}
           >
-            See all results for &quot;{query}&quot; →
-          </a>
-        </div>
-      )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {[1,2,3].map(i => (
+                <div key={i} style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                  <div className="skeleton" style={{ width: 44, height: 44, borderRadius: 8 }} />
+                  <div style={{ flex: 1 }}>
+                    <div className="skeleton" style={{ height: 14, width: "70%", marginBottom: 6 }} />
+                    <div className="skeleton" style={{ height: 11, width: "40%" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Results dropdown */}
+        {open && results.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            style={{
+              position: "absolute", top: "calc(100% + 6px)",
+              left: 0, right: 0,
+              background: "var(--c-surface)",
+              border: "1px solid var(--c-border)",
+              borderRadius: "var(--r-md)",
+              zIndex: 200,
+              boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
+              overflow: "hidden",
+            }}
+          >
+            {results.map((r, i) => (
+              <a
+                key={r.id}
+                href={`/product/${r.slug}`}
+                onClick={() => setOpen(false)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "10px 16px",
+                  textDecoration: "none",
+                  color: "var(--c-text)",
+                  borderBottom: i < results.length - 1 ? "1px solid var(--c-border)" : "none",
+                  transition: "background 0.1s",
+                  background: i === selectedIdx ? "var(--c-surface2)" : "transparent",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "var(--c-surface2)";
+                  setSelectedIdx(i);
+                }}
+                onMouseLeave={(e) => {
+                  if (i !== selectedIdx) e.currentTarget.style.background = "transparent";
+                }}
+              >
+                <div style={{
+                  width: 44, height: 44, borderRadius: 8,
+                  background: "var(--c-surface2)",
+                  flexShrink: 0,
+                  overflow: "hidden",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  {r.imageUrl ? (
+                    <img src={r.imageUrl} alt={r.title} style={{ width: 40, height: 40, objectFit: "contain" }} />
+                  ) : (
+                    <span style={{ fontSize: 18 }}>📦</span>
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.3 }}>
+                    {r.title}
+                  </div>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 2 }}>
+                    <span style={{ fontSize: 11, color: "var(--c-muted)" }}>{r.category}</span>
+                    {r.brand && (
+                      <span style={{ fontSize: 10, color: "var(--c-accent)", fontWeight: 600, textTransform: "uppercase" }}>
+                        {r.brand}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--c-accent)", flexShrink: 0 }}>
+                  ${r.displayPrice?.toFixed(2)}
+                </span>
+              </a>
+            ))}
+            <div
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "8px 16px", borderTop: "1px solid var(--c-border)",
+              }}
+            >
+              <a
+                href={`/search?q=${encodeURIComponent(query)}`}
+                style={{ fontSize: 13, color: "var(--c-accent)", textDecoration: "none", fontWeight: 500 }}
+                onClick={() => setOpen(false)}
+              >
+                See all results for &quot;{query}&quot; →
+              </a>
+              <span style={{ fontSize: 11, color: "var(--c-muted)" }}>
+                ↑↓ navigate · ↵ open
+              </span>
+            </div>
+          </motion.div>
+        )}
+
+        {/* No results state */}
+        {!loading && !error && noResults && query.trim() && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            style={{
+              position: "absolute", top: "calc(100% + 6px)",
+              left: 0, right: 0,
+              padding: "24px 16px",
+              background: "var(--c-surface)",
+              border: "1px solid var(--c-border)",
+              borderRadius: "var(--r-md)",
+              zIndex: 200,
+              boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
+              textAlign: "center",
+            }}
+          >
+            <div style={{ fontSize: 36, marginBottom: 8, opacity: 0.6 }}>🔍</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--c-text)", marginBottom: 4 }}>
+              No results for &quot;{query}&quot;
+            </div>
+            <div style={{ fontSize: 13, color: "var(--c-muted)", marginBottom: 12 }}>
+              Try different keywords or browse categories
+            </div>
+            <a
+              href="/shop"
+              style={{ fontSize: 13, color: "var(--c-accent)", textDecoration: "none", fontWeight: 600 }}
+              onClick={() => setNoResults(false)}
+            >
+              Browse all products →
+            </a>
+          </motion.div>
+        )}
+
+        {/* Error state */}
+        {error && query.trim() && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: "absolute", top: "calc(100% + 6px)",
+              left: 0, right: 0,
+              padding: "12px 16px",
+              background: "rgba(255,68,68,0.08)",
+              border: "1px solid rgba(255,68,68,0.2)",
+              borderRadius: "var(--r-md)",
+              fontSize: 13, color: "var(--c-muted)",
+              zIndex: 200,
+            }}
+          >
+            Search temporarily unavailable. Please try again.
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -128,6 +128,8 @@ model Product {
   @@index([competitorId])
   @@index([brand])
   @@index([isVisible, isFeatured])
+  @@index([title])
+  @@index([seoKeywords])
 }
 
 model Variant {

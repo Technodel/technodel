@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { StatsCards, QuickActions, SectionTitle, InlineIcon, StatusBadge } from "@/components/admin/AdminDashboardClient";
 
 export default async function AdminDashboard() {
   const [products, orders, users, categories] = await Promise.all([
@@ -46,33 +47,26 @@ export default async function AdminDashboard() {
     { label: "Customers", value: users.toLocaleString(), icon: "👥", color: "#ffc107", href: "/admin/users" },
   ];
 
+  const QUICK_ACTIONS = [
+    { href: "/admin/products/new", label: "➕ Add Product", primary: true },
+    { href: "/admin/tools", label: "🛠️ Import Tools", primary: true },
+    { href: "/admin/settings?tab=api-keys", label: "🔑 API Keys", primary: false },
+    { href: "/admin/categories", label: "🗂️ Categories", primary: false },
+    { href: "/admin/competitors", label: "🔍 Competitors", primary: false },
+    { href: "/admin/banners", label: "🖼️ Banners", primary: false },
+  ];
+
   return (
     <div>
       <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.5px" }}>Admin Galaxy 🌌</h1>
+        <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.5px", display: "flex", alignItems: "center", gap: 10 }}>
+          Admin Galaxy <InlineIcon emoji="🌌" size={28} />
+        </h1>
         <p style={{ color: "var(--c-muted)", marginTop: 4 }}>Welcome back. Here&apos;s what&apos;s happening with Technodel.</p>
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 20, marginBottom: 40 }}>
-        {STATS.map((s) => (
-          <Link key={s.label} href={s.href} style={{ textDecoration: "none" }}>
-            <div
-              style={{
-                background: "var(--c-surface)",
-                border: "1px solid var(--c-border)",
-                borderRadius: "var(--r-md)",
-                padding: "24px 20px",
-                transition: "border-color 0.2s ease",
-              }}
-            >
-              <div style={{ fontSize: 28, marginBottom: 12 }}>{s.icon}</div>
-              <div style={{ fontSize: 28, fontWeight: 800, color: s.color }}>{s.value}</div>
-              <div style={{ fontSize: 13, color: "var(--c-muted)", marginTop: 4 }}>{s.label}</div>
-            </div>
-          </Link>
-        ))}
-      </div>
+      <StatsCards stats={STATS} />
 
       {/* Grid: recent orders + quick actions */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 24, marginBottom: 32 }}>
@@ -95,7 +89,7 @@ export default async function AdminDashboard() {
             <tbody>
               {recentOrders.length === 0 ? (
                 <tr><td colSpan={4} style={{ textAlign: "center", color: "var(--c-muted)", padding: "32px 0" }}>No orders yet</td></tr>
-              ) : recentOrders.map((o) => (
+              ) : recentOrders.map((o: any) => (
                 <tr key={o.id}>
                   <td><Link href={`/admin/orders/${o.id}`} style={{ color: "var(--c-accent)", textDecoration: "none", fontWeight: 600 }}>{o.orderNumber}</Link></td>
                   <td style={{ color: "var(--c-muted)" }}>{o.guestName || "Customer"}</td>
@@ -111,34 +105,18 @@ export default async function AdminDashboard() {
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ background: "var(--c-surface)", border: "1px solid var(--c-border)", borderRadius: "var(--r-md)", padding: 20 }}>
             <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Quick Actions</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {[
-                { href: "/admin/products/new", label: "➕ Add Product", primary: true },
-                { href: "/admin/tools", label: "🛠️ Import Tools", primary: true },
-                { href: "/admin/settings?tab=api-keys", label: "🔑 API Keys", primary: false },
-                { href: "/admin/categories", label: "🗂️ Categories", primary: false },
-                { href: "/admin/competitors", label: "🔍 Competitors", primary: false },
-                { href: "/admin/banners", label: "🖼️ Banners", primary: false },
-              ].map((a) => (
-                <Link
-                  key={a.href}
-                  href={a.href}
-                  className={`btn ${a.primary ? "btn-primary" : "btn-secondary"}`}
-                  style={{ width: "100%", justifyContent: "flex-start" }}
-                >
-                  {a.label}
-                </Link>
-              ))}
-            </div>
+            <QuickActions items={QUICK_ACTIONS} />
           </div>
 
           {/* Top products */}
           <div style={{ background: "var(--c-surface)", border: "1px solid var(--c-border)", borderRadius: "var(--r-md)", padding: 20 }}>
-            <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12 }}>🏆 Top Products</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+              <SectionTitle emoji="🏆" text="Top Products" />
+            </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {topProducts.length === 0 ? (
                 <p style={{ fontSize: 13, color: "var(--c-muted)" }}>No products yet</p>
-              ) : topProducts.map((p, i) => {
+              ) : topProducts.map((p: any, i: number) => {
                 let img = "";
                 try { img = JSON.parse(p.images)[0] || ""; } catch {}
                 return (
@@ -163,25 +141,27 @@ export default async function AdminDashboard() {
         {/* Category Tree */}
         <div style={{ background: "var(--c-surface)", border: "1px solid var(--c-border)", borderRadius: "var(--r-md)", padding: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <h3 style={{ fontSize: 15, fontWeight: 700 }}>🗂️ Catalog Tree ({categories})</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
+              <SectionTitle emoji="🗂️" text={`Catalog Tree (${categories})`} />
+            </h3>
             <Link href="/admin/categories" style={{ fontSize: 12, color: "var(--c-accent)", textDecoration: "none" }}>Manage →</Link>
           </div>
           {categoryTree.length === 0 ? (
             <p style={{ fontSize: 13, color: "var(--c-muted)" }}>No categories yet.</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {categoryTree.map((cat) => (
+              {categoryTree.map((cat: any) => (
                 <div key={cat.id}>
-                  {/* Parent category */}
                   <Link
                     href={`/admin/products?category=${cat.id}`}
                     style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 10px", borderRadius: 6, textDecoration: "none", color: "var(--c-text)", background: "var(--c-surface2, rgba(255,255,255,0.03))", marginBottom: 2, fontWeight: 600, fontSize: 13 }}
                   >
-                    <span>📁 {cat.name}</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <InlineIcon emoji="📁" size={14} /> {cat.name}
+                    </span>
                     <span style={{ fontSize: 11, color: "var(--c-muted)", fontWeight: 400 }}>{cat._count.products} products</span>
                   </Link>
-                  {/* Children */}
-                  {cat.children?.map((child) => (
+                  {cat.children?.map((child: any) => (
                     <Link
                       key={child.id}
                       href={`/admin/products?category=${child.id}`}
@@ -200,14 +180,16 @@ export default async function AdminDashboard() {
         {/* Competitors */}
         <div style={{ background: "var(--c-surface)", border: "1px solid var(--c-border)", borderRadius: "var(--r-md)", padding: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <h3 style={{ fontSize: 15, fontWeight: 700 }}>🔍 Competitors ({competitors.length})</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
+              <SectionTitle emoji="🔍" text={`Competitors (${competitors.length})`} />
+            </h3>
             <Link href="/admin/competitors" style={{ fontSize: 12, color: "var(--c-accent)", textDecoration: "none" }}>Manage →</Link>
           </div>
           {competitors.length === 0 ? (
             <p style={{ fontSize: 13, color: "var(--c-muted)" }}>No competitors added yet.</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {competitors.map((c) => (
+              {competitors.map((c: any) => (
                 <Link
                   key={c.id}
                   href={`/admin/competitors/${c.id}`}
@@ -215,30 +197,22 @@ export default async function AdminDashboard() {
                 >
                   <span style={{ fontWeight: 600, fontSize: 13 }}>{c.name}</span>
                   <div style={{ display: "flex", gap: 12, fontSize: 11, color: "var(--c-muted)" }}>
-                    <span>📦 {c._count.products} cloned</span>
-                    <span>🔍 {c._count.competitorProducts} scanned</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <InlineIcon emoji="📦" size={12} /> {c._count.products} cloned
+                    </span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <InlineIcon emoji="🔍" size={12} /> {c._count.competitorProducts} scanned
+                    </span>
                   </div>
                 </Link>
               ))}
             </div>
           )}
-          <Link href="/admin/tools" className="btn btn-primary" style={{ width: "100%", marginTop: 16, justifyContent: "center" }}>🛠️ Open Import Tools</Link>
+          <Link href="/admin/tools" className="btn btn-primary" style={{ width: "100%", marginTop: 16, justifyContent: "center", display: "flex", alignItems: "center", gap: 8 }}>
+            <InlineIcon emoji="🛠️" size={16} /> Open Import Tools
+          </Link>
         </div>
       </div>
     </div>
   );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { color: string; label: string }> = {
-    pending:    { color: "#ffc107", label: "Pending" },
-    confirmed:  { color: "#00c8ff", label: "Confirmed" },
-    processing: { color: "#7c3aff", label: "Processing" },
-    shipped:    { color: "#00e676", label: "Shipped" },
-    delivered:  { color: "#00e676", label: "Delivered" },
-    cancelled:  { color: "#ff4444", label: "Cancelled" },
-    refunded:   { color: "#ff6b6b", label: "Refunded" },
-  };
-  const s = map[status] || { color: "var(--c-muted)", label: status };
-  return <span style={{ fontSize: 11, fontWeight: 700, color: s.color, textTransform: "capitalize" }}>{s.label}</span>;
 }

@@ -55,6 +55,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Gracefully degrade if DB unavailable
   }
 
+  // Location pages (critical for local SEO)
+  const locationPages: MetadataRoute.Sitemap = [
+    { url: `${baseUrl}/locations`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    { url: `${baseUrl}/locations/beirut`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    { url: `${baseUrl}/locations/tripoli`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    { url: `${baseUrl}/locations/jounieh`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${baseUrl}/locations/saida`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${baseUrl}/locations/zahle`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+  ];
+
   // Dynamic products (high priority — these are the ranking pages)
   let products: MetadataRoute.Sitemap = [];
   try {
@@ -78,5 +88,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Gracefully degrade
   }
 
-  return [...staticPages, ...categories, ...products, ...blogPosts];
+  return [...staticPages, ...categories, ...products, ...blogPosts, ...locationPages];
 }

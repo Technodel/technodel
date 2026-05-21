@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Icon } from "@/components/ui/Icon";
 import { useCartStore } from "@/store/cart";
 import Link from "next/link";
 
@@ -139,7 +140,7 @@ export default function CheckoutPage() {
           </Section>
 
           {/* Payment */}
-          <Section title="💳 Payment Method">
+          <Section title={<><Icon emoji="💳" size={18} /> Payment Method</>}>
             {[
               { id: "cod", icon: "💵", label: "Cash on Delivery", desc: "Pay when you receive your order" },
               { id: "wish_money", icon: "📱", label: "Wish Money", desc: "Transfer via OMT / Wish Money app" },
@@ -159,7 +160,7 @@ export default function CheckoutPage() {
                   onChange={() => set("paymentMethod", pm.id)}
                   style={{ marginTop: 2, accentColor: "var(--c-accent)" }}
                 />
-                <span style={{ fontSize: 24 }}>{pm.icon}</span>
+                <span style={{ display: "inline-flex" }}><Icon emoji={pm.icon} size={24} /></span>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 15 }}>{pm.label}</div>
                   <div style={{ fontSize: 13, color: "var(--c-muted)" }}>{pm.desc}</div>
@@ -211,7 +212,7 @@ export default function CheckoutPage() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children }: { title: string | React.ReactNode; children: React.ReactNode }) {
   return (
     <div style={{ background: "var(--c-surface)", border: "1px solid var(--c-border)", borderRadius: "var(--r-lg)", padding: 24 }}>
       <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>{title}</h2>

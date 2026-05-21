@@ -39,7 +39,21 @@ export default function OptimizedImage({
 }: Props) {
   const [loaded, setLoaded] = useState(false);
 
+  // Better fallback for missing images — show branded placeholder
   if (!src || src === "/placeholder.png") {
+    // Extract initials from alt text
+    const initials = alt
+      ? alt.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase().substring(0, 2)
+      : "?";
+    const colors = [
+      "linear-gradient(135deg, #0d1a2d, #1a2e4a)",
+      "linear-gradient(135deg, #1a0d2d, #2e1a4a)",
+      "linear-gradient(135deg, #0d2d1a, #1a4a2e)",
+      "linear-gradient(135deg, #2d1a0d, #4a2e1a)",
+      "linear-gradient(135deg, #1a1a2d, #2e2e4a)",
+      "linear-gradient(135deg, #0d2d2d, #1a4a4a)",
+    ];
+    const colorIdx = alt.length % colors.length;
     return (
       <div
         className={className || "skeleton"}
@@ -47,12 +61,42 @@ export default function OptimizedImage({
           width: width || "100%",
           height: height || "100%",
           display: "flex", alignItems: "center", justifyContent: "center",
-          background: "var(--c-surface2)",
+          flexDirection: "column",
+          gap: 6,
+          background: colors[colorIdx],
           borderRadius: "var(--r-sm)",
+          position: "relative",
+          overflow: "hidden",
           ...style,
         }}
       >
-        <span style={{ fontSize: 32 }}>📦</span>
+        {/* Subtle pattern */}
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: `
+            radial-gradient(circle at 30% 40%, rgba(255,255,255,0.03) 0%, transparent 50%),
+            radial-gradient(circle at 70% 60%, rgba(255,255,255,0.02) 0%, transparent 50%)
+          `,
+        }} />
+        {/* Initials */}
+        <span style={{
+          fontSize: 28, fontWeight: 800,
+          color: "rgba(255,255,255,0.15)",
+          letterSpacing: "1px",
+          position: "relative",
+          zIndex: 1,
+          lineHeight: 1,
+        }}>
+          {initials}
+        </span>
+        <span style={{
+          fontSize: 11, fontWeight: 500,
+          color: "rgba(255,255,255,0.25)",
+          position: "relative",
+          zIndex: 1,
+        }}>
+          No Image
+        </span>
       </div>
     );
   }

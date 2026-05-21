@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/auth";
+import { Icon } from "@/components/ui/Icon";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 
 interface OrderSummary {
@@ -183,7 +184,7 @@ function StatCard({ icon, label, value, sub, color, href }: {
         transition: "all 0.2s",
       }}
     >
-      <div style={{ fontSize: 28, marginBottom: 8 }}>{icon}</div>
+      <div style={{ marginBottom: 8, display: "inline-flex" }}><Icon emoji={icon} size={28} /></div>
       <div style={{ fontSize: 12, color: "var(--c-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>
         {label}
       </div>

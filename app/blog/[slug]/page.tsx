@@ -562,10 +562,45 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+// Related posts mapping for content clusters
+const RELATED_POSTS: Record<string, string[]> = {
+  "best-gaming-laptops-lebanon-2026": ["budget-gaming-pc-build-lebanon", "best-gaming-chair-lebanon", "laptop-buying-guide-lebanon-2026"],
+  "laptop-buying-guide-lebanon-2026": ["best-laptop-under-1000-lebanon", "macbook-price-lebanon-2026", "best-gaming-laptops-lebanon-2026"],
+  "iphone-vs-samsung-lebanon-2026": ["best-smartphones-under-500-lebanon", "iphone-price-lebanon-2026", "best-gaming-laptops-lebanon-2026"],
+  "build-gaming-pc-lebanon-budget": ["budget-gaming-pc-build-lebanon", "best-gaming-laptops-lebanon-2026", "best-gaming-chair-lebanon"],
+  "tech-accessories-everyone-needs-2026": ["best-gaming-chair-lebanon", "home-networking-setup-lebanon", "best-tablet-students-lebanon"],
+  "networking-guide-home-office-lebanon": ["home-networking-setup-lebanon", "best-printer-home-office-lebanon", "best-laptop-under-1000-lebanon"],
+  "best-laptop-under-1000-lebanon": ["laptop-buying-guide-lebanon-2026", "macbook-price-lebanon-2026", "best-gaming-laptops-lebanon-2026"],
+  "iphone-price-lebanon-2026": ["iphone-vs-samsung-lebanon-2026", "best-smartphones-under-500-lebanon", "best-tablet-students-lebanon"],
+  "budget-gaming-pc-build-lebanon": ["build-gaming-pc-lebanon-budget", "best-gaming-laptops-lebanon-2026", "best-gaming-chair-lebanon"],
+  "best-printer-home-office-lebanon": ["home-networking-setup-lebanon", "networking-guide-home-office-lebanon", "best-laptop-under-1000-lebanon"],
+  "best-smartphones-under-500-lebanon": ["iphone-price-lebanon-2026", "iphone-vs-samsung-lebanon-2026", "best-tablet-students-lebanon"],
+  "macbook-price-lebanon-2026": ["best-laptop-under-1000-lebanon", "laptop-buying-guide-lebanon-2026", "best-tablet-students-lebanon"],
+  "home-networking-setup-lebanon": ["networking-guide-home-office-lebanon", "best-printer-home-office-lebanon", "best-gaming-laptops-lebanon-2026"],
+  "best-tablet-students-lebanon": ["best-smartphones-under-500-lebanon", "best-laptop-under-1000-lebanon", "laptop-buying-guide-lebanon-2026"],
+  "best-gaming-chair-lebanon": ["best-gaming-laptops-lebanon-2026", "budget-gaming-pc-build-lebanon", "build-gaming-pc-lebanon-budget"],
+};
+
+// Category → shop link mapping
+const CATEGORY_SHOP_LINKS: Record<string, { href: string; label: string }> = {
+  "Laptops": { href: "/shop/laptops", label: "Shop Laptops" },
+  "Smartphones": { href: "/shop/smartphones", label: "Shop Smartphones" },
+  "Gaming": { href: "/shop/gaming", label: "Shop Gaming" },
+  "Printers": { href: "/shop/printers", label: "Shop Printers" },
+  "Networking": { href: "/shop/networking", label: "Shop Networking" },
+  "Tablets": { href: "/shop/tablets", label: "Shop Tablets" },
+  "Audio": { href: "/shop/audio", label: "Shop Audio" },
+  "Accessories": { href: "/shop/accessories", label: "Shop Accessories" },
+  "Cameras": { href: "/shop/cameras", label: "Shop Cameras" },
+};
+
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
   const post = posts[slug];
   if (!post) notFound();
+
+  const relatedSlugs = RELATED_POSTS[slug] || [];
+  const shopLink = CATEGORY_SHOP_LINKS[post.category] || { href: "/shop", label: "Shop All Products" };
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -642,18 +677,47 @@ export default async function BlogPostPage({ params }: Props) {
           <div className="mt-12 p-8 rounded-xl border border-accent/20 bg-accent/5 text-center">
             <h3 className="text-xl font-bold text-white mb-3">Ready to Buy?</h3>
             <p className="text-white/60 mb-6">
-              Browse our full collection of gaming laptops at the best prices in Lebanon.
+              Browse our full collection of {post.category.toLowerCase()} at the best prices in Lebanon.
             </p>
             <Link
-              href="/shop/laptops?category=laptops"
+              href={shopLink.href}
               className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-accent text-white font-medium hover:bg-accent/90 transition-colors"
             >
-              Shop Gaming Laptops
+              {shopLink.label}
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
             </Link>
           </div>
+
+          {/* Related Posts — Content Cluster */}
+          {relatedSlugs.length > 0 && (
+            <div className="mt-12 pt-8 border-t border-white/5">
+              <h3 className="text-lg font-bold text-white mb-6">Related Guides</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                {relatedSlugs.map((rs) => {
+                  const related = posts[rs];
+                  if (!related) return null;
+                  return (
+                    <Link
+                      key={rs}
+                      href={`/blog/${rs}`}
+                      className="p-5 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.06] hover:border-accent/30 transition-all group"
+                    >
+                      <div className="flex items-center gap-2 text-xs text-white/30 mb-2">
+                        <span className="px-2 py-0.5 rounded bg-accent/10 text-accent">{related.category}</span>
+                        <span>{related.date}</span>
+                      </div>
+                      <h4 className="font-semibold text-sm group-hover:text-accent transition-colors leading-snug">
+                        {related.title}
+                      </h4>
+                      <p className="text-xs text-white/40 mt-2 line-clamp-2">{related.description}</p>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </article>
     </>

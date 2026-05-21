@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { useCartStore } from "@/store/cart";
+import { Icon } from "@/components/ui/Icon";
 
 export default function FloatingActions() {
   const cartCount = useCartStore((s) => s.count());
@@ -55,7 +56,7 @@ export default function FloatingActions() {
           onMouseLeave={() => setActiveTooltip(null)}
           aria-label="View cart"
         >
-          🛒
+          <Icon name="shopping-cart" size={24} />
           <AnimatePresence>
             {cartCount > 0 && (
               <motion.span

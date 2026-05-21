@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { Icon } from "@/components/ui/Icon";
 import { sectionReveal, staggerContainer, fadeInUp, fadeInLeft, perspectiveReveal, springBouncy } from "@/lib/animations";
 
 export default function Footer() {
@@ -53,7 +54,7 @@ export default function Footer() {
             animate={{ y: [0, -8, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           >
-            📬
+            <Icon name="mail" size={36} />
           </motion.span>
           <h3 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8, letterSpacing: "-0.3px" }}>
             Stay Ahead of the <span className="grad-text">Tech</span> Curve
@@ -79,7 +80,7 @@ export default function Footer() {
               whileTap={{ scale: 0.96 }}
               style={{ flexShrink: 0, padding: "10px 24px", fontSize: 14 }}
             >
-              {subscribed ? "✅ Subscribed!" : "Subscribe"}
+              {subscribed ? <><Icon emoji="✅" size={16} /> Subscribed!</> : "Subscribe"}
             </motion.button>
           </form>
         </motion.div>
@@ -108,9 +109,14 @@ export default function Footer() {
             </p>
             {/* Trust badges */}
             <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-              {["✅ 100% Authentic", "🛡️ Warranty", "🚚 Free Delivery $150+", "🔄 7-Day Returns"].map((badge, i) => (
+              {[
+                { icon: "✅", label: "100% Authentic" },
+                { icon: "🛡️", label: "Warranty" },
+                { icon: "🚚", label: "Free Delivery $150+" },
+                { icon: "🔄", label: "7-Day Returns" },
+              ].map((badge, i) => (
                 <motion.span
-                  key={badge}
+                  key={badge.label}
                   initial={{ opacity: 0, scale: 0.8 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
@@ -120,9 +126,12 @@ export default function Footer() {
                     borderRadius: 99, background: "rgba(0,200,255,0.06)",
                     border: "1px solid rgba(0,200,255,0.12)",
                     color: "var(--c-text2)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
                   }}
                 >
-                  {badge}
+                  <Icon emoji={badge.icon} size={12} /> {badge.label}
                 </motion.span>
               ))}
             </div>
@@ -146,7 +155,7 @@ export default function Footer() {
                   }}
                   title={s.label}
                 >
-                  {s.icon}
+                  <Icon emoji={s.icon} size={18} />
                 </motion.a>
               ))}
             </div>
@@ -181,6 +190,7 @@ export default function Footer() {
                 { href: "/faq", label: "FAQ" },
                 { href: "/contact", label: "Contact Us" },
                 { href: "/about", label: "About Us" },
+                { href: "/locations", label: "Our Locations" },
               ].map((l, i) => (
                 <motion.div
                   key={l.href}
@@ -214,10 +224,10 @@ export default function Footer() {
                   style={{ display: "flex", gap: 10, alignItems: item.href ? "center" : "flex-start" }}
                 >
                   <motion.span
-                    style={{ fontSize: 16, flexShrink: 0 }}
+                    style={{ flexShrink: 0, display: "inline-flex" }}
                     whileHover={{ scale: 1.2 }}
                   >
-                    {item.icon}
+                    <Icon emoji={item.icon} size={16} />
                   </motion.span>
                   {item.href ? (
                     <a
@@ -248,9 +258,13 @@ export default function Footer() {
             >
               <FooterSectionTitle text="We Accept" />
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {["💵 Cash on Delivery", "📱 Wish Money", "🪙 Crypto (USDT/BTC)"].map((p, i) => (
+                {[
+                  { icon: "💵", label: "Cash on Delivery" },
+                  { icon: "📱", label: "Wish Money" },
+                  { icon: "🪙", label: "Crypto (USDT/BTC)" },
+                ].map((p, i) => (
                   <motion.span
-                    key={p}
+                    key={p.label}
                     initial={{ opacity: 0, scale: 0.8 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
@@ -260,9 +274,12 @@ export default function Footer() {
                       borderRadius: 99, background: "rgba(0,230,118,0.06)",
                       border: "1px solid rgba(0,230,118,0.12)",
                       color: "var(--c-muted)",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
                     }}
                   >
-                    {p}
+                    <Icon emoji={p.icon} size={12} /> {p.label}
                   </motion.span>
                 ))}
               </div>
@@ -291,11 +308,11 @@ export default function Footer() {
           <p style={{ fontSize: 12, color: "var(--c-muted)" }}>
             © {new Date().getFullYear()} Technodel. All rights reserved.
             <motion.span
-              style={{ display: "inline-block", marginLeft: 8 }}
+              style={{ display: "inline-flex", marginLeft: 8, verticalAlign: "middle" }}
               animate={{ opacity: [0.4, 1, 0.4] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              🇱🇧
+              <Icon emoji="🇱🇧" size={14} />
             </motion.span>
           </p>
           <div style={{ display: "flex", gap: 16 }}>
@@ -365,9 +382,9 @@ function FooterLink({ href, label }: { href: string; label: string }) {
       <motion.span
         animate={{ x: hovered ? 4 : 0, opacity: hovered ? 1 : 0 }}
         transition={{ duration: 0.2 }}
-        style={{ fontSize: 12 }}
+        style={{ display: "inline-flex" }}
       >
-        ›
+        <Icon name="chevron-right" size={12} />
       </motion.span>
       {label}
     </Link>

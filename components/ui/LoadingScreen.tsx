@@ -8,18 +8,30 @@ export default function LoadingScreen() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    // Only show loading screen on first-ever visit (not on navigation)
+    try {
+      const visited = sessionStorage.getItem("tn-visited");
+      if (visited) {
+        setShow(false);
+        return;
+      }
+      sessionStorage.setItem("tn-visited", "1");
+    } catch {
+      // sessionStorage may be unavailable
+    }
+
+    // Quick loading animation (max 600ms for CWV)
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-          setTimeout(() => setShow(false), 300);
+          setTimeout(() => setShow(false), 200);
           return 100;
         }
-        // Easing: fast start, slow end for premium feel
-        const increment = prev < 60 ? 8 : prev < 85 ? 4 : 2;
+        const increment = prev < 70 ? 20 : prev < 90 ? 10 : 5;
         return Math.min(prev + increment, 100);
       });
-    }, 80);
+    }, 40);
     return () => clearInterval(interval);
   }, []);
 

@@ -101,6 +101,50 @@ const websiteSchema = {
   },
 };
 
+const localBusinessSchema = {
+  "@context": "https://schema.org",
+  "@type": "ComputerStore",
+  name: "Technodel",
+  url: "https://technodel.net",
+  logo: "https://technodel.net/logo.png",
+  image: "https://technodel.net/og-image.png",
+  description: "Lebanon's premium computer and electronics store — laptops, smartphones, gaming gear, accessories and more with fast delivery across Lebanon.",
+  address: { "@type": "PostalAddress", addressCountry: "LB", addressLocality: "Beirut" },
+  telephone: process.env.NEXT_PUBLIC_CONTACT_PHONE || "+961-XX-XXX-XXX",
+  email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "info@technodel.net",
+  priceRange: "$$",
+  openingHoursSpecification: [
+    { "@type": "OpeningHoursSpecification", dayOfWeek: "Monday", opens: "09:00", closes: "18:00" },
+    { "@type": "OpeningHoursSpecification", dayOfWeek: "Tuesday", opens: "09:00", closes: "18:00" },
+    { "@type": "OpeningHoursSpecification", dayOfWeek: "Wednesday", opens: "09:00", closes: "18:00" },
+    { "@type": "OpeningHoursSpecification", dayOfWeek: "Thursday", opens: "09:00", closes: "18:00" },
+    { "@type": "OpeningHoursSpecification", dayOfWeek: "Friday", opens: "09:00", closes: "17:00" },
+    { "@type": "OpeningHoursSpecification", dayOfWeek: "Saturday", opens: "09:00", closes: "14:00" },
+  ],
+  areaServed: [
+    { "@type": "City", name: "Beirut" },
+    { "@type": "City", name: "Tripoli" },
+    { "@type": "City", name: "Jounieh" },
+    { "@type": "City", name: "Saida" },
+    { "@type": "City", name: "Zahle" },
+    { "@type": "City", name: "Tyre" },
+  ],
+  hasOfferCatalog: {
+    "@type": "OfferCatalog",
+    name: "Tech Products",
+    itemListElement: [
+      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Laptops", url: "https://technodel.net/shop/laptops" } },
+      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Smartphones", url: "https://technodel.net/shop/smartphones" } },
+      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Gaming", url: "https://technodel.net/shop/gaming" } },
+    ],
+  },
+  sameAs: [
+    "https://facebook.com/technodel",
+    "https://instagram.com/technodel",
+    "https://twitter.com/technodel",
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -127,6 +171,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
         />
         <GoogleAnalytics />
         <ThemeProvider>

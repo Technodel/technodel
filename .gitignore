@@ -53,3 +53,16 @@ tmp-*.html
 
 # data processing scripts (one-off utilities, not app code)
 /scripts/
+
+# aider AI task data (prompts, context)
+.aider-desk/
+
+# database backup files
+*.db.backup
+
+# root-level temp/scratch scripts
+_check-state.mjs
+_run_check.cjs
+
+# one-off utility scripts in techndodel directory
+techndodel/

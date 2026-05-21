@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
 import ProductCard from "@/components/product/ProductCard";
+import { Icon } from "@/components/ui/Icon";
 import AnimatedSection, { FadeInUp, ScaleIn } from "@/components/ui/AnimatedSection";
 import {
   heroText, staggerContainer, fadeInUp, scaleIn, sectionReveal,
@@ -326,7 +327,7 @@ export default function HomeClientAr({ featured, categories, banners, newArrival
       {/* ═══ FEATURED PRODUCTS ═══════════════════════════════════════════ */}
       <AnimatedSection style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
         <FadeInUp>
-          <SectionHeaderAr title="⭐ منتجات مميزة" link="/shop?featured=1" linkLabel="عرض الكل ←" />
+          <SectionHeaderAr title={<><Icon emoji="⭐" size={22} /> منتجات مميزة</>} link="/shop?featured=1" linkLabel="عرض الكل ←" />
         </FadeInUp>
         {featured.length > 0 ? (
           <motion.div className="products-grid" variants={staggerGrid}>
@@ -362,11 +363,11 @@ export default function HomeClientAr({ featured, categories, banners, newArrival
                   <motion.div style={{
                     width: 52, height: 52, borderRadius: "var(--r-md)",
                     background: "rgba(0,200,255,0.1)", display: "flex", alignItems: "center",
-                    justifyContent: "center", flexShrink: 0, fontSize: 24,
+                    justifyContent: "center", flexShrink: 0,
                     border: "1px solid rgba(0,200,255,0.2)",
                   }} whileHover={{ scale: 1.15, rotate: [0, -8, 8, 0] }}
                     transition={{ duration: 0.4 }}
-                  >{f.icon}</motion.div>
+                  ><Icon emoji={f.icon} size={24} /></motion.div>
                   <div style={{ paddingTop: 4 }}>
                     <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4, color: "var(--c-text)" }}>{f.title}</div>
                     <div style={{ fontSize: 13, color: "var(--c-muted)", lineHeight: 1.5 }}>{f.desc}</div>
@@ -381,7 +382,7 @@ export default function HomeClientAr({ featured, categories, banners, newArrival
       {/* ═══ NEW ARRIVALS ════════════════════════════════════════════════ */}
       <AnimatedSection style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
         <FadeInUp>
-          <SectionHeaderAr title="🆕 وصل حديثاً" link="/shop?new=1" linkLabel="عرض الكل ←" />
+          <SectionHeaderAr title={<><Icon emoji="🆕" size={22} /> وصل حديثاً</>} link="/shop?new=1" linkLabel="عرض الكل ←" />
         </FadeInUp>
         {newArrivals.length > 0 ? (
           <motion.div className="products-grid" variants={staggerGrid}>
@@ -505,7 +506,7 @@ export default function HomeClientAr({ featured, categories, banners, newArrival
 }
 
 // ─── SECTION HEADER ═══════════════════════════════════════════════════════════
-function SectionHeaderAr({ title, link, linkLabel }: { title: string; link: string; linkLabel: string }) {
+function SectionHeaderAr({ title, link, linkLabel }: { title: string | React.ReactNode; link: string; linkLabel: string }) {
   const [isHovered, setIsHovered] = useState(false);
   return (
     <motion.div

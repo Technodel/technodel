@@ -8,6 +8,7 @@ import { useCartStore } from "@/store/cart";
 import { useThemeStore } from "@/store/theme";
 import { useCurrencyStore } from "@/store/currency";
 import SearchBar from "@/components/layout/SearchBar";
+import { Icon } from "@/components/ui/Icon";
 
 export default function Header() {
   const pathname = usePathname();
@@ -48,8 +49,9 @@ export default function Header() {
           : "none",
       }}
     >
-      {/* Top bar — premium announcement strip */}
+      {/* Top bar — premium announcement strip (hidden on mobile) */}
       <motion.div
+        className="hide-mobile"
         animate={{ height: scrolled ? 0 : "auto", opacity: scrolled ? 0 : 1 }}
         transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
         style={{ overflow: "hidden" }}
@@ -73,7 +75,7 @@ export default function Header() {
                 animate={{ scale: [1, 1.3, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               />
-              🚚 Free delivery on orders over $150 · 🇱🇧 Lebanon&apos;s #1 Tech Store
+              <Icon emoji="🚚" size={14} /> Free delivery on orders over $150 · Lebanon&apos;s #1 Tech Store
             </motion.span>
             <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
               <Link href="/account" style={{ fontSize: 12, color: "var(--c-muted)", textDecoration: "none", transition: "color 0.2s" }}
@@ -97,7 +99,7 @@ export default function Header() {
                 }}
                 title="Toggle currency"
               >
-                {currency === "USD" ? "🇱🇧 LBP" : "🇺🇸 USD"}
+                {currency === "USD" ? "LBP" : "USD"}
               </motion.button>
               {/* Theme toggle */}
               <motion.button
@@ -111,7 +113,7 @@ export default function Header() {
                 }}
                 title="Toggle theme"
               >
-                {isLight ? "🌙 Dark" : "☀️ Light"}
+                {isLight ? <><Icon name="moon" size={14} /> Dark</> : <><Icon name="sun" size={14} /> Light</>}
               </motion.button>
             </div>
           </div>
@@ -121,11 +123,11 @@ export default function Header() {
       {/* Main nav */}
       <div style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px" }}>
         <motion.div
-          animate={{ height: scrolled ? 64 : 94 }}
+          animate={{ height: scrolled ? "clamp(48px, 8vw, 64px)" : "clamp(56px, 10vw, 94px)" }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          style={{ display: "flex", alignItems: "center", gap: 24, overflow: "hidden" }}
+          style={{ display: "flex", alignItems: "center", gap: "clamp(8px, 2vw, 24px)", overflow: "hidden" }}
         >
-          {/* Logo */}
+          {/* Logo — responsive sizing */}
           <motion.div
             animate={{ scale: scrolled ? 0.85 : 1 }}
             transition={{ duration: 0.3 }}
@@ -134,11 +136,13 @@ export default function Header() {
               <Image
                 src="/logo.png"
                 alt="Technodel"
-                width={520}
-                height={140}
+                width={1536}
+                height={1024}
                 style={{
-                  width: 290, height: 84, objectFit: "cover",
-                  objectPosition: "left center", maxWidth: "100%",
+                  width: "auto",
+                  height: "clamp(40px, 6vw, 72px)",
+                  objectFit: "contain",
+                  maxWidth: "100%",
                 }}
                 priority
               />
@@ -158,7 +162,7 @@ export default function Header() {
           {/* Right actions */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }} className="hide-mobile">
             <NavLink href="/shop" label="Shop" active={pathname.startsWith("/shop")} isLight={isLight} />
-            <NavLink href="/deals" label="🔥 Deals" active={pathname === "/deals"} isLight={isLight} />
+            <NavLink href="/deals" label={<><Icon emoji="🔥" size={16} /> Deals</>} active={pathname === "/deals"} isLight={isLight} />
 
             {/* Cart — Premium glow button */}
             <motion.div
@@ -196,8 +200,9 @@ export default function Header() {
                 <motion.span
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
+                  style={{ display: "inline-flex" }}
                 >
-                  🛒
+                  <Icon emoji="🛒" size={18} />
                 </motion.span>
                 <AnimatePresence mode="wait">
                   {cartCount > 0 && (
@@ -240,9 +245,9 @@ export default function Header() {
               initial={{ rotate: -90, opacity: 0 }}
               animate={{ rotate: 0, opacity: 1 }}
               transition={{ duration: 0.2 }}
-              style={{ display: "inline-block" }}
+              style={{ display: "inline-flex" }}
             >
-              {menuOpen ? "✕" : "☰"}
+              {menuOpen ? <Icon name="x" size={22} /> : <Icon name="menu" size={22} />}
             </motion.span>
           </motion.button>
         </motion.div>
@@ -282,7 +287,7 @@ export default function Header() {
         </div>
       </motion.div>
 
-      {/* Mobile drawer — Premium glass */}
+      {/* Mobile drawer — Premium glass with categories */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -295,6 +300,8 @@ export default function Header() {
               background: isLight ? "rgba(0,48,135,0.98)" : "rgba(4,11,20,0.95)",
               backdropFilter: "blur(24px)",
               borderTop: "1px solid var(--c-border)",
+              maxHeight: "calc(100dvh - var(--header-h))",
+              overflowY: "auto",
             }}
             className="hide-desktop"
           >
@@ -304,17 +311,18 @@ export default function Header() {
                 initial="closed"
                 animate="open"
                 variants={{
-                  open: { transition: { staggerChildren: 0.06, delayChildren: 0.08 } },
+                  open: { transition: { staggerChildren: 0.04, delayChildren: 0.06 } },
                   closed: {},
                 }}
-                style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 2 }}
+                style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 2 }}
               >
+                {/* Main navigation items */}
                 {[
-                  { href: "/shop", label: "Shop All", icon: "🛍️" },
-                  { href: "/deals", label: "Hot Deals", icon: "🔥" },
-                  { href: "/cart", label: `Cart ${cartCount > 0 ? `(${cartCount})` : ""}`, icon: "🛒" },
-                  { href: "/account", label: "My Account", icon: "👤" },
-                ].map((item, i) => (
+                  { href: "/shop", label: "Shop All", icon: "shopping-bag" },
+                  { href: "/deals", label: "Hot Deals", icon: "flame" },
+                  { href: "/cart", label: `Cart${cartCount > 0 ? ` (${cartCount})` : ""}`, icon: "shopping-cart" },
+                  { href: "/account", label: "My Account", icon: "user" },
+                ].map((item: { href: string; label: string; icon: string }, i: number) => (
                   <motion.div
                     key={item.href}
                     variants={{
@@ -327,20 +335,92 @@ export default function Header() {
                       href={item.href}
                       onClick={() => setMenuOpen(false)}
                       style={{
-                        padding: "12px 0", color: "var(--c-text)",
-                        textDecoration: "none", fontWeight: 500,
-                        display: "flex", gap: 12, alignItems: "center",
+                        padding: "14px 0", color: "var(--c-text)",
+                        textDecoration: "none", fontWeight: 600,
+                        display: "flex", gap: 14, alignItems: "center",
                         borderBottom: "1px solid rgba(26,46,74,0.3)",
                         transition: "color 0.2s",
+                        minHeight: 48,
                       }}
                       onMouseEnter={(e) => (e.currentTarget.style.color = "var(--c-accent)")}
                       onMouseLeave={(e) => (e.currentTarget.style.color = "var(--c-text)")}
                     >
-                      <span style={{ fontSize: 18 }}>{item.icon}</span>
+                      <span style={{ display: "inline-flex", width: 24, justifyContent: "center" }}>
+                        <Icon name={item.icon} size={20} />
+                      </span>
                       <span>{item.label}</span>
                     </Link>
                   </motion.div>
                 ))}
+
+                {/* Category links */}
+                <div style={{ marginTop: 16, marginBottom: 8 }}>
+                  <div style={{
+                    fontSize: 11, fontWeight: 700, textTransform: "uppercase",
+                    letterSpacing: "1px", color: "var(--c-muted)",
+                    marginBottom: 8, paddingLeft: 2,
+                  }}>
+                    Categories
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                    {NAV_CATS.map((c) => (
+                      <Link
+                        key={c.slug}
+                        href={`/shop/${c.slug}`}
+                        onClick={() => setMenuOpen(false)}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 8,
+                          padding: "12px 10px", minHeight: 44,
+                          borderRadius: "var(--r-sm)",
+                          background: "var(--c-surface)",
+                          textDecoration: "none", fontSize: 13, fontWeight: 500,
+                          color: "var(--c-text2)",
+                          border: "1px solid var(--c-border-light)",
+                          transition: "all 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = "var(--c-accent)";
+                          e.currentTarget.style.color = "var(--c-accent)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = "var(--c-border-light)";
+                          e.currentTarget.style.color = "var(--c-text2)";
+                        }}
+                      >
+                        <Icon emoji={c.icon} size={16} />
+                        <span>{c.name}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quick actions row */}
+                <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                  <motion.button
+                    onClick={() => { setCurrency(currency === "USD" ? "LBP" : "USD"); }}
+                    whileTap={{ scale: 0.95 }}
+                    style={{
+                      flex: 1, padding: "10px 0", borderRadius: "var(--r-sm)",
+                      border: "1px solid var(--c-border)", background: "var(--c-surface)",
+                      color: "var(--c-text)", cursor: "pointer", fontWeight: 600,
+                      fontSize: 13, minHeight: 44,
+                    }}
+                  >
+                    {currency === "USD" ? "LBP" : "USD"}
+                  </motion.button>
+                  <motion.button
+                    onClick={() => { toggle(); }}
+                    whileTap={{ scale: 0.95 }}
+                    style={{
+                      flex: 1, padding: "10px 0", borderRadius: "var(--r-sm)",
+                      border: "1px solid var(--c-border)", background: "var(--c-surface)",
+                      color: "var(--c-text)", cursor: "pointer", fontWeight: 600,
+                      fontSize: 13, minHeight: 44,
+                    }}
+                  >
+                    {isLight ? <><Icon name="moon" size={16} /> Dark</> : <><Icon name="sun" size={16} /> Light</>}
+                  </motion.button>
+                </div>
               </motion.div>
             </div>
           </motion.div>
@@ -350,7 +430,7 @@ export default function Header() {
   );
 }
 
-function NavLink({ href, label, active, isLight }: { href: string; label: string; active: boolean; isLight: boolean }) {
+function NavLink({ href, label, active, isLight }: { href: string; label: string | React.ReactNode; active: boolean; isLight: boolean }) {
   const [hovered, setHovered] = useState(false);
   return (
     <motion.div
@@ -425,8 +505,9 @@ function CatNavLink({ href, icon, label, active, isLight }: {
       <motion.span
         animate={hovered ? { rotate: [0, -10, 10, 0] } : {}}
         transition={{ duration: 0.4 }}
+        style={{ display: "inline-flex" }}
       >
-        {icon}
+        <Icon emoji={icon} size={16} />
       </motion.span>
       {label}
     </Link>

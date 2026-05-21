@@ -34,10 +34,10 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   const where: any = { isVisible: true };
   if (q) where.OR = [
-    { title: { contains: q } },
-    { brand: { contains: q } },
-    { seoKeywords: { contains: q } },
-    { shortDescription: { contains: q } },
+    { title: { contains: q, mode: 'insensitive' } },
+    { brand: { contains: q, mode: 'insensitive' } },
+    { seoKeywords: { contains: q, mode: 'insensitive' } },
+    { shortDescription: { contains: q, mode: 'insensitive' } },
   ];
 
   const orderBy: any =

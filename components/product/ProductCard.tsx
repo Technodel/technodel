@@ -7,6 +7,7 @@ import { useAuthStore } from "@/store/auth";
 import { useWishlistStore } from "@/store/wishlist";
 import { cardHover, cardImageZoom } from "@/lib/animations";
 import OptimizedImage from "@/components/ui/OptimizedImage";
+import { Icon } from "@/components/ui/Icon";
 import { useState } from "react";
 
 interface Props {
@@ -121,7 +122,7 @@ export default function ProductCard({ product }: Props) {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                ⭐
+                <Icon name="star" size={12} />
               </motion.span>
             )}
             {isLowStock && (
@@ -132,7 +133,7 @@ export default function ProductCard({ product }: Props) {
                 transition={{ delay: 0.25 }}
                 style={{ animation: "urgencyPulse 1.5s ease infinite" }}
               >
-                🔥 Only {product.stock} left
+                <Icon name="flame" size={12} /> Only {product.stock} left
               </motion.span>
             )}
           </div>
@@ -173,7 +174,7 @@ export default function ProductCard({ product }: Props) {
               }}
               aria-label={inWish ? "Remove from wishlist" : "Add to wishlist"}
             >
-              {wishToggle ? "⏳" : inWish ? "❤️" : "🤍"}
+              {wishToggle ? <Icon name="loader" size={16} /> : inWish ? <Icon name="heart" size={16} style={{ fill: "currentColor" }} /> : <Icon name="heart" size={16} />}
             </motion.button>
 
             {/* Shine overlay */}
@@ -220,7 +221,7 @@ export default function ProductCard({ product }: Props) {
                   alignItems: "center", gap: 4, marginTop: -4,
                 }}
               >
-                <span style={{ color: "#ffc107" }}>🏪</span>
+                <Icon emoji="🏪" size={14} style={{ color: "#ffc107" }} />
                 Market price:{" "}
                 <span className="price-old">{format(product.competitorPrice)}</span>
               </motion.div>
@@ -253,7 +254,7 @@ export default function ProductCard({ product }: Props) {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                {added ? "✓" : "🛒 Add"}
+                {added ? <Icon name="check" size={14} /> : <><Icon name="shopping-cart" size={14} /> Add</>}
               </motion.button>
             </div>
           </div>

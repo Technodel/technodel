@@ -1,8 +1,10 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
 import ProductCard from "@/components/product/ProductCard";
+import { Icon } from "@/components/ui/Icon";
 import AnimatedSection, { FadeInUp, ScaleIn } from "@/components/ui/AnimatedSection";
 import {
   heroText, heroChildren, staggerContainer, fadeInUp,
@@ -20,6 +22,7 @@ interface Props {
   categories: Category[];
   banners: Banner[];
   newArrivals: any[];
+  deals: any[];
 }
 
 const FEATURED_TAGS = [
@@ -142,7 +145,7 @@ function CountUp({ end, duration = 2000, prefix = "", suffix = "" }: {
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export default function HomeClient({ featured, categories, banners, newArrivals }: Props) {
+export default function HomeClient({ featured, categories, banners, newArrivals, deals }: Props) {
   const [activeSlide, setActiveSlide] = useState(0);
   const [tagIndex, setTagIndex] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -223,9 +226,9 @@ export default function HomeClient({ featured, categories, banners, newArrivals 
           <div className="hero-grid" style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gap: 60,
+            gap: "clamp(24px, 4vw, 60px)",
             alignItems: "center",
-            minHeight: 520,
+            minHeight: "clamp(400px, 70vh, 520px)",
           }}>
 
             {/* ── LEFT: Text Content ──────────────────────────────────── */}
@@ -308,41 +311,44 @@ export default function HomeClient({ featured, categories, banners, newArrivals 
               {/* CTA Buttons */}
               <motion.div
                 variants={staggerContainer}
-                style={{ display: "flex", gap: 16, flexWrap: "wrap" }}
+                style={{ display: "flex", gap: 12, flexWrap: "wrap" }}
               >
-                <motion.div variants={fadeInUp}>
+                <motion.div variants={fadeInUp} style={{ flex: "1 1 auto", minWidth: 160 }}>
                   <Link
                     href="/shop"
                     className="btn btn-primary btn-xl"
-                    style={{ fontSize: 17, padding: "18px 40px" }}
+                    style={{ fontSize: "clamp(14px, 3vw, 17px)", padding: "clamp(14px, 2vw, 18px) clamp(24px, 4vw, 40px)", width: "100%", justifyContent: "center" }}
                   >
                     <motion.span
                       animate={{ x: [0, 4, 0] }}
                       transition={{ duration: 2, repeat: Infinity }}
+                      style={{ display: "inline-flex" }}
                     >
-                      🛍️
+                      <Icon name="shopping-bag" size={20} />
                     </motion.span>
                     Explore Products
                   </Link>
                 </motion.div>
-                <motion.div variants={fadeInUp}>
+                <motion.div variants={fadeInUp} style={{ flex: "1 1 auto", minWidth: 160 }}>
                   <Link
                     href="/deals"
                     className="btn btn-secondary btn-xl"
-                    style={{ fontSize: 17 }}
+                    style={{ fontSize: "clamp(14px, 3vw, 17px)", padding: "clamp(14px, 2vw, 18px) clamp(24px, 4vw, 40px)", width: "100%", justifyContent: "center" }}
                   >
-                    🔥 Today&apos;s Deals
+                    <Icon name="flame" size={20} /> Today&apos;s Deals
                   </Link>
                 </motion.div>
               </motion.div>
 
               {/* Live Stats */}
               <motion.div
+                className="stats-row"
                 variants={staggerContainer}
                 style={{
-                  display: "flex", gap: 40,
-                  marginTop: 56, paddingTop: 32,
+                  display: "flex", gap: "clamp(16px, 4vw, 40px)",
+                  marginTop: "clamp(32px, 6vw, 56px)", paddingTop: "clamp(16px, 3vw, 32px)",
                   borderTop: "1px solid var(--c-border-light)",
+                  flexWrap: "wrap",
                 }}
               >
                 {[
@@ -408,7 +414,8 @@ export default function HomeClient({ featured, categories, banners, newArrivals 
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.92 }}
                           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                          style={{ position: "absolute", inset: 0 }}
+                          style={{ position: "absolute", inset: 0, cursor: b.linkUrl ? "pointer" : "default" }}
+                          onClick={() => b.linkUrl && window.location.assign(b.linkUrl)}
                         >
                           {b.imageUrl ? (
                             <img
@@ -418,6 +425,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals 
                                 width: "100%", height: "100%",
                                 objectFit: "cover",
                               }}
+                              loading="lazy"
                             />
                           ) : (
                             <div style={{
@@ -438,14 +446,14 @@ export default function HomeClient({ featured, categories, banners, newArrivals 
                                 `,
                               }} />
                               <motion.span
-                                style={{ fontSize: 100, position: "relative", zIndex: 1 }}
+                                style={{ fontSize: 100, position: "relative", zIndex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
                                 animate={{
                                   rotate: [0, 5, -5, 0],
                                   scale: [1, 1.05, 1],
                                 }}
                                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                               >
-                                🔥
+                                <Icon emoji="🔥" size={80} />
                               </motion.span>
                               <motion.span
                                 style={{
@@ -455,7 +463,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals 
                                 animate={{ opacity: [0.5, 1, 0.5] }}
                                 transition={{ duration: 2, repeat: Infinity }}
                               >
-                                Epic Deals Loading...
+                                {b.title || "Epic Deals Loading..."}
                               </motion.span>
                             </div>
                           )}
@@ -510,13 +518,12 @@ export default function HomeClient({ featured, categories, banners, newArrivals 
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.5 }}
                               >
-                                <Link
-                                  href={b.linkUrl}
+                                <span
                                   className="btn btn-primary btn-sm"
-                                  style={{ marginTop: 14 }}
+                                  style={{ marginTop: 14, display: "inline-block", pointerEvents: "none" }}
                                 >
                                   Shop Now →
-                                </Link>
+                                </span>
                               </motion.div>
                             )}
                           </div>
@@ -560,9 +567,9 @@ export default function HomeClient({ featured, categories, banners, newArrivals 
         </FadeInUp>
         <motion.div
           variants={staggerContainer}
+          className="cat-grid"
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
             gap: 16,
           }}
         >
@@ -592,11 +599,11 @@ export default function HomeClient({ featured, categories, banners, newArrivals 
                   }}
                 >
                   <motion.div
-                    style={{ fontSize: 36, marginBottom: 12, display: "inline-block" }}
+                    style={{ marginBottom: 12, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
                     whileHover={{ scale: 1.2, rotate: [0, -10, 10, 0] }}
                     transition={{ duration: 0.4 }}
                   >
-                    {cat.icon || "📦"}
+                    <Icon emoji={cat.icon || "📦"} size={36} />
                   </motion.div>
                   <div style={{
                     fontSize: 13, fontWeight: 600,
@@ -615,7 +622,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals 
       {/* ═══ FEATURED PRODUCTS ═══════════════════════════════════════════ */}
       <AnimatedSection style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
         <FadeInUp>
-          <SectionHeader title="⭐ Featured Products" link="/shop?featured=1" linkLabel="View all →" />
+          <SectionHeader title={<><Icon emoji="⭐" size={22} /> Featured Products</>} link="/shop?featured=1" linkLabel="View all →" />
         </FadeInUp>
         {featured.length > 0 ? (
           <motion.div
@@ -630,6 +637,27 @@ export default function HomeClient({ featured, categories, banners, newArrivals 
           </motion.div>
         ) : (
           <EmptyState message="Featured products will appear here" icon="⭐" />
+        )}
+      </AnimatedSection>
+
+      {/* ═══ HOT DEALS ════════════════════════════════════════════════════ */}
+      <AnimatedSection style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
+        <FadeInUp>
+          <SectionHeader title={<><Icon emoji="🔥" size={22} /> Hot Deals</>} link="/deals" linkLabel="View all deals →" />
+        </FadeInUp>
+        {deals.length > 0 ? (
+          <motion.div
+            className="products-grid"
+            variants={staggerGrid}
+          >
+            {deals.map((p: any) => (
+              <motion.div key={p.id} variants={fadeInUp}>
+                <ProductCard product={p} />
+              </motion.div>
+            ))}
+          </motion.div>
+        ) : (
+          <EmptyState message="Hot deals are loading — check back soon!" icon="🔥" />
         )}
       </AnimatedSection>
 
@@ -676,13 +704,12 @@ export default function HomeClient({ featured, categories, banners, newArrivals 
                       background: `rgba(from ${f.color} r g b / 0.1)`,
                       display: "flex", alignItems: "center",
                       justifyContent: "center", flexShrink: 0,
-                      fontSize: 24,
                       border: `1px solid rgba(from ${f.color} r g b / 0.2)`,
                     }}
                     whileHover={{ scale: 1.15, rotate: [0, -8, 8, 0] }}
                     transition={{ duration: 0.4 }}
                   >
-                    {f.icon}
+                    <Icon emoji={f.icon} size={24} />
                   </motion.div>
                   <div style={{ paddingTop: 4 }}>
                     <div style={{
@@ -708,7 +735,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals 
       {/* ═══ NEW ARRIVALS ════════════════════════════════════════════════ */}
       <AnimatedSection style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
         <FadeInUp>
-          <SectionHeader title="🆕 New Arrivals" link="/shop?new=1" linkLabel="See all new →" />
+          <SectionHeader title={<><Icon emoji="🆕" size={22} /> New Arrivals</>} link="/shop?new=1" linkLabel="See all new →" />
         </FadeInUp>
         {newArrivals.length > 0 ? (
           <motion.div
@@ -824,7 +851,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals 
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 }}
               >
-                <span className="grad-text">Order via WhatsApp</span> 💬
+                <span className="grad-text">Order via WhatsApp</span> <Icon emoji="💬" size={22} />
               </motion.h2>
               <motion.p
                 style={{
@@ -885,12 +912,11 @@ export default function HomeClient({ featured, categories, banners, newArrivals 
                   border: "1px solid rgba(37,211,102,0.2)",
                   display: "flex", alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 64,
                 }}
                 animate={{ scale: [1, 1.05, 1] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
-                💬
+                <Icon emoji="💬" size={64} />
               </motion.div>
               <div style={{
                 fontSize: 12, color: "var(--c-muted)",
@@ -910,7 +936,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SECTION HEADER
 // ═══════════════════════════════════════════════════════════════════════════════
-function SectionHeader({ title, link, linkLabel }: { title: string; link: string; linkLabel: string }) {
+function SectionHeader({ title, link, linkLabel }: { title: string | ReactNode; link: string; linkLabel: string }) {
   const [isHovered, setIsHovered] = useState(false);
   return (
     <motion.div
@@ -942,8 +968,9 @@ function SectionHeader({ title, link, linkLabel }: { title: string; link: string
         <motion.span
           animate={{ x: isHovered ? 4 : 0 }}
           transition={{ duration: 0.2 }}
+          style={{ display: "inline-flex" }}
         >
-          →
+          <Icon name="arrow-right" size={14} />
         </motion.span>
       </Link>
     </motion.div>
@@ -967,11 +994,11 @@ function EmptyState({ message, icon = "📦" }: { message: string; icon?: string
       }}
     >
       <motion.div
-        style={{ fontSize: 48, marginBottom: 12 }}
+        style={{ marginBottom: 12, display: "inline-flex" }}
         animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
         transition={{ duration: 3, repeat: Infinity }}
       >
-        {icon}
+        <Icon emoji={icon} size={48} />
       </motion.div>
       <p style={{ fontSize: 15 }}>{message}</p>
     </motion.div>
