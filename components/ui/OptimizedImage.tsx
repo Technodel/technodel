@@ -127,6 +127,7 @@ export default function OptimizedImage({
       <NextImage
         src={resolvedSrc || "/placeholder.png"}
         alt={alt}
+        unoptimized={resolvedSrc.startsWith("/new/api/img-proxy")}
         width={fill ? undefined : (width || 400)}
         height={fill ? undefined : (height || 400)}
         fill={fill}
