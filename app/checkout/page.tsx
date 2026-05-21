@@ -144,7 +144,7 @@ export default function CheckoutPage() {
               { id: "cod", icon: "💵", label: "Cash on Delivery", desc: "Pay when you receive your order" },
               { id: "wish_money", icon: "📱", label: "Wish Money", desc: "Transfer via OMT / Wish Money app" },
               { id: "crypto", icon: "🪙", label: "Crypto (USDT/BTC)", desc: "Pay with USDT, BTC, or ETH — zero fees" },
-            ].map((pm: { id: PaymentMethod; icon: string; label: string; desc: string }) => (
+            ].map((pm: any) => (
               <label key={pm.id} style={{
                 display: "flex", gap: 14, alignItems: "flex-start", padding: "14px 16px",
                 borderRadius: "var(--r-md)", border: `2px solid ${form.paymentMethod === pm.id ? "var(--c-accent)" : "var(--c-border)"}`,
@@ -236,3 +236,4 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </div>
   );
 }
+
