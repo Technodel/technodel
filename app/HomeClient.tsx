@@ -14,7 +14,7 @@ import {
 
 interface Category { id: string; name: string; slug: string; icon?: string | null; image?: string | null; }
 interface Banner { id: string; title: string; subtitle?: string | null; imageUrl: string; linkUrl?: string | null; badge?: string | null; }
-interface HeroSlide { id: string; title: string; subtitle?: string; imageUrl: string; linkUrl?: string; badge?: string; }
+interface HeroSlide { id: string; title: string; subtitle?: string; imageUrl: string; linkUrl?: string; badge?: string; imageFit?: "contain" | "cover"; }
 type HomeBelowFoldProps = ComponentProps<typeof HomeBelowFold>;
 type HomeProduct = HomeBelowFoldProps["featured"][number];
 
@@ -37,6 +37,31 @@ function shuffleItems<T>(items: T[]): T[] {
 
 function pickRandomItems<T>(items: T[], take: number): T[] {
   return shuffleItems(items).slice(0, take);
+}
+
+function pickDiverseProducts(items: HomeProduct[], take: number): HomeProduct[] {
+  const shuffled = shuffleItems(items);
+  const picked: HomeProduct[] = [];
+  const usedCategories = new Set<string>();
+  const usedSuppliers = new Set<string>();
+
+  for (const product of shuffled) {
+    const categoryKey = (product.category?.name || "").toLowerCase();
+    const supplierKey = (product.competitor?.name || product.brand || "").toLowerCase();
+    if (usedCategories.has(categoryKey) && usedSuppliers.has(supplierKey)) continue;
+    picked.push(product);
+    if (categoryKey) usedCategories.add(categoryKey);
+    if (supplierKey) usedSuppliers.add(supplierKey);
+    if (picked.length >= take) return picked;
+  }
+
+  for (const product of shuffled) {
+    if (picked.some((p) => p.id === product.id)) continue;
+    picked.push(product);
+    if (picked.length >= take) break;
+  }
+
+  return picked;
 }
 
 const FEATURED_TAGS = [
@@ -171,9 +196,9 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
   const belowFoldRef = useRef<HTMLDivElement>(null);
   const mouse = useMousePosition(!performanceMode);
   const { scrollY } = useScroll();
-  const [featuredProducts] = useState(() => pickRandomItems(featured, 8));
-  const [dealProducts] = useState(() => pickRandomItems(deals, 8));
-  const [newArrivalProducts] = useState(() => pickRandomItems(newArrivals, 8));
+  const [featuredProducts] = useState(() => pickDiverseProducts(featured, 8));
+  const [dealProducts] = useState(() => pickDiverseProducts(deals, 8));
+  const [newArrivalProducts] = useState(() => pickDiverseProducts(newArrivals, 8));
 
   // Parallax values
   const heroParallaxY = useTransform(scrollY, [0, 600], [0, performanceMode ? 0 : 150]);
@@ -200,6 +225,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
       imageUrl: img,
       linkUrl: `/product/${p.slug}`,
       badge: hasDiscount && pct > 0 ? `🔥 -${pct}%` : "🔥 Deal",
+      imageFit: "contain" as const,
     };
   }).filter((s) => !!s.imageUrl && !!s.linkUrl);
 
@@ -522,7 +548,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
                               alt={b.title}
                               fill
                               priority={activeSlide === i}
-                              objectFit="cover"
+                              objectFit={b.imageFit || "cover"}
                             />
                           ) : (
                             <div style={{

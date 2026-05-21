@@ -3,6 +3,36 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import ProductCard from "@/components/product/ProductCard";
 
+const TECH_CATEGORY_SLUGS = [
+  "smartphones",
+  "laptops",
+  "tablets",
+  "gaming",
+  "audio",
+  "accessories",
+  "networking",
+  "cameras",
+  "printers",
+  "smart-home",
+  "wearables",
+  "storage",
+];
+
+const NON_TECH_TITLE_TERMS = [
+  "pencil bag",
+  "pencil case",
+  "sport bag",
+  "sports bag",
+  "backpack",
+  "zippers",
+  "zipper",
+  "cat food",
+  "dog food",
+  "reptile",
+  "tissue",
+  "liquid liner",
+];
+
 export const revalidate = 120;
 
 export const metadata: Metadata = {
@@ -29,8 +59,15 @@ export default async function DealsPage() {
   const dealProducts = await prisma.product.findMany({
     where: {
       isVisible: true,
+      images: { not: "[]" },
+      category: { slug: { in: TECH_CATEGORY_SLUGS } },
       comparePrice: { not: null },
       displayPrice: { lt: prisma.product.fields.comparePrice as any },
+      AND: [
+        { images: { not: "" } },
+        { images: { not: { contains: '"/new/logo.png"' } } },
+        ...NON_TECH_TITLE_TERMS.map((term) => ({ title: { not: { contains: term } } })),
+      ],
     },
     select: {
       id: true,

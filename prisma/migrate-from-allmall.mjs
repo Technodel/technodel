@@ -34,12 +34,46 @@ const NON_TECH_TITLE_BLACKLIST = [
   "gift wrap",
 ];
 
+const AYOUB_TECH_CATEGORY_HINTS = [
+  "phone", "smartphone", "mobile", "tablet", "ipad",
+  "laptop", "notebook", "desktop", "pc", "computer",
+  "monitor", "display", "projector", "tv",
+  "gaming", "console",
+  "audio", "headphone", "earbud", "speaker", "microphone",
+  "network", "router", "modem", "wifi",
+  "camera", "lens", "tripod", "surveillance",
+  "printer", "scanner", "ink", "toner",
+  "storage", "ssd", "hdd", "nvme", "ram", "memory", "usb",
+  "accessory", "peripheral", "keyboard", "mouse", "cable", "charger",
+  "smart home", "iot", "wearable", "watch",
+  "laptops parts", "computer accessories", "internal storage",
+];
+
+const AYOUB_NON_TECH_HINTS = [
+  "cat", "dog", "pet", "food", "beverage", "drink", "coffee", "tea",
+  "tissue", "toilet", "kitchen", "cook", "pan", "plate",
+  "beauty", "makeup", "perfume", "fragrance", "skin", "hair", "liner",
+  "toy", "duck", "backpack", "school", "stationery", "book",
+  "furniture", "sofa", "mattress", "clothes", "fashion", "shoe",
+  "reptile", "pellet",
+];
+
 function isNonTechProduct(title, displayPrice, mappedCategorySlug) {
   const t = (title || "").toLowerCase();
   if (NON_TECH_TITLE_BLACKLIST.some((kw) => t.includes(kw))) return true;
   // Paper notebooks priced as "laptops" ($30 or less)
   if (mappedCategorySlug === "laptops" && displayPrice <= 30) return true;
   return false;
+}
+
+function isAyoubTechAllowed(row, mappedSlug) {
+  const title = (row?.title || "").toLowerCase();
+  const srcCategory = (row?.category || "").toLowerCase();
+  const haystack = `${title} ${srcCategory}`;
+
+  if (AYOUB_NON_TECH_HINTS.some((kw) => haystack.includes(kw))) return false;
+  if (mappedSlug && mappedSlug !== "accessories") return true;
+  return AYOUB_TECH_CATEGORY_HINTS.some((kw) => srcCategory.includes(kw) || title.includes(kw));
 }
 
 // ─── CATEGORY MAPPING ──────────────────────────────────────────────────────────
@@ -339,6 +373,7 @@ async function main() {
   const allSites = query(SRC_DB, "SELECT id, name, url FROM Site");
   const allowedSiteIds = [];
   const dslrSiteIds = new Set();
+  const ayoubSiteIds = new Set();
   for (const site of allSites) {
     const urlLower = (site.url || "").toLowerCase();
     const nameLower = (site.name || "").toLowerCase();
@@ -349,6 +384,9 @@ async function main() {
       allowedSiteIds.push(`'${String(site.id).replace(/'/g, "''")}'`);
       if (urlLower.includes(DSLR_SITE_PATTERN) || nameLower.includes(DSLR_SITE_PATTERN)) {
         dslrSiteIds.add(site.id);
+      }
+      if (urlLower.includes("ayoub") || nameLower.includes("ayoub")) {
+        ayoubSiteIds.add(site.id);
       }
     }
   }
@@ -466,6 +504,12 @@ async function main() {
       // DSLR restriction: skip laptops from DSLR supplier
       const mappedSlug = CATEGORY_MAP[normalizeCat(row.category)];
       if (dslrSiteIds.has(row.siteId) && mappedSlug === DSLR_EXCLUDED_CATEGORY_SLUG) {
+        skipped++;
+        continue;
+      }
+
+      // Ayoub restriction: keep only clear tech rows.
+      if (ayoubSiteIds.has(row.siteId) && !isAyoubTechAllowed(row, mappedSlug)) {
         skipped++;
         continue;
       }

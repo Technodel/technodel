@@ -4,6 +4,49 @@ import HomeClient from "./HomeClient";
 export const dynamic = "force-dynamic";
 
 const SECTION_POOL_SIZE = 24;
+const TECH_CATEGORY_SLUGS = [
+  "smartphones",
+  "laptops",
+  "tablets",
+  "gaming",
+  "audio",
+  "accessories",
+  "networking",
+  "cameras",
+  "printers",
+  "smart-home",
+  "wearables",
+  "storage",
+];
+
+const NON_TECH_TITLE_TERMS = [
+  "pencil bag",
+  "pencil case",
+  "sport bag",
+  "sports bag",
+  "backpack",
+  "zippers",
+  "zipper",
+  "cat food",
+  "dog food",
+  "reptile",
+  "tissue",
+  "liquid liner",
+];
+
+function baseCatalogWhere(extra = {}) {
+  return {
+    isVisible: true,
+    images: { not: "[]" },
+    category: { slug: { in: TECH_CATEGORY_SLUGS } },
+    AND: [
+      { images: { not: "" } },
+      { images: { not: { contains: '"/new/logo.png"' } } },
+      ...NON_TECH_TITLE_TERMS.map((term) => ({ title: { not: { contains: term } } })),
+    ],
+    ...extra,
+  };
+}
 
 function randomSkip(total: number, take: number) {
   if (total <= take) return 0;
@@ -12,14 +55,14 @@ function randomSkip(total: number, take: number) {
 
 export default async function HomePage() {
   const [featuredTotal, newArrivalsTotal, dealsTotal] = await Promise.all([
-    prisma.product.count({ where: { isVisible: true } }).catch(() => 0),
-    prisma.product.count({ where: { isVisible: true, isNew: true } }).catch(() => 0),
-    prisma.product.count({ where: { isVisible: true, comparePrice: { not: null } } }).catch(() => 0),
+    prisma.product.count({ where: baseCatalogWhere() }).catch(() => 0),
+    prisma.product.count({ where: baseCatalogWhere({ isNew: true }) }).catch(() => 0),
+    prisma.product.count({ where: baseCatalogWhere({ comparePrice: { not: null } }) }).catch(() => 0),
   ]);
 
   const [featured, categories, banners, newArrivals, deals] = await Promise.all([
     prisma.product.findMany({
-      where: { isVisible: true },
+      where: baseCatalogWhere(),
       select: {
         id: true,
         slug: true,
@@ -51,7 +94,7 @@ export default async function HomePage() {
       take: 5,
     }).catch(() => []),
     prisma.product.findMany({
-      where: { isVisible: true, isNew: true },
+      where: baseCatalogWhere({ isNew: true }),
       select: {
         id: true,
         slug: true,
@@ -73,10 +116,7 @@ export default async function HomePage() {
       take: SECTION_POOL_SIZE,
     }).catch(() => []),
     prisma.product.findMany({
-      where: {
-        isVisible: true,
-        comparePrice: { not: null },
-      },
+      where: baseCatalogWhere({ comparePrice: { not: null } }),
       select: {
         id: true,
         slug: true,
