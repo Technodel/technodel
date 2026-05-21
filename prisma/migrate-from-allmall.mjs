@@ -42,6 +42,12 @@ const CATEGORY_MAP = {
   "android ios tabs": "tablets",
   "ipads & tablets": "tablets",
 
+  // Tablets
+  "tablets": "tablets",
+  "tablet computers": "tablets",
+  "android ios tabs": "tablets",
+  "ipads & tablets": "tablets",
+
   // Gaming
   "gaming": "gaming",
   "gaming & consoles": "gaming",

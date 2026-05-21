@@ -2,7 +2,8 @@ import { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://technodel.net";
+  const basePath = "/new";
+  const baseUrl = `https://technodel.net${basePath}`;
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [

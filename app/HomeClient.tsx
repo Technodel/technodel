@@ -560,63 +560,42 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
         </motion.div>
       </motion.section>
 
-      {/* ═══ CATEGORIES — Premium Grid ════════════════════════════════════ */}
+      {/* ═══ CATEGORIES — Horizontal Scroll Row ═══════════════════════════ */}
       <AnimatedSection style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
         <FadeInUp>
           <SectionHeader title="Browse by Category" link="/shop" linkLabel="All categories →" />
         </FadeInUp>
-        <motion.div
-          variants={staggerContainer}
-          className="cat-grid"
-          style={{
-            display: "grid",
-            gap: 16,
-          }}
-        >
+        <div className="cat-row">
           {(categories.length > 0 ? categories : DEMO_CATS).map((cat, i) => (
             <motion.div
               key={cat.id || cat.slug}
-              variants={scaleIn}
-              custom={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.04, duration: 0.35 }}
             >
               <Link href={`/shop/${cat.slug}`} style={{ textDecoration: "none" }}>
                 <motion.div
-                  className="glass"
-                  style={{
-                    padding: "28px 16px",
-                    borderRadius: "var(--r-lg)",
-                    textAlign: "center",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
-                    border: "1px solid var(--c-border-light)",
-                    position: "relative",
-                    overflow: "hidden",
-                  }}
+                  className="glass cat-tile"
                   whileHover={{
-                    y: -8,
+                    y: -6,
                     borderColor: "rgba(0,200,255,0.3)",
-                    boxShadow: "0 16px 40px rgba(0,0,0,0.3)",
+                    boxShadow: "0 12px 32px rgba(0,0,0,0.25)",
                   }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   <motion.div
-                    style={{ marginBottom: 12, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
-                    whileHover={{ scale: 1.2, rotate: [0, -10, 10, 0] }}
-                    transition={{ duration: 0.4 }}
+                    className="cat-icon"
+                    whileHover={{ scale: 1.15, rotate: [0, -8, 8, 0] }}
+                    transition={{ duration: 0.35 }}
                   >
-                    <Icon emoji={cat.icon || "📦"} size={36} />
+                    <Icon emoji={cat.icon || "📦"} size={28} />
                   </motion.div>
-                  <div style={{
-                    fontSize: 13, fontWeight: 600,
-                    color: "var(--c-text)",
-                    letterSpacing: "-0.2px",
-                  }}>
-                    {cat.name}
-                  </div>
+                  <span className="cat-label">{cat.name}</span>
                 </motion.div>
               </Link>
             </motion.div>
           ))}
-        </motion.div>
+        </div>
       </AnimatedSection>
 
       {/* ═══ FEATURED PRODUCTS ═══════════════════════════════════════════ */}

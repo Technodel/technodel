@@ -9,7 +9,7 @@ import {
   LogOut, MoreHorizontal, MoreVertical, Trash2, Edit, Copy, Clipboard, Download,
   Upload, File, PhoneCall, Banknote, Coins, Gem, Wallet, Verified, Pin, Map,
   ArrowLeft, ArrowRight, ArrowUp, ArrowDown, ExternalLink, Loader, AlertCircle,
-  Check, Circle, Info, Briefcase,
+  Check, Circle, Info, Briefcase, Shield, BarChart, TrendingUp, Target, Lightbulb,
   type LucideIcon,
 } from "lucide-react";
 import type { CSSProperties, JSX } from "react";
@@ -36,12 +36,27 @@ function MusicIcon({ size = 24 }: { size?: number }) {
   );
 }
 
+function StoreIcon({ size = 24 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // EMOJI → LUCIDE MAPPING
 // ═══════════════════════════════════════════════════════════════════════════════
+// Keys WITHOUT the Unicode Variation Selector-16 (U+FE0F) for broadest compatibility.
+// On Windows, emoji with VS16 may render as boxes — always strip VS16.
+
+function normalizeEmoji(e: string): string {
+  return e.replace(/\uFE0F/g, ''); // strip variant selector for matching
+}
 
 const EMOJI_MAP: Record<string, LucideIcon | ((props: { size?: number }) => JSX.Element)> = {
-  // Categories
+  // ─── Categories ──────────────────────────────────────────────────────
   "📱": Smartphone,
   "💻": Laptop,
   "📲": Tablet,
@@ -50,57 +65,87 @@ const EMOJI_MAP: Record<string, LucideIcon | ((props: { size?: number }) => JSX.
   "🔌": Plug,
   "📡": Wifi,
   "📷": Camera,
-  "🖨️": Printer,
+  "🖨": Printer,             // stripped variant selector
   "🏠": Home,
   "⌚": Watch,
   "💾": HardDrive,
+  "📹": Camera,
+  "🎥": Camera,
+  "🔒": Lock,
+  "🔓": Lock,
 
-  // Features / Promises
+  // ─── Account / Wishlist ─────────────────────────────────────────────
+  "❤": Heart,               // stripped variant selector
+  "⭐": Star,
+  "⚡": Zap,
+  "🤍": Heart,               // white heart → Heart icon
+  "⏳": Clock,               // hourglass → Clock
+
+  // ─── Features / Promises ─────────────────────────────────────────────
   "🚚": Truck,
+  "🛡": Shield,              // stripped variant selector
   "✅": BadgeCheck,
   "💰": BadgeDollarSign,
   "🔄": RefreshCcw,
   "🆕": Sparkles,
   "📦": Package,
-  "⭐": Star,
   "🎉": Sparkles,
+  "🔐": Lock,
 
-  // Navigation
-  "🛍️": ShoppingBag,
+  // ─── Navigation ─────────────────────────────────────────────────────
+  "🛍": ShoppingBag,         // stripped variant selector
   "🔥": Flame,
   "🛒": ShoppingCart,
   "👤": User,
+  "🏪": StoreIcon,           // marketplace → custom icon below
+  "🔙": ArrowLeft,
+  "🔚": ArrowLeft,
 
-  // Contact
+  // ─── Contact ────────────────────────────────────────────────────────
   "📍": MapPin,
   "📞": Phone,
   "💬": MessageSquare,
-  "✉️": Mail,
+  "✉": Mail,                // stripped variant selector
 
-  // Admin
-  "🗂️": Folder,
+  // ─── Admin ──────────────────────────────────────────────────────────
+  "📁": Folder,
+  "🗂": Folder,              // stripped variant selector
   "🔍": Search,
-  "🛠️": Wrench,
-  "🖼️": Image,
+  "🛠": Wrench,              // stripped variant selector
+  "🖼": Image,               // stripped variant selector
   "👥": Users,
-  "⚙️": Settings,
+  "⚙": Settings,             // stripped variant selector
   "🔑": KeyIcon,
   "➕": Plus,
+  "🗑": Trash2,              // stripped variant selector
+  "📊": BarChart,
+  "📈": TrendingUp,
 
-  // Payment
+  // ─── Payment ────────────────────────────────────────────────────────
   "💵": Banknote,
   "🪙": Gem,
   "💳": CreditCard,
+  "💲": Banknote,
 
-  // Social (custom SVGs)
+  // ─── Social (custom SVGs) ───────────────────────────────────────────
   "📘": Globe,
   "📸": Camera,
   "🐦": Globe,
   "🎵": MusicIcon,
   "💼": Briefcase,
 
-  // Misc
+  // ─── Misc ───────────────────────────────────────────────────────────
+  "🏆": Award,
   "🌌": Sparkles,
+  "🎯": Target,
+  "💡": Lightbulb,
+  "🔔": Bell,
+  "🎁": Gift,
+  "👑": Crown,
+  "💎": Gem,
+  "🌍": Globe,
+  "🇱🇧": Flag,               // Lebanon flag → Flag icon
+  "🇺🇸": Flag,               // US flag → Flag icon
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -164,7 +209,8 @@ export function Icon({ name, emoji, size = 24, className, style }: IconProps) {
   if (name) {
     IconComp = LUCIDE_LOOKUP[name.toLowerCase()] ?? null;
   } else if (emoji) {
-    IconComp = EMOJI_MAP[emoji] ?? null;
+    // Normalize: strip VS16 variant selector for cross-OS compatibility
+    IconComp = EMOJI_MAP[normalizeEmoji(emoji)] ?? null;
   }
 
   // Render lucide icon

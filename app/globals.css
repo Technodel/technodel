@@ -475,6 +475,43 @@ html.theme-light .btn-primary { color: #fff; }
   transform: translateY(-1px);
 }
 
+/* ─── CATEGORY HORIZONTAL ROW ──────────────────────────────────────────────── */
+.cat-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+  scrollbar-width: none;
+}
+.cat-row::-webkit-scrollbar { display: none; }
+
+.cat-tile {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+  padding: 20px 24px;
+  border-radius: var(--r-lg);
+  text-align: center;
+  cursor: pointer;
+  border: 1px solid var(--c-border-light);
+  transition: all 0.25s ease;
+  scroll-snap-align: start;
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.cat-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+.cat-label {
+  font-size: 12px; font-weight: 600;
+  color: var(--c-text);
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
 /* ─── ADMIN SIDEBAR ──────────────────────────────────────────────────────────── */
 .admin-nav-item {
   display: flex; align-items: center; gap: 10px;
@@ -775,11 +812,11 @@ html.theme-light .btn-primary { color: #fff; }
   .hero-section .hero-content { padding-top: 40px !important; }
   .hero-section .hero-stats { margin-top: 32px !important; padding-top: 20px !important; }
 
-  /* Category grid - smaller tiles */
-  .cat-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; }
-  .cat-grid .cat-tile { padding: 20px 12px !important; }
-  .cat-grid .cat-tile .cat-icon { font-size: 28px !important; }
-  .cat-grid .cat-tile .cat-label { font-size: 12px !important; }
+  /* Category horizontal row - smaller tiles */
+  .cat-row { gap: 10px !important; padding-bottom: 4px !important; }
+  .cat-tile { padding: 16px 18px !important; min-width: 80px !important; gap: 6px !important; }
+  .cat-tile .cat-icon { font-size: 22px !important; }
+  .cat-tile .cat-label { font-size: 11px !important; }
 
   /* Brand chips - scrollable row */
   .brand-row { flex-wrap: nowrap !important; overflow-x: auto !important; gap: 10px !important; padding-bottom: 8px !important; }
@@ -833,7 +870,10 @@ html.theme-light .btn-primary { color: #fff; }
 /* Small phones */
 @media (max-width: 400px) {
   .products-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
-  .cat-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+  .cat-row { gap: 8px !important; }
+  .cat-tile { padding: 14px 14px !important; min-width: 72px !important; }
+  .cat-tile .cat-icon { font-size: 20px !important; }
+  .cat-tile .cat-label { font-size: 10px !important; }
   .footer-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
   :root { --r-lg: 14px; --r-xl: 16px; }
 }
