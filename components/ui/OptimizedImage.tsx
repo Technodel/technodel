@@ -2,6 +2,12 @@
 import { useState } from "react";
 import NextImage from "next/image";
 
+// Route external images through our proxy to bypass hotlink blocking.
+function proxyUrl(src: string): string {
+  if (!src || src.startsWith("/") || src.startsWith("data:")) return src;
+  return `/new/api/img-proxy?url=${encodeURIComponent(src)}`;
+}
+
 interface Props {
   src: string;
   alt: string;
@@ -39,6 +45,9 @@ export default function OptimizedImage({
 }: Props) {
   const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
+
+  // Route external images through proxy to bypass hotlink blocking
+  const resolvedSrc = errored ? "" : proxyUrl(src);
 
   // Better fallback for missing images — show branded placeholder
   if (!src || src === "/placeholder.png" || errored) {
@@ -116,7 +125,7 @@ export default function OptimizedImage({
         />
       )}
       <NextImage
-        src={src}
+        src={resolvedSrc || "/placeholder.png"}
         alt={alt}
         width={fill ? undefined : (width || 400)}
         height={fill ? undefined : (height || 400)}

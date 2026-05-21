@@ -501,7 +501,10 @@ async function main() {
       }
 
       const basePrice = row.displayPrice || row.sourcePrice || 0;
-      const comparePrice = row.sourcePrice > basePrice ? row.sourcePrice : null;
+      // comparePrice is always 5-10% above our price (random per product, never exposed supplier price)
+      const comparePrice = basePrice > 0
+        ? Math.round(basePrice * (1.05 + Math.random() * 0.05) * 100) / 100
+        : null;
 
       try {
         await dst.product.create({
