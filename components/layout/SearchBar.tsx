@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 interface SearchResult {
@@ -15,6 +15,13 @@ interface SearchResult {
   brand?: string;
 }
 
+function resolveApiPath(path: string): string {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  if (typeof window === "undefined") return normalized;
+  const inNewBase = window.location.pathname === "/new" || window.location.pathname.startsWith("/new/");
+  return inNewBase ? `/new${normalized}` : normalized;
+}
+
 export default function SearchBar() {
   const [query, setQuery] = useState("");
   const [catalogTotal, setCatalogTotal] = useState<number | null>(null);
@@ -25,8 +32,6 @@ export default function SearchBar() {
   const [noResults, setNoResults] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(-1);
   const router = useRouter();
-  const pathname = usePathname();
-  const apiBase = pathname.startsWith("/new") ? "/new" : "";
   const ref = useRef<HTMLDivElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -45,7 +50,7 @@ export default function SearchBar() {
 
     const fetchCatalogTotal = async () => {
       try {
-        const res = await fetch(`${apiBase}/api/products?limit=1`, { signal: controller.signal });
+        const res = await fetch(resolveApiPath("/api/products?limit=1"), { signal: controller.signal });
         if (!res.ok) return;
         const data = await res.json();
         const total = typeof data?.total === "number" ? data.total : null;
@@ -58,7 +63,7 @@ export default function SearchBar() {
     fetchCatalogTotal();
 
     return () => controller.abort();
-  }, [apiBase]);
+  }, []);
 
   const search = useCallback((q: string) => {
     setQuery(q);
@@ -74,7 +79,7 @@ export default function SearchBar() {
       abortRef.current = controller;
 
       try {
-        const res = await fetch(`${apiBase}/api/search?q=${encodeURIComponent(q)}&limit=6`, {
+        const res = await fetch(resolveApiPath(`/api/search?q=${encodeURIComponent(q)}&limit=6`), {
           signal: controller.signal,
         });
         if (!res.ok) throw new Error("Search failed");
@@ -94,7 +99,7 @@ export default function SearchBar() {
         if (!controller.signal.aborted) setLoading(false);
       }
     }, 220);
-  }, [apiBase]);
+  }, []);
 
   const go = useCallback(() => {
     if (query.trim()) {
