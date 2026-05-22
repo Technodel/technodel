@@ -23,8 +23,30 @@ interface Props {
 export default function ShopClient({ products, total, pages, page, categories, initialFilters }: Props) {
   const router = useRouter();
   const [sort, setSort] = useState(initialFilters.sort);
+  const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const maxVisiblePages = 10;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 900px)");
+    const onChange = () => {
+      const mobile = media.matches;
+      setIsMobile(mobile);
+      setSidebarOpen(!mobile);
+    };
+
+    onChange();
+
+    if (media.addEventListener) {
+      media.addEventListener("change", onChange);
+      return () => media.removeEventListener("change", onChange);
+    }
+
+    media.addListener(onChange);
+    return () => media.removeListener(onChange);
+  }, []);
+
+  const maxVisiblePages = isMobile ? 5 : 10;
   const safePages = Math.max(1, pages);
   const currentPage = Math.min(Math.max(page, 1), safePages);
   const windowStart = Math.floor((currentPage - 1) / maxVisiblePages) * maxVisiblePages + 1;
@@ -44,7 +66,7 @@ export default function ShopClient({ products, total, pages, page, categories, i
   }
 
   return (
-    <div style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "32px 24px 80px" }}>
+    <div style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "clamp(16px, 4vw, 32px) clamp(12px, 4vw, 24px) 80px" }}>
 
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
@@ -58,12 +80,12 @@ export default function ShopClient({ products, total, pages, page, categories, i
         </div>
 
         {/* Sort + filter toggle */}
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", width: isMobile ? "100%" : "auto", flexWrap: "wrap" }}>
           <select
             value={sort}
             onChange={(e) => { setSort(e.target.value); navigate({ sort: e.target.value }); }}
             className="input"
-            style={{ width: "auto", cursor: "pointer" }}
+            style={{ width: "auto", maxWidth: "100%", minWidth: isMobile ? 0 : 180, flex: isMobile ? "1 1 160px" : undefined, cursor: "pointer" }}
           >
             <option value="featured">Featured</option>
             <option value="newest">Newest</option>
@@ -72,16 +94,16 @@ export default function ShopClient({ products, total, pages, page, categories, i
             <option value="price_desc">Price: High → Low</option>
           </select>
           <button className="btn btn-ghost btn-sm" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            {sidebarOpen ? "◀ Hide" : "▶ Filters"}
+            {sidebarOpen ? (isMobile ? "Hide Filters" : "◀ Hide") : (isMobile ? "Show Filters" : "▶ Filters")}
           </button>
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? "220px 1fr" : "1fr", gap: 32 }}>
+      <div style={{ display: "grid", gridTemplateColumns: sidebarOpen && !isMobile ? "220px minmax(0,1fr)" : "minmax(0,1fr)", gap: isMobile ? 16 : 32 }}>
 
         {/* Sidebar filters */}
         {sidebarOpen && (
-          <aside>
+          <aside style={isMobile ? { background: "var(--c-surface)", border: "1px solid var(--c-border)", borderRadius: "var(--r-md)", padding: 14 } : undefined}>
             {/* Categories */}
             <div style={{ marginBottom: 28 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "var(--c-muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 }}>Category</div>
@@ -159,7 +181,7 @@ export default function ShopClient({ products, total, pages, page, categories, i
 
           {/* Pagination */}
           {pages > 1 && (
-            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 48 }}>
+            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 48, flexWrap: "wrap" }}>
               <button
                 onClick={() => navigate({ page: currentPage - 1 })}
                 disabled={currentPage <= 1}

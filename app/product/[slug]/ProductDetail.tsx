@@ -45,11 +45,27 @@ export default function ProductDetail({ product, related }: { product: Product; 
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [imgZoom, setImgZoom] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
   const imgRef = useRef<HTMLDivElement>(null);
   const { add } = useCartStore();
   const user = useAuthStore((s) => s.user);
   const { isInWishlist, add: addWish, remove: removeWish } = useWishlistStore();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(hover: none), (pointer: coarse)");
+    const onChange = () => setIsTouchDevice(media.matches);
+    onChange();
+
+    if (media.addEventListener) {
+      media.addEventListener("change", onChange);
+      return () => media.removeEventListener("change", onChange);
+    }
+
+    media.addListener(onChange);
+    return () => media.removeListener(onChange);
+  }, []);
 
   // ── Price Watch (localStorage) ────────────────────────────────────────
   const [isWatching, setIsWatching] = useState(false);
@@ -107,7 +123,7 @@ export default function ProductDetail({ product, related }: { product: Product; 
   const safeBrand = sanitizeProductBrand(product.brand, product.competitor?.name);
 
   function handleMouseMove(e: React.MouseEvent) {
-    if (!imgRef.current) return;
+    if (isTouchDevice || !imgRef.current) return;
     const rect = imgRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -134,12 +150,13 @@ export default function ProductDetail({ product, related }: { product: Product; 
       initial="hidden"
       animate="visible"
       variants={staggerContainer}
-      style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "24px 24px 80px" }}
+      className="product-detail-root"
+      style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "clamp(14px, 4vw, 24px) clamp(12px, 4vw, 24px) 80px" }}
     >
       {/* Breadcrumb */}
       <motion.nav
         variants={fadeInUp}
-        style={{ fontSize: 13, color: "var(--c-muted)", marginBottom: 24, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}
+        style={{ fontSize: 13, color: "var(--c-muted)", marginBottom: 24, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", overflowWrap: "anywhere" }}
       >
         <Link href="/" style={{ color: "var(--c-muted)", textDecoration: "none" }}>Home</Link>
         <span>›</span>
@@ -155,14 +172,14 @@ export default function ProductDetail({ product, related }: { product: Product; 
           {/* Main image with zoom */}
           <motion.div
             ref={imgRef}
-            onMouseEnter={() => setImgZoom(true)}
-            onMouseLeave={() => setImgZoom(false)}
+            onMouseEnter={() => !isTouchDevice && setImgZoom(true)}
+            onMouseLeave={() => !isTouchDevice && setImgZoom(false)}
             onMouseMove={handleMouseMove}
             style={{
               position: "relative", borderRadius: "var(--r-xl)", overflow: "hidden",
               aspectRatio: "1", background: "var(--c-surface)", marginBottom: 12,
               display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "crosshair",
+              cursor: isTouchDevice ? "default" : "crosshair",
             }}
             className="grad-border"
           >
@@ -185,7 +202,7 @@ export default function ProductDetail({ product, related }: { product: Product; 
                 </motion.div>
                 {/* Lens magnifier */}
                 <AnimatePresence>
-                  {imgZoom && (
+                  {imgZoom && !isTouchDevice && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}

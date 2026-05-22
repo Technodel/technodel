@@ -57,13 +57,14 @@ export default function CartPage() {
       initial="hidden"
       animate="visible"
       variants={staggerContainer}
-      style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "32px 24px 80px" }}
+      className="cart-page-root"
+      style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "clamp(16px, 4vw, 32px) clamp(12px, 4vw, 24px) 80px" }}
     >
-      <motion.h1 variants={fadeInUp} style={{ fontSize: 28, fontWeight: 800, marginBottom: 32 }}>
+      <motion.h1 variants={fadeInUp} style={{ fontSize: "clamp(22px, 5.8vw, 28px)", fontWeight: 800, marginBottom: 32 }}>
         🛒 Shopping Cart ({count()} items)
       </motion.h1>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 32 }}>
+      <div className="cart-layout" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 340px", gap: 32 }}>
         {/* Items */}
         <motion.div variants={staggerContainer} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <AnimatePresence>
@@ -75,6 +76,7 @@ export default function CartPage() {
                 animate={{ opacity: 1, x: 0, height: "auto" }}
                 exit={{ opacity: 0, x: 30, height: 0 }}
                 transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+                className="cart-item"
                 style={{
                   display: "flex", gap: 16, background: "var(--c-surface)",
                   border: "1px solid var(--c-border)", borderRadius: "var(--r-md)",
@@ -83,6 +85,7 @@ export default function CartPage() {
               >
                 {/* Image */}
                 <motion.div
+                  className="cart-item-image"
                   style={{
                     width: 80, height: 80, flexShrink: 0,
                     background: "var(--c-surface2)", borderRadius: "var(--r-sm)",
@@ -103,13 +106,15 @@ export default function CartPage() {
                 </motion.div>
 
                 {/* Info */}
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="cart-item-main" style={{ flex: 1, minWidth: 0 }}>
                   <Link
                     href={`/product/${encodeURIComponent(item.slug)}`}
+                    className="cart-item-title"
                     style={{
                       fontWeight: 700, fontSize: 15, color: "var(--c-text)",
-                      textDecoration: "none", display: "block",
-                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                      textDecoration: "none",
+                      overflow: "hidden", textOverflow: "ellipsis",
+                      display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
                     }}
                   >
                     {item.title}
@@ -124,73 +129,78 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                {/* Qty stepper */}
-                <motion.div
-                  style={{
-                    display: "flex", alignItems: "center", gap: 0,
-                    border: "1px solid var(--c-border)", borderRadius: "var(--r-sm)",
-                    overflow: "hidden",
-                  }}
-                >
-                  <motion.button
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => update(item.productId, Math.max(1, item.quantity - 1), item.variantId)}
-                    style={{
-                      width: 36, height: 36, background: "var(--c-surface2)",
-                      border: "none", cursor: "pointer", fontSize: 16, color: "var(--c-text)",
-                    }}
-                  >
-                    −
-                  </motion.button>
+                <div className="cart-item-controls" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  {/* Qty stepper */}
                   <motion.div
-                    key={item.quantity}
-                    initial={{ scale: 1.3 }}
-                    animate={{ scale: 1 }}
+                    className="cart-item-qty"
                     style={{
-                      width: 36, textAlign: "center", fontSize: 14, fontWeight: 700,
+                      display: "flex", alignItems: "center", gap: 0,
+                      border: "1px solid var(--c-border)", borderRadius: "var(--r-sm)",
+                      overflow: "hidden",
                     }}
                   >
-                    {item.quantity}
+                    <motion.button
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => update(item.productId, Math.max(1, item.quantity - 1), item.variantId)}
+                      style={{
+                        width: 36, height: 36, background: "var(--c-surface2)",
+                        border: "none", cursor: "pointer", fontSize: 16, color: "var(--c-text)",
+                      }}
+                    >
+                      −
+                    </motion.button>
+                    <motion.div
+                      key={item.quantity}
+                      initial={{ scale: 1.3 }}
+                      animate={{ scale: 1 }}
+                      style={{
+                        width: 36, textAlign: "center", fontSize: 14, fontWeight: 700,
+                      }}
+                    >
+                      {item.quantity}
+                    </motion.div>
+                    <motion.button
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => update(item.productId, item.quantity + 1, item.variantId)}
+                      style={{
+                        width: 36, height: 36, background: "var(--c-surface2)",
+                        border: "none", cursor: "pointer", fontSize: 16, color: "var(--c-text)",
+                      }}
+                    >
+                      +
+                    </motion.button>
                   </motion.div>
+
+                  {/* Line total */}
+                  <motion.div
+                    key={item.price * item.quantity}
+                    initial={{ scale: 1.1 }}
+                    animate={{ scale: 1 }}
+                    className="cart-line-total"
+                    style={{ fontWeight: 800, fontSize: 16, minWidth: 76, textAlign: "right" }}
+                  >
+                    {format(item.price * item.quantity)}
+                  </motion.div>
+
+                  {/* Remove */}
                   <motion.button
+                    whileHover={{ scale: 1.2, color: "#ff4444" }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => update(item.productId, item.quantity + 1, item.variantId)}
+                    onClick={() => remove(item.productId, item.variantId)}
+                    className="cart-item-remove"
                     style={{
-                      width: 36, height: 36, background: "var(--c-surface2)",
-                      border: "none", cursor: "pointer", fontSize: 16, color: "var(--c-text)",
+                      background: "none", border: "none", cursor: "pointer",
+                      fontSize: 18, color: "var(--c-muted)", padding: 4, transition: "color 0.2s",
                     }}
                   >
-                    +
+                    ✕
                   </motion.button>
-                </motion.div>
-
-                {/* Line total */}
-                <motion.div
-                  key={item.price * item.quantity}
-                  initial={{ scale: 1.1 }}
-                  animate={{ scale: 1 }}
-                  style={{ fontWeight: 800, fontSize: 16, minWidth: 80, textAlign: "right" }}
-                >
-                  {format(item.price * item.quantity)}
-                </motion.div>
-
-                {/* Remove */}
-                <motion.button
-                  whileHover={{ scale: 1.2, color: "#ff4444" }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => remove(item.productId, item.variantId)}
-                  style={{
-                    background: "none", border: "none", cursor: "pointer",
-                    fontSize: 18, color: "var(--c-muted)", padding: 4, transition: "color 0.2s",
-                  }}
-                >
-                  ✕
-                </motion.button>
+                </div>
               </motion.div>
             ))}
           </AnimatePresence>
 
-          <motion.div variants={fadeInUp} style={{ display: "flex", justifyContent: "space-between" }}>
+          <motion.div variants={fadeInUp} className="cart-actions" style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
             <motion.div whileHover={{ x: -4 }}>
               <Link href="/shop" className="btn btn-ghost">← Continue Shopping</Link>
             </motion.div>
@@ -209,6 +219,7 @@ export default function CartPage() {
         {/* Summary */}
         <motion.div
           variants={fadeInUp}
+          className="cart-summary"
           style={{
             background: "var(--c-surface)", border: "1px solid var(--c-border)",
             borderRadius: "var(--r-lg)", padding: 28,

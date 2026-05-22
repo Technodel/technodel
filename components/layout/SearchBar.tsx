@@ -31,11 +31,39 @@ export default function SearchBar() {
   const [error, setError] = useState(false);
   const [noResults, setNoResults] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(-1);
+  const [isMobile, setIsMobile] = useState(false);
+  const [popoverRect, setPopoverRect] = useState({ left: 0, right: 0, top: 0 });
   const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const shouldReduceMotion = useReducedMotion();
+
+  const updatePopoverRect = useCallback(() => {
+    if (!ref.current || typeof window === "undefined") return;
+    const rect = ref.current.getBoundingClientRect();
+    const edgePadding = 8;
+    setPopoverRect({
+      left: Math.max(edgePadding, rect.left),
+      right: Math.max(edgePadding, window.innerWidth - rect.right),
+      top: Math.max(8, rect.bottom + 6),
+    });
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 768px)");
+    const onChange = () => setIsMobile(media.matches);
+    onChange();
+
+    if (media.addEventListener) {
+      media.addEventListener("change", onChange);
+      return () => media.removeEventListener("change", onChange);
+    }
+
+    media.addListener(onChange);
+    return () => media.removeListener(onChange);
+  }, []);
 
   useEffect(() => {
     const fn = (e: MouseEvent) => {
@@ -44,6 +72,40 @@ export default function SearchBar() {
     document.addEventListener("mousedown", fn);
     return () => document.removeEventListener("mousedown", fn);
   }, []);
+
+  const shouldShowPopover = query.trim().length >= 2 && (loading || open || noResults || error);
+
+  useEffect(() => {
+    if (!isMobile || !shouldShowPopover) return;
+    updatePopoverRect();
+
+    const onLayout = () => updatePopoverRect();
+    window.addEventListener("resize", onLayout, { passive: true });
+    window.addEventListener("scroll", onLayout, { passive: true });
+
+    return () => {
+      window.removeEventListener("resize", onLayout);
+      window.removeEventListener("scroll", onLayout);
+    };
+  }, [isMobile, shouldShowPopover, updatePopoverRect]);
+
+  const popoverPositionStyle = isMobile
+    ? {
+        position: "fixed" as const,
+        left: popoverRect.left,
+        right: popoverRect.right,
+        top: popoverRect.top,
+        maxHeight: "min(62dvh, 420px)",
+        overflowY: "auto" as const,
+        overscrollBehavior: "contain" as const,
+        WebkitOverflowScrolling: "touch" as const,
+      }
+    : {
+        position: "absolute" as const,
+        top: "calc(100% + 6px)",
+        left: 0,
+        right: 0,
+      };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -128,7 +190,7 @@ export default function SearchBar() {
   };
 
   return (
-    <div ref={ref} style={{ position: "relative", width: "100%" }}>
+    <div ref={ref} className="searchbar-root" style={{ position: "relative", width: "100%" }}>
       <div style={{ display: "flex", gap: 0 }}>
         <input
           className="input"
@@ -137,7 +199,10 @@ export default function SearchBar() {
           value={query}
           onChange={(e) => search(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => results.length > 0 && setOpen(true)}
+          onFocus={() => {
+            if (isMobile) updatePopoverRect();
+            if (results.length > 0) setOpen(true);
+          }}
           aria-label="Search products"
           autoComplete="off"
         />
@@ -168,14 +233,14 @@ export default function SearchBar() {
             initial={shouldReduceMotion ? false : { opacity: 0, y: -8 }}
             animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
             exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
+            className="searchbar-popover"
             style={{
-              position: "absolute", top: "calc(100% + 6px)",
-              left: 0, right: 0,
+              ...popoverPositionStyle,
               padding: "20px 16px",
               background: "var(--c-surface)",
               border: "1px solid var(--c-border)",
               borderRadius: "var(--r-md)",
-              zIndex: 200,
+              zIndex: 1400,
               boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
             }}
           >
@@ -199,13 +264,13 @@ export default function SearchBar() {
             initial={shouldReduceMotion ? false : { opacity: 0, y: -8 }}
             animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
             exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
+            className="searchbar-popover"
             style={{
-              position: "absolute", top: "calc(100% + 6px)",
-              left: 0, right: 0,
+              ...popoverPositionStyle,
               background: "var(--c-surface)",
               border: "1px solid var(--c-border)",
               borderRadius: "var(--r-md)",
-              zIndex: 200,
+              zIndex: 1400,
               boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
               overflow: "hidden",
             }}
@@ -291,14 +356,14 @@ export default function SearchBar() {
             initial={shouldReduceMotion ? false : { opacity: 0, y: -8 }}
             animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
             exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
+            className="searchbar-popover"
             style={{
-              position: "absolute", top: "calc(100% + 6px)",
-              left: 0, right: 0,
+              ...popoverPositionStyle,
               padding: "24px 16px",
               background: "var(--c-surface)",
               border: "1px solid var(--c-border)",
               borderRadius: "var(--r-md)",
-              zIndex: 200,
+              zIndex: 1400,
               boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
               textAlign: "center",
             }}
@@ -326,15 +391,15 @@ export default function SearchBar() {
             initial={shouldReduceMotion ? false : { opacity: 0 }}
             animate={shouldReduceMotion ? undefined : { opacity: 1 }}
             exit={shouldReduceMotion ? undefined : { opacity: 0 }}
+            className="searchbar-popover"
             style={{
-              position: "absolute", top: "calc(100% + 6px)",
-              left: 0, right: 0,
+              ...popoverPositionStyle,
               padding: "12px 16px",
               background: "rgba(255,68,68,0.08)",
               border: "1px solid rgba(255,68,68,0.2)",
               borderRadius: "var(--r-md)",
               fontSize: 13, color: "var(--c-muted)",
-              zIndex: 200,
+              zIndex: 1400,
             }}
           >
             Search temporarily unavailable. Please try again.

@@ -90,7 +90,7 @@ export default function CheckoutPage() {
         <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 12 }}>Order Placed!</h1>
         <p style={{ color: "var(--c-muted)", marginBottom: 8 }}>Order #{orderId} has been received.</p>
         <p style={{ color: "var(--c-muted)", marginBottom: 32 }}>We&apos;ll contact you shortly to confirm delivery.</p>
-        <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
           <Link href="/" className="btn btn-ghost">← Home</Link>
           <Link href="/shop" className="btn btn-primary">Continue Shopping</Link>
         </div>
@@ -99,20 +99,20 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "32px 24px 80px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 800 }}>Checkout</h1>
+    <div className="checkout-page-root" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "clamp(16px, 4vw, 32px) clamp(12px, 4vw, 24px) 80px" }}>
+      <div className="checkout-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, gap: 10, flexWrap: "wrap" }}>
+        <h1 style={{ fontSize: "clamp(22px, 5.8vw, 28px)", fontWeight: 800 }}>Checkout</h1>
         <Link href="/cart" style={{ fontSize: 13, color: "var(--c-muted)", textDecoration: "none" }}>← Back to cart</Link>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 32 }}>
+      <div className="checkout-layout" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 340px", gap: 32 }}>
 
         {/* Form */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <div className="checkout-form" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
           {/* Contact info */}
           <Section title="📋 Contact Information">
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div className="checkout-contact-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <Field label="Full Name *">
                 <input className="input" value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Sami Darwich" />
               </Field>
@@ -180,7 +180,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Order summary */}
-        <div style={{ background: "var(--c-surface)", border: "1px solid var(--c-border)", borderRadius: "var(--r-lg)", padding: 24, alignSelf: "flex-start", position: "sticky", top: 90 }}>
+        <div className="checkout-summary" style={{ background: "var(--c-surface)", border: "1px solid var(--c-border)", borderRadius: "var(--r-lg)", padding: 24, alignSelf: "flex-start", position: "sticky", top: 90 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Order Summary</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
             {items.map((item) => (
@@ -195,7 +195,7 @@ export default function CheckoutPage() {
                   />
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.title}</div>
+                  <div className="checkout-summary-title" style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis" }}>{item.title}</div>
                   <div style={{ fontSize: 12, color: "var(--c-muted)" }}>×{item.quantity}</div>
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 700 }}>${(item.price * item.quantity).toFixed(0)}</div>
