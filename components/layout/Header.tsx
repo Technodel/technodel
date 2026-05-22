@@ -26,7 +26,9 @@ export default function Header() {
 
     const updateScrolled = () => {
       ticking = false;
-      const nextScrolled = window.scrollY > 10;
+      const y = window.scrollY;
+      // Use hysteresis to prevent sticky header bounce near threshold.
+      const nextScrolled = scrolledRef.current ? y > 40 : y > 90;
       if (scrolledRef.current !== nextScrolled) {
         scrolledRef.current = nextScrolled;
         setScrolled(nextScrolled);
@@ -70,8 +72,8 @@ export default function Header() {
       {/* Top bar — premium announcement strip (hidden on mobile) */}
       <motion.div
         className="hide-mobile"
-        animate={shouldReduceMotion ? undefined : { height: scrolled ? 0 : "auto", opacity: scrolled ? 0 : 1 }}
-        transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+        animate={shouldReduceMotion ? undefined : { maxHeight: scrolled ? 0 : 34, opacity: scrolled ? 0 : 1 }}
+        transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
         style={{ overflow: "hidden" }}
       >
         <div style={{
@@ -143,7 +145,7 @@ export default function Header() {
         <motion.div
           animate={shouldReduceMotion ? undefined : { height: scrolled ? "clamp(48px, 8vw, 64px)" : "clamp(56px, 10vw, 94px)" }}
           transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.3, ease: "easeInOut" }}
-          style={{ display: "flex", alignItems: "center", gap: "clamp(8px, 2vw, 24px)", overflow: "hidden", minWidth: 0 }}
+          style={{ display: "flex", alignItems: "center", gap: "clamp(8px, 2vw, 24px)", overflow: "visible", minWidth: 0 }}
         >
           {/* Logo — responsive sizing */}
           <motion.div
@@ -182,6 +184,8 @@ export default function Header() {
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }} className="hide-mobile">
             <NavLink href="/shop" label={<><Icon emoji="🛍️" size={16} /> Shop</>} active={pathname.startsWith("/shop")} isLight={isLight} />
             <NavLink href="/deals" label={<><Icon emoji="🔥" size={16} /> Deals</>} active={pathname === "/deals"} isLight={isLight} />
+            <NavLink href="/account" label={<><Icon emoji="👤" size={16} /> Account</>} active={pathname.startsWith("/account") && !pathname.startsWith("/account/orders")} isLight={isLight} />
+            <NavLink href="/account/orders" label={<><Icon emoji="📦" size={16} /> Orders</>} active={pathname.startsWith("/account/orders")} isLight={isLight} />
 
             {/* Cart — Premium glow button */}
             <motion.div
@@ -234,8 +238,10 @@ export default function Header() {
                       style={{
                         background: isLight ? "#003087" : "#ff4444",
                         color: "#fff", borderRadius: 99,
-                        padding: "2px 7px", fontSize: 11, fontWeight: 800,
-                        position: "absolute", top: -6, right: -6,
+                        minWidth: 20, height: 20,
+                        padding: "0 6px", fontSize: 11, fontWeight: 800,
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                        position: "absolute", top: 4, right: 6,
                         boxShadow: "0 2px 8px rgba(255,68,68,0.3)",
                       }}
                     >
@@ -277,11 +283,10 @@ export default function Header() {
       {/* Category nav strip — Premium */}
       <motion.div
         animate={{
-          height: scrolled ? 0 : "auto",
+          maxHeight: scrolled ? 0 : 52,
           opacity: scrolled ? 0 : 1,
-          marginTop: scrolled ? -4 : 0,
         }}
-        transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+        transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
         style={{
           overflow: "hidden",
           borderTop: "1px solid var(--c-border)",

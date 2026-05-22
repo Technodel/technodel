@@ -27,7 +27,8 @@ export default function ShopClient({ products, total, pages, page, categories, i
 
   function navigate(overrides: Record<string, any>) {
     const sp = new URLSearchParams();
-    const params = { ...initialFilters, page: 1, ...overrides, sort };
+    const nextSort = overrides.sort ?? sort;
+    const params = { ...initialFilters, page: 1, ...overrides, sort: nextSort };
     Object.entries(params).forEach(([k, v]) => {
       if (v !== undefined && v !== null && v !== "" && v !== false && v !== 0) {
         sp.set(k, String(v));
