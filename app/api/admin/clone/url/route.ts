@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { scrapeProduct, isSafeUrl, applyCompetitorPricing } from "@/lib/scraper";
+import { sanitizeProductBrand } from "@/lib/brand";
 import { generateSlug, generateSku } from "@/lib/utils";
 
 export async function POST(req: NextRequest) {
@@ -38,6 +39,7 @@ export async function POST(req: NextRequest) {
         ? applyCompetitorPricing(scraped.price, competitor)
         : scraped.price
       : 0;
+    const safeBrand = sanitizeProductBrand(scraped.brand, competitor?.name);
 
     if (action === "preview") {
       return NextResponse.json({ scraped, displayPrice });
@@ -66,7 +68,7 @@ export async function POST(req: NextRequest) {
         sourcePrice: scraped.price,
         competitorId: competitorId || null,
         images: JSON.stringify(scraped.images),
-        brand: scraped.brand || null,
+        brand: safeBrand,
         attributes: JSON.stringify(scraped.attributes),
         categoryId,
       },

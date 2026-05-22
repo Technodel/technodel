@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { scrapeProduct, applyCompetitorPricing } from "@/lib/scraper";
+import { sanitizeProductBrand } from "@/lib/brand";
 import { generateSlug, generateSku } from "@/lib/utils";
 
 export async function GET(
@@ -93,6 +94,7 @@ export async function POST(
       const displayPrice = scraped.price
         ? applyCompetitorPricing(scraped.price, competitor)
         : 0;
+      const safeBrand = sanitizeProductBrand(scraped.brand, competitor.name);
 
       const slug = generateSlug(scraped.title || "product");
       const uniqueSlug = `${slug}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
@@ -114,7 +116,7 @@ export async function POST(
           sourcePrice: scraped.price,
           competitorId,
           images: JSON.stringify(scraped.images),
-          brand: scraped.brand || null,
+          brand: safeBrand,
           attributes: JSON.stringify(scraped.attributes),
           categoryId,
         },

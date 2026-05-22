@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/auth";
 import { useWishlistStore } from "@/store/wishlist";
 import ProductCard from "@/components/product/ProductCard";
 import OptimizedImage from "@/components/ui/OptimizedImage";
+import { sanitizeProductBrand } from "@/lib/brand";
 import {
   staggerContainer, fadeInUp, fadeInRight, fadeInLeft,
   scaleIn, spring, sectionReveal,
@@ -103,6 +104,7 @@ export default function ProductDetail({ product, related }: { product: Product; 
   const savings = product.comparePrice ? product.comparePrice - price : 0;
   const discount = product.comparePrice ? Math.round((savings / product.comparePrice) * 100) : 0;
   const inStock = (selectedVariant?.stock ?? product.stock) > 0;
+  const safeBrand = sanitizeProductBrand(product.brand, product.competitor?.name);
 
   function handleMouseMove(e: React.MouseEvent) {
     if (!imgRef.current) return;
@@ -264,12 +266,12 @@ export default function ProductDetail({ product, related }: { product: Product; 
 
         {/* Info */}
         <motion.div variants={fadeInRight}>
-          {product.brand && (
+          {safeBrand && (
             <motion.div
               variants={fadeInUp}
               style={{ fontSize: 12, color: "var(--c-accent)", fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}
             >
-              {product.brand.toUpperCase()}
+              {safeBrand.toUpperCase()}
             </motion.div>
           )}
 

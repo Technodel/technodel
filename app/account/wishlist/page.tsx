@@ -8,6 +8,7 @@ import { useWishlistStore } from "@/store/wishlist";
 import { useCurrencyStore } from "@/store/currency";
 import { useCartStore } from "@/store/cart";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
+import { sanitizeProductBrand } from "@/lib/brand";
 
 export default function WishlistPage() {
   const router = useRouter();
@@ -68,6 +69,7 @@ export default function WishlistPage() {
           {items.map((item) => {
             let img = "";
             try { const imgs = JSON.parse(item.product.images); img = imgs[0] || ""; } catch {}
+            const safeBrand = sanitizeProductBrand(item.product.brand);
             return (
               <motion.div
                 key={item.id}
@@ -96,9 +98,9 @@ export default function WishlistPage() {
                   </div>
                 </Link>
                 <div style={{ padding: 16 }}>
-                  {item.product.brand && (
+                  {safeBrand && (
                     <div style={{ fontSize: 11, color: "var(--c-accent)", fontWeight: 700, textTransform: "uppercase", marginBottom: 4 }}>
-                      {item.product.brand}
+                      {safeBrand}
                     </div>
                   )}
                   <Link href={`/product/${encodeURIComponent(item.product.slug)}`} style={{ textDecoration: "none", color: "inherit" }}>

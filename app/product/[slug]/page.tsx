@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { sanitizeProductBrand } from "@/lib/brand";
 import ProductDetail from "./ProductDetail";
 
 export const revalidate = 60;
@@ -55,6 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await findProductBySlugWithFallback(slug);
   if (!product) return { title: "Product Not Found" };
+  const safeBrand = sanitizeProductBrand(product.brand);
   const rawImage = (() => {
     try {
       const imgs = JSON.parse(product.images);
@@ -75,7 +77,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    keywords: product.seoKeywords || `${product.brand || ""}, ${product.title}, buy ${product.title} Lebanon, best price Lebanon`.toLowerCase(),
+    keywords: product.seoKeywords || `${safeBrand || ""}, ${product.title}, buy ${product.title} Lebanon, best price Lebanon`.toLowerCase(),
     alternates: { canonical: `https://technodel.net/new/product/${encodedSlug}` },
     openGraph: {
       title,
@@ -141,6 +143,8 @@ export default async function ProductPage({ params }: Props) {
 
   if (!product) notFound();
 
+  const safeBrand = sanitizeProductBrand(product.brand, product.competitor?.name);
+
   // Related products
   const related = await prisma.product.findMany({
     where: { categoryId: product.categoryId, isVisible: true, id: { not: product.id } },
@@ -180,6 +184,7 @@ export default async function ProductPage({ params }: Props) {
 
   const parsed = {
     ...product,
+    brand: safeBrand,
     images: (() => { try { return JSON.parse(product.images); } catch { return []; } })(),
     specs: (() => { try { return JSON.parse(product.specs || "[]"); } catch { return []; } })(),
     highlights: (() => { try { return JSON.parse(product.highlights || "[]"); } catch { return []; } })(),
@@ -205,7 +210,7 @@ export default async function ProductPage({ params }: Props) {
     name: product.title,
     description: product.seoDescription || product.shortDescription || undefined,
     sku: product.sku,
-    brand: product.brand ? { "@type": "Brand", name: product.brand } : undefined,
+    brand: safeBrand ? { "@type": "Brand", name: safeBrand } : undefined,
     image: parsed.images,
     url: `https://technodel.net/new/product/${encodeURIComponent(product.slug)}`,
     category: product.category.name,

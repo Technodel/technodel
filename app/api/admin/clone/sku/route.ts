@@ -3,6 +3,7 @@ import * as cheerio from "cheerio";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { applyCompetitorPricing, fetchHtml, isSafeUrl, scrapeProduct } from "@/lib/scraper";
+import { sanitizeProductBrand } from "@/lib/brand";
 import { generateSku, generateSlug, normalizeUrlWithProtocol } from "@/lib/utils";
 
 function asAbsolute(baseUrl: string, href: string): string {
@@ -108,6 +109,7 @@ export async function POST(req: NextRequest) {
         ? applyCompetitorPricing(scraped.price, competitor)
         : scraped.price
       : 0;
+    const safeBrand = sanitizeProductBrand(scraped.brand, competitor?.name);
 
     if (action === "preview") {
       return NextResponse.json({ scraped, displayPrice, matchedUrl: productUrl });
@@ -135,7 +137,7 @@ export async function POST(req: NextRequest) {
         sourcePrice: scraped.price,
         competitorId: competitorId || null,
         images: JSON.stringify(scraped.images || []),
-        brand: scraped.brand || null,
+        brand: safeBrand,
         attributes: JSON.stringify({ ...(scraped.attributes || {}), sourceSku: sku }),
         categoryId,
       },

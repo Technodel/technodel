@@ -23,6 +23,7 @@ import {
   applyCompetitorPricing,
   isSafeUrl,
 } from "@/lib/scraper";
+import { sanitizeProductBrand } from "@/lib/brand";
 import { generateSlug, generateSku, normalizeUrlWithProtocol } from "@/lib/utils";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -168,6 +169,7 @@ export async function POST(req: NextRequest) {
       const displayPrice = scraped.price
         ? applyCompetitorPricing(scraped.price, competitor!)
         : 0;
+      const safeBrand = sanitizeProductBrand(scraped.brand, competitor?.name);
 
       if (dryRun) {
         imported.push({ title: scraped.title, price: displayPrice, url });
@@ -182,7 +184,7 @@ export async function POST(req: NextRequest) {
           price: scraped.price,
           comparePrice: scraped.comparePrice,
           images: JSON.stringify(scraped.images),
-          brand: scraped.brand,
+          brand: safeBrand,
           sku: scraped.sku,
           categories: JSON.stringify(scraped.categories),
           attributes: JSON.stringify(scraped.attributes),
@@ -199,7 +201,7 @@ export async function POST(req: NextRequest) {
           price: scraped.price,
           comparePrice: scraped.comparePrice,
           images: JSON.stringify(scraped.images),
-          brand: scraped.brand,
+          brand: safeBrand,
           sku: scraped.sku,
           categories: JSON.stringify(scraped.categories),
           attributes: JSON.stringify(scraped.attributes),
@@ -231,7 +233,7 @@ export async function POST(req: NextRequest) {
           sourcePrice: scraped.price,
           competitorId,
           images: JSON.stringify(scraped.images),
-          brand: scraped.brand || null,
+          brand: safeBrand,
           attributes: JSON.stringify(scraped.attributes),
           categoryId,
           isVisible: false, // staging — admin must activate

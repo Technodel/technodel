@@ -6,6 +6,7 @@ import { useCurrencyStore } from "@/store/currency";
 import { useAuthStore } from "@/store/auth";
 import { useWishlistStore } from "@/store/wishlist";
 import { cardHover, cardImageZoom } from "@/lib/animations";
+import { sanitizeProductBrand } from "@/lib/brand";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 import { Icon } from "@/components/ui/Icon";
 import { useState } from "react";
@@ -42,6 +43,7 @@ export default function ProductCard({ product }: Props) {
   const img = images[0] || "/placeholder.png";
   const savings = product.comparePrice ? product.comparePrice - product.displayPrice : 0;
   const pctOff = product.comparePrice ? Math.round((savings / product.comparePrice) * 100) : 0;
+  const safeBrand = sanitizeProductBrand(product.brand, product.competitor?.name);
 
   const isLowStock = product.stock !== undefined && product.lowStockThresh !== undefined &&
     product.stock > 0 && product.stock <= product.lowStockThresh;
@@ -190,14 +192,14 @@ export default function ProductCard({ product }: Props) {
 
           {/* Content */}
           <div style={{ padding: 14, flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-            {product.brand && (
+            {safeBrand && (
               <motion.span
                 style={{
                   fontSize: 11, color: "var(--c-accent)", fontWeight: 700,
                   textTransform: "uppercase", letterSpacing: "0.5px",
                 }}
               >
-                {product.brand}
+                {safeBrand}
               </motion.span>
             )}
             <h3 style={{
