@@ -71,7 +71,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     prisma.category.findMany({
       where: { isVisible: true, parentId: null },
       orderBy: { sortOrder: "asc" },
-      select: { id: true, name: true, slug: true, icon: true },
+      select: { id: true, name: true, slug: true, icon: true, _count: { select: { products: true } } },
     }).catch(() => []),
   ]);
 

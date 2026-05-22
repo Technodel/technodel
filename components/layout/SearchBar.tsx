@@ -51,7 +51,7 @@ export default function SearchBar() {
       abortRef.current = controller;
 
       try {
-        const res = await fetch(`api/search?q=${encodeURIComponent(q)}&limit=6`, {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=6`, {
           signal: controller.signal,
         });
         if (!res.ok) throw new Error("Search failed");
