@@ -31,6 +31,32 @@ const NON_TECH_TITLE_TERMS = [
   "reptile",
   "tissue",
   "liquid liner",
+  "coffee",
+  "espresso",
+  "hazelnut syrup",
+  "syrup",
+  "pods",
+  "decaf",
+  "filter paper",
+  "capsule machine",
+  "coffee machine",
+];
+
+const ALLOWED_SUPPLIER_TERMS = [
+  "ayoub",
+  "ezone",
+  "pacmax",
+  "comparts",
+  "jak",
+  "jimmy",
+  "electroslab",
+  "electroslob",
+];
+
+const BLOCKED_IMAGE_HOST_TERMS = [
+  "pacmax.me",
+  "/new/logo.png",
+  "/placeholder.png",
 ];
 
 export const revalidate = 120;
@@ -65,8 +91,15 @@ export default async function DealsPage() {
       displayPrice: { lt: prisma.product.fields.comparePrice as any },
       AND: [
         { images: { not: "" } },
-        { images: { not: { contains: '"/new/logo.png"' } } },
+        ...BLOCKED_IMAGE_HOST_TERMS.map((term) => ({ images: { not: { contains: term } } })),
         ...NON_TECH_TITLE_TERMS.map((term) => ({ title: { not: { contains: term } } })),
+        {
+          OR: [
+            ...ALLOWED_SUPPLIER_TERMS.map((term) => ({ sourceUrl: { contains: term } })),
+            ...ALLOWED_SUPPLIER_TERMS.map((term) => ({ competitor: { name: { contains: term } } })),
+            ...ALLOWED_SUPPLIER_TERMS.map((term) => ({ competitor: { url: { contains: term } } })),
+          ],
+        },
       ],
     },
     select: {
