@@ -14,7 +14,17 @@ import {
 
 interface Category { id: string; name: string; slug: string; icon?: string | null; image?: string | null; }
 interface Banner { id: string; title: string; subtitle?: string | null; imageUrl: string; linkUrl?: string | null; badge?: string | null; }
-interface HeroSlide { id: string; title: string; subtitle?: string; imageUrl: string; linkUrl?: string; badge?: string; imageFit?: "contain" | "cover"; }
+interface HeroSlide {
+  id: string;
+  title: string;
+  subtitle?: string;
+  imageUrl: string;
+  linkUrl?: string;
+  badge?: string;
+  imageFit?: "contain" | "cover";
+  price?: number;
+  comparePrice?: number | null;
+}
 type HomeBelowFoldProps = ComponentProps<typeof HomeBelowFold>;
 type HomeProduct = HomeBelowFoldProps["featured"][number];
 
@@ -222,6 +232,8 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
     const comparePrice = typeof p.comparePrice === "number" ? p.comparePrice : null;
     const hasDiscount = comparePrice !== null && typeof p.displayPrice === "number" && comparePrice > p.displayPrice;
     const pct = hasDiscount ? Math.round(((comparePrice - p.displayPrice) / comparePrice) * 100) : 0;
+    const price = typeof p.displayPrice === "number" ? Math.round(p.displayPrice) : undefined;
+    const roundedCompare = hasDiscount && comparePrice !== null ? Math.round(comparePrice) : null;
     return {
       id: p.id,
       title: p.title,
@@ -230,6 +242,8 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
       linkUrl: `/product/${encodeURIComponent(p.slug)}`,
       badge: hasDiscount && pct > 0 ? `🔥 -${pct}%` : "🔥 Deal",
       imageFit: "contain" as const,
+      price,
+      comparePrice: roundedCompare,
     };
   }).filter((s) => !!s.imageUrl && !!s.linkUrl);
 
@@ -638,6 +652,29 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
                               >
                                 {b.subtitle}
                               </motion.p>
+                            )}
+                            {typeof b.price === "number" && (
+                              <motion.div
+                                style={{
+                                  marginTop: 8,
+                                  display: "flex",
+                                  alignItems: "baseline",
+                                  gap: 8,
+                                  color: "#fff",
+                                }}
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.45 }}
+                              >
+                                {typeof b.comparePrice === "number" && b.comparePrice > b.price && (
+                                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.58)", textDecoration: "line-through" }}>
+                                    ${b.comparePrice.toLocaleString()}
+                                  </span>
+                                )}
+                                <span style={{ fontSize: 24, fontWeight: 900, color: "var(--c-accent)" }}>
+                                  ${b.price.toLocaleString()}
+                                </span>
+                              </motion.div>
                             )}
                             {b.linkUrl && (
                               <motion.div
