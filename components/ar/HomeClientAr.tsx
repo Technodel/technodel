@@ -18,6 +18,10 @@ interface Props {
   categories: Category[];
   banners: Banner[];
   newArrivals: any[];
+  catalogStats: {
+    productCount: number;
+    brandCount: number;
+  };
 }
 
 const FEATURED_TAGS_AR = ["هواتف ذكية", "لابتوبات", "ألعاب", "صوتيات", "إكسسوارات", "كاميرات"];
@@ -72,7 +76,7 @@ function CountUp({ end, duration = 2000, suffix = "" }: { end: number; duration?
 }
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
-export default function HomeClientAr({ featured, categories, banners, newArrivals }: Props) {
+export default function HomeClientAr({ featured, categories, banners, newArrivals, catalogStats }: Props) {
   const [tagIndex, setTagIndex] = useState(0);
   const { scrollY } = useScroll();
   const heroParallaxY = useTransform(scrollY, [0, 600], [0, 150]);
@@ -190,8 +194,8 @@ export default function HomeClientAr({ featured, categories, banners, newArrival
                 borderTop: "1px solid var(--c-border-light)",
               }}>
                 {[
-                  { label: "منتج", end: 5000, suffix: "+" },
-                  { label: "ماركة", end: 200, suffix: "+" },
+                  { label: "منتج", end: Math.max(0, catalogStats.productCount) },
+                  { label: "ماركة", end: Math.max(0, catalogStats.brandCount) },
                   { label: "توصيل", value: "1-3 أيام" },
                   { label: "عميل سعيد", end: 15000, suffix: "+" },
                 ].map((stat, i) => (

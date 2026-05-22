@@ -17,6 +17,7 @@ interface SearchResult {
 
 export default function SearchBar() {
   const [query, setQuery] = useState("");
+  const [catalogTotal, setCatalogTotal] = useState<number | null>(null);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -35,6 +36,26 @@ export default function SearchBar() {
     };
     document.addEventListener("mousedown", fn);
     return () => document.removeEventListener("mousedown", fn);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchCatalogTotal = async () => {
+      try {
+        const res = await fetch("/api/products?limit=1", { signal: controller.signal });
+        if (!res.ok) return;
+        const data = await res.json();
+        const total = typeof data?.total === "number" ? data.total : null;
+        if (total !== null && !controller.signal.aborted) setCatalogTotal(total);
+      } catch {
+        // Keep generic placeholder if the count cannot be loaded.
+      }
+    };
+
+    fetchCatalogTotal();
+
+    return () => controller.abort();
   }, []);
 
   const search = useCallback((q: string) => {
@@ -105,7 +126,7 @@ export default function SearchBar() {
         <input
           className="input"
           style={{ borderRadius: "var(--r-sm) 0 0 var(--r-sm)", borderRight: "none" }}
-          placeholder="Search 60,000+ products..."
+          placeholder={catalogTotal !== null ? `Search ${catalogTotal.toLocaleString()} products...` : "Search products..."}
           value={query}
           onChange={(e) => search(e.target.value)}
           onKeyDown={handleKeyDown}

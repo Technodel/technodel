@@ -28,6 +28,74 @@ export const TECHNODEL_SUPPLIER_TERMS = [
 
 const AYOUB_SUPPLIER_TERMS = ["ayoub"] as const;
 
+const AYOUB_TECH_HINT_TERMS = [
+  "laptop",
+  "notebook",
+  "macbook",
+  "chromebook",
+  "phone",
+  "smartphone",
+  "iphone",
+  "android",
+  "mobile",
+  "tablet",
+  "ipad",
+  "monitor",
+  "display",
+  "tv",
+  "qled",
+  "oled",
+  "printer",
+  "scanner",
+  "ink",
+  "toner",
+  "keyboard",
+  "mouse",
+  "headset",
+  "headphone",
+  "earbud",
+  "speaker",
+  "microphone",
+  "webcam",
+  "router",
+  "modem",
+  "wifi",
+  "network",
+  "mesh",
+  "switch",
+  "ethernet",
+  "ssd",
+  "hdd",
+  "nvme",
+  "ram",
+  "memory",
+  "usb",
+  "hdmi",
+  "adapter",
+  "charger",
+  "power bank",
+  "cable",
+  "gaming",
+  "playstation",
+  "xbox",
+  "nintendo",
+  "controller",
+  "camera",
+  "cctv",
+  "surveillance",
+  "drone",
+  "smart watch",
+  "smartwatch",
+  "wearable",
+  "projector",
+  "arduino",
+  "sensor",
+  "relay",
+  "module",
+  "raspberry",
+  "electronics",
+] as const;
+
 export const AYOUB_NON_TECH_TITLE_TERMS = [
   "locknlock",
   "lock n lock",
@@ -53,6 +121,20 @@ export const AYOUB_NON_TECH_TITLE_TERMS = [
   "filter paper",
   "liquid liner",
   "stationery",
+  "swim ring",
+  "inflatable",
+  "crayola",
+  "coloring",
+  "colouring",
+  "colour",
+  "spatula",
+  "pasta",
+  "bird",
+  "birds",
+  "canary",
+  "nesting",
+  "seeds",
+  "cuttle",
   "pencil case",
   "pencil bag",
   "backpack",
@@ -86,6 +168,15 @@ function supplierSignalClauses(terms: readonly string[]): Prisma.ProductWhereInp
   ]);
 }
 
+function ayoubTechHintClauses(): Prisma.ProductWhereInput[] {
+  return AYOUB_TECH_HINT_TERMS.flatMap((term) => [
+    { title: { contains: term } },
+    { shortDescription: { contains: term } },
+    { seoKeywords: { contains: term } },
+    { sourceUrl: { contains: term } },
+  ]);
+}
+
 export function isTechnodelStorefrontProduct(product: SupplierSignalInput): boolean {
   const fromAllowedSupplier = TECHNODEL_SUPPLIER_TERMS.some((term) => matchesSupplierTerm(product, term));
   if (!fromAllowedSupplier) return false;
@@ -99,7 +190,13 @@ export function isTechnodelStorefrontProduct(product: SupplierSignalInput): bool
   }
 
   const normalizedTitle = (product.title || "").toLowerCase();
-  return !AYOUB_NON_TECH_TITLE_TERMS.some((term) => normalizedTitle.includes(term));
+  if (AYOUB_NON_TECH_TITLE_TERMS.some((term) => normalizedTitle.includes(term))) {
+    return false;
+  }
+
+  const normalizedSource = (product.sourceUrl || "").toLowerCase();
+  const haystack = `${normalizedTitle} ${normalizedSource}`;
+  return AYOUB_TECH_HINT_TERMS.some((term) => haystack.includes(term));
 }
 
 export function technodelSupplierWhere(extra: Prisma.ProductWhereInput = {}): Prisma.ProductWhereInput {
@@ -122,6 +219,7 @@ export function technodelSupplierWhere(extra: Prisma.ProductWhereInput = {}): Pr
               ayoubSupplierSignals,
               { category: { slug: { in: [...TECH_CATEGORY_SLUGS] } } },
               ...AYOUB_NON_TECH_TITLE_TERMS.map((term) => ({ title: { not: { contains: term } } })),
+              { OR: ayoubTechHintClauses() },
             ],
           },
         ],

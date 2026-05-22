@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { technodelSupplierWhere } from "@/lib/catalog-filter";
 import HomeClientAr from "@/components/ar/HomeClientAr";
 
 export const dynamic = "force-dynamic";
@@ -30,9 +31,23 @@ const NON_TECH_TITLE_TERMS = [
   "pool",
   "pools",
   "swimming",
+  "swim ring",
+  "inflatable",
   "kitchen",
   "kitchenware",
   "cookware",
+  "crayola",
+  "coloring",
+  "colouring",
+  "colour",
+  "spatula",
+  "pasta",
+  "bird",
+  "birds",
+  "canary",
+  "nesting",
+  "seeds",
+  "cuttle",
   "pencil bag",
   "pencil case",
   "sport bag",
@@ -56,17 +71,6 @@ const NON_TECH_TITLE_TERMS = [
   "coffee machine",
 ];
 
-const ALLOWED_SUPPLIER_TERMS = [
-  "ayoub",
-  "ezone",
-  "pacmax",
-  "comparts",
-  "jak",
-  "jimmy",
-  "electroslab",
-  "electroslob",
-];
-
 const BLOCKED_IMAGE_HOST_TERMS = [
   "pacmax.me",
   "/new/logo.png",
@@ -74,24 +78,16 @@ const BLOCKED_IMAGE_HOST_TERMS = [
 ];
 
 function baseCatalogWhere(extra = {}) {
-  return {
-    isVisible: true,
+  return technodelSupplierWhere({
     images: { not: "[]" },
     category: { slug: { in: TECH_CATEGORY_SLUGS } },
     AND: [
       { images: { not: "" } },
       ...BLOCKED_IMAGE_HOST_TERMS.map((term) => ({ images: { not: { contains: term } } })),
       ...NON_TECH_TITLE_TERMS.map((term) => ({ title: { not: { contains: term } } })),
-      {
-        OR: [
-          ...ALLOWED_SUPPLIER_TERMS.map((term) => ({ sourceUrl: { contains: term } })),
-          ...ALLOWED_SUPPLIER_TERMS.map((term) => ({ competitor: { name: { contains: term } } })),
-          ...ALLOWED_SUPPLIER_TERMS.map((term) => ({ competitor: { url: { contains: term } } })),
-        ],
-      },
+      extra,
     ],
-    ...extra,
-  };
+  });
 }
 
 function randomSkip(total: number, take: number) {
@@ -130,10 +126,21 @@ const CATEGORY_ARABIC_ICONS: Record<string, string> = {
 };
 
 export default async function ArabicHomePage() {
-  const [featuredTotal, newArrivalsTotal] = await Promise.all([
+  const [featuredTotal, newArrivalsTotal, storefrontProductCount, storefrontBrandRows] = await Promise.all([
     prisma.product.count({ where: baseCatalogWhere() }).catch(() => 0),
     prisma.product.count({ where: baseCatalogWhere({ isNew: true }) }).catch(() => 0),
+    prisma.product.count({ where: technodelSupplierWhere() }).catch(() => 0),
+    prisma.product.findMany({
+      where: technodelSupplierWhere({
+        brand: { not: null },
+        NOT: [{ brand: "" }],
+      }),
+      select: { brand: true },
+      distinct: ["brand"],
+    }).catch(() => []),
   ]);
+
+  const storefrontBrandCount = storefrontBrandRows.length;
 
   const [featured, categories, banners, newArrivals] = await Promise.all([
     prisma.product.findMany({
@@ -204,6 +211,7 @@ export default async function ArabicHomePage() {
       categories={JSON.parse(JSON.stringify(categoriesWithArabic))}
       banners={JSON.parse(JSON.stringify(banners))}
       newArrivals={JSON.parse(JSON.stringify(newArrivals))}
+      catalogStats={{ productCount: storefrontProductCount, brandCount: storefrontBrandCount }}
     />
   );
 }

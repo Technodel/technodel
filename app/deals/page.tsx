@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { technodelSupplierWhere } from "@/lib/catalog-filter";
 import ProductCard from "@/components/product/ProductCard";
 
 const TECH_CATEGORY_SLUGS = [
@@ -29,9 +30,23 @@ const NON_TECH_TITLE_TERMS = [
   "pool",
   "pools",
   "swimming",
+  "swim ring",
+  "inflatable",
   "kitchen",
   "kitchenware",
   "cookware",
+  "crayola",
+  "coloring",
+  "colouring",
+  "colour",
+  "spatula",
+  "pasta",
+  "bird",
+  "birds",
+  "canary",
+  "nesting",
+  "seeds",
+  "cuttle",
   "pencil bag",
   "pencil case",
   "sport bag",
@@ -53,17 +68,6 @@ const NON_TECH_TITLE_TERMS = [
   "filter paper",
   "capsule machine",
   "coffee machine",
-];
-
-const ALLOWED_SUPPLIER_TERMS = [
-  "ayoub",
-  "ezone",
-  "pacmax",
-  "comparts",
-  "jak",
-  "jimmy",
-  "electroslab",
-  "electroslob",
 ];
 
 const BLOCKED_IMAGE_HOST_TERMS = [
@@ -94,27 +98,21 @@ export const metadata: Metadata = {
 };
 
 export default async function DealsPage() {
+  const dealWhere = technodelSupplierWhere({
+    images: { not: "[]" },
+    category: { slug: { in: TECH_CATEGORY_SLUGS } },
+    comparePrice: { not: null },
+    displayPrice: { lt: prisma.product.fields.comparePrice as any },
+    AND: [
+      { images: { not: "" } },
+      ...BLOCKED_IMAGE_HOST_TERMS.map((term) => ({ images: { not: { contains: term } } })),
+      ...NON_TECH_TITLE_TERMS.map((term) => ({ title: { not: { contains: term } } })),
+    ],
+  });
+
   // Fetch products with comparePrice (on sale)
   const dealProducts = await prisma.product.findMany({
-    where: {
-      isVisible: true,
-      images: { not: "[]" },
-      category: { slug: { in: TECH_CATEGORY_SLUGS } },
-      comparePrice: { not: null },
-      displayPrice: { lt: prisma.product.fields.comparePrice as any },
-      AND: [
-        { images: { not: "" } },
-        ...BLOCKED_IMAGE_HOST_TERMS.map((term) => ({ images: { not: { contains: term } } })),
-        ...NON_TECH_TITLE_TERMS.map((term) => ({ title: { not: { contains: term } } })),
-        {
-          OR: [
-            ...ALLOWED_SUPPLIER_TERMS.map((term) => ({ sourceUrl: { contains: term } })),
-            ...ALLOWED_SUPPLIER_TERMS.map((term) => ({ competitor: { name: { contains: term } } })),
-            ...ALLOWED_SUPPLIER_TERMS.map((term) => ({ competitor: { url: { contains: term } } })),
-          ],
-        },
-      ],
-    },
+    where: dealWhere,
     select: {
       id: true,
       slug: true,

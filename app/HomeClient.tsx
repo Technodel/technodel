@@ -24,6 +24,10 @@ interface Props {
   banners: Banner[];
   newArrivals: HomeProduct[];
   deals: HomeProduct[];
+  catalogStats: {
+    productCount: number;
+    brandCount: number;
+  };
 }
 
 function shuffleItems<T>(items: T[]): T[] {
@@ -186,7 +190,7 @@ function CountUp({ end, duration = 2000, prefix = "", suffix = "" }: {
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export default function HomeClient({ featured, categories, banners, newArrivals, deals }: Props) {
+export default function HomeClient({ featured, categories, banners, newArrivals, deals, catalogStats }: Props) {
   const router = useRouter();
   const performanceMode = true;
   const [showBelowFold, setShowBelowFold] = useState(false);
@@ -475,8 +479,8 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
                 }}
               >
                 {[
-                  { label: "Products", end: 5000, suffix: "+" },
-                  { label: "Brands", end: 200, suffix: "+" },
+                  { label: "Products", end: Math.max(0, catalogStats.productCount) },
+                  { label: "Brands", end: Math.max(0, catalogStats.brandCount) },
                   { label: "Delivery", value: "1-3 Days", end: 0 },
                   { label: "Happy Clients", end: 15000, suffix: "+" },
                 ].map((stat: { label: string; end: number; suffix?: string; value?: string }, i) => (
