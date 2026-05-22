@@ -51,6 +51,24 @@ type SearchOptions = {
   sort?: string;
 };
 
+type RawProductRow = {
+  id: string;
+  slug: string;
+  title: string;
+  brand: string | null;
+  displayPrice: number;
+  comparePrice: number | null;
+  images: string;
+  isNew: number | boolean;
+  isFeatured: number | boolean;
+  stock: number;
+  lowStockThresh: number;
+  orderCount: number;
+  createdAt: string | Date;
+  categoryName: string | null;
+  categorySlug: string | null;
+};
+
 const aiCache = new Map<string, { result: AiQueryAnalysis; ts: number }>();
 const AI_CACHE_TTL = 10 * 60 * 1000;
 
@@ -248,6 +266,28 @@ function mapAnalysis(analysis: AiQueryAnalysis | null): AiSearchResponse["analys
   };
 }
 
+function mapRawRow(row: RawProductRow): AiSearchProduct & { _orderCount: number; _createdAt: Date } {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    brand: row.brand,
+    displayPrice: Number(row.displayPrice) || 0,
+    comparePrice: row.comparePrice === null ? null : Number(row.comparePrice),
+    imageUrl: firstImage(row.images),
+    isNew: Boolean(row.isNew),
+    isFeatured: Boolean(row.isFeatured),
+    stock: Number(row.stock) || 0,
+    lowStockThresh: Number(row.lowStockThresh) || 0,
+    category: {
+      name: row.categoryName || "",
+      slug: row.categorySlug || "",
+    },
+    _orderCount: Number(row.orderCount) || 0,
+    _createdAt: new Date(row.createdAt),
+  };
+}
+
 async function fallbackContainsSearch(opts: {
   q: string;
   page: number;
@@ -256,64 +296,47 @@ async function fallbackContainsSearch(opts: {
 }): Promise<{ results: AiSearchProduct[]; total: number }> {
   const { q, page, limit, sort } = opts;
 
-  const where = {
-    isVisible: true,
-    OR: [
-      { title: { contains: q } },
-      { brand: { contains: q } },
-      { seoKeywords: { contains: q } },
-      { shortDescription: { contains: q } },
-    ],
-  };
-
-  const orderBy =
+  const likeQ = `%${q}%`;
+  const offset = (page - 1) * limit;
+  const orderSql =
     sort === "price_asc"
-      ? { displayPrice: "asc" as const }
+      ? "p.displayPrice ASC"
       : sort === "price_desc"
-        ? { displayPrice: "desc" as const }
+        ? "p.displayPrice DESC"
         : sort === "newest"
-          ? { createdAt: "desc" as const }
-          : { orderCount: "desc" as const };
+          ? "p.createdAt DESC"
+          : "p.orderCount DESC";
 
-  const [rows, total] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        brand: true,
-        displayPrice: true,
-        comparePrice: true,
-        images: true,
-        isNew: true,
-        isFeatured: true,
-        stock: true,
-        lowStockThresh: true,
-        category: { select: { name: true, slug: true } },
-      },
-      orderBy,
-      take: limit,
-      skip: (page - 1) * limit,
-    }),
-    prisma.product.count({ where }),
+  const [rows, countRows] = await Promise.all([
+    prisma.$queryRawUnsafe<RawProductRow[]>(
+      `SELECT p.id, p.slug, p.title, p.brand, p.displayPrice, p.comparePrice, p.images,
+              p.isNew, p.isFeatured, p.stock, p.lowStockThresh, p.orderCount, p.createdAt,
+              c.name AS categoryName, c.slug AS categorySlug
+       FROM Product p
+       LEFT JOIN Category c ON c.id = p.categoryId
+       WHERE p.isVisible = 1
+         AND (p.title LIKE ? OR p.brand LIKE ? OR p.seoKeywords LIKE ? OR p.shortDescription LIKE ?)
+       ORDER BY ${orderSql}
+       LIMIT ? OFFSET ?`,
+      likeQ, likeQ, likeQ, likeQ, limit, offset,
+    ),
+    prisma.$queryRawUnsafe<Array<{ total: number }>>(
+      `SELECT COUNT(*) AS total
+       FROM Product p
+       WHERE p.isVisible = 1
+         AND (p.title LIKE ? OR p.brand LIKE ? OR p.seoKeywords LIKE ? OR p.shortDescription LIKE ?)`,
+      likeQ, likeQ, likeQ, likeQ,
+    ),
   ]);
 
+  const total = Number(countRows[0]?.total || 0);
+
   return {
-    results: rows.map((p) => ({
-      id: p.id,
-      slug: p.slug,
-      title: p.title,
-      brand: p.brand,
-      displayPrice: p.displayPrice,
-      comparePrice: p.comparePrice,
-      imageUrl: firstImage(p.images),
-      isNew: p.isNew,
-      isFeatured: p.isFeatured,
-      stock: p.stock,
-      lowStockThresh: p.lowStockThresh,
-      category: p.category,
-    })),
+    results: rows.map((row) => {
+      const mapped = mapRawRow(row);
+      const { _orderCount, _createdAt, ...item } = mapped;
+      return item;
+    }),
     total,
   };
 }
@@ -334,27 +357,17 @@ export async function searchProductsWithAi(options: SearchOptions): Promise<AiSe
     take: 60,
   });
 
-  const productsPromise = prisma.product.findMany({
-    where: { isVisible: true, displayPrice: { gt: 0 } },
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      brand: true,
-      displayPrice: true,
-      comparePrice: true,
-      images: true,
-      isNew: true,
-      isFeatured: true,
-      stock: true,
-      lowStockThresh: true,
-      orderCount: true,
-      createdAt: true,
-      category: { select: { name: true, slug: true } },
-    },
-    orderBy: { orderCount: "desc" },
-    take: 2500,
-  });
+  const productsPromise = prisma.$queryRawUnsafe<RawProductRow[]>(
+    `SELECT p.id, p.slug, p.title, p.brand, p.displayPrice, p.comparePrice, p.images,
+            p.isNew, p.isFeatured, p.stock, p.lowStockThresh, p.orderCount, p.createdAt,
+            c.name AS categoryName, c.slug AS categorySlug
+     FROM Product p
+     LEFT JOIN Category c ON c.id = p.categoryId
+     WHERE p.isVisible = 1 AND p.displayPrice > 0
+     ORDER BY p.orderCount DESC
+     LIMIT ?`,
+    2500,
+  );
 
   const categoryRows = await categoriesPromise;
   const analysisPromise = analyzeWithAi(q, normalizeCategoryNames(categoryRows));
@@ -379,7 +392,8 @@ export async function searchProductsWithAi(options: SearchOptions): Promise<AiSe
   const intent = analysis?.intent;
 
   const scored = products
-    .map((p) => {
+    .map((row) => {
+      const p = mapRawRow(row);
       const score = scoreProduct({
         title: p.title,
         brand: p.brand || "",
@@ -401,7 +415,7 @@ export async function searchProductsWithAi(options: SearchOptions): Promise<AiSe
         brand: p.brand,
         displayPrice: p.displayPrice,
         comparePrice: p.comparePrice,
-        imageUrl: firstImage(p.images),
+        imageUrl: p.imageUrl,
         isNew: p.isNew,
         isFeatured: p.isFeatured,
         stock: p.stock,
@@ -409,8 +423,8 @@ export async function searchProductsWithAi(options: SearchOptions): Promise<AiSe
         category: p.category,
         score,
         _score: score,
-        _orderCount: p.orderCount,
-        _createdAt: p.createdAt,
+        _orderCount: p._orderCount,
+        _createdAt: p._createdAt,
       };
 
       return item;
