@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
       redirect: "follow",
       cache: "force-cache",
       next: { revalidate: 60 * 60 * 24 },
-      signal: AbortSignal.timeout(7000),
+      signal: AbortSignal.timeout(12000),
     });
 
     if (!upstream.ok) {

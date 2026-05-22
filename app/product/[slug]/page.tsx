@@ -12,6 +12,12 @@ function extractSourceProductId(slug: string): string | null {
   return match?.[1] ?? null;
 }
 
+function extractTrailingToken(slug: string): string | null {
+  const clean = (slug || "").split(/[?#]/)[0];
+  const parts = clean.split("-").filter(Boolean);
+  return parts.length > 0 ? parts[parts.length - 1] : null;
+}
+
 async function findProductBySlugWithFallback(slug: string) {
   const bySlug = await prisma.product.findUnique({ where: { slug } }).catch(() => null);
   if (bySlug) return bySlug;
@@ -75,19 +81,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
+  const normalizedSlug = decodeURIComponent(slug || "").trim().toLowerCase();
 
-  const sourceId = extractSourceProductId(slug);
+  const sourceId = extractSourceProductId(normalizedSlug);
+  const trailingToken = extractTrailingToken(normalizedSlug);
   const product = await prisma.product.findFirst({
     where: {
-      isVisible: true,
       OR: [
-        { slug },
+        { slug: normalizedSlug },
         ...(sourceId
           ? [
               { sourceUrl: { contains: `/p=${sourceId}` } },
               { sourceUrl: { contains: `p=${sourceId}` } },
+              { sourceId: sourceId },
             ]
           : []),
+        ...(trailingToken ? [{ sourceId: { contains: trailingToken } }] : []),
       ],
     },
     include: {
@@ -104,7 +113,7 @@ export default async function ProductPage({ params }: Props) {
     orderBy: { updatedAt: "desc" },
   }).catch(() => null);
 
-  if (!product) notFound();
+  if (!product || !product.isVisible) notFound();
 
   // Related products
   const related = await prisma.product.findMany({

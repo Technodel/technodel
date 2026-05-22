@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NextImage from "next/image";
 
 // Route external images through our proxy to bypass hotlink blocking.
@@ -8,7 +8,30 @@ function proxyUrl(src: string): string {
   return `/new/api/img-proxy?url=${encodeURIComponent(src)}`;
 }
 
+function isExternalUrl(src: string): boolean {
+  return !!src && !src.startsWith("/") && !src.startsWith("data:");
+}
+
+function normalizeSourceUrl(src: string): string {
+  if (!isExternalUrl(src)) return src;
+
+  try {
+    const u = new URL(src);
+    if (u.hostname.toLowerCase() === "cdn11.bigcommerce.com") {
+      // Upgrade tiny stencil variants to a high-res rendition for sharper cards.
+      u.pathname = u.pathname.replace(/\/stencil\/\d+x\d+\//i, "/stencil/1280x1280/");
+      return u.toString();
+    }
+  } catch {
+    return src;
+  }
+
+  return src;
+}
+
 const FALLBACK_LOGO_SRC = "/new/logo.png";
+
+type ImageAttempt = "proxy" | "direct" | "fallback";
 
 interface Props {
   src: string;
@@ -46,13 +69,25 @@ export default function OptimizedImage({
   priority = false, objectFit = "contain", onLoad,
 }: Props) {
   const [loaded, setLoaded] = useState(false);
-  const [errored, setErrored] = useState(false);
+  const [attempt, setAttempt] = useState<ImageAttempt>("proxy");
 
-  // Route external images through proxy to bypass hotlink blocking
-  const resolvedSrc = errored ? "" : proxyUrl(src);
+  useEffect(() => {
+    setAttempt("proxy");
+    setLoaded(false);
+  }, [src]);
 
-  // Fallback when image is missing or fails.
-  if (!src || src === "/placeholder.png" || errored) {
+  const normalizedSrc = normalizeSourceUrl(src);
+  const isExternal = isExternalUrl(normalizedSrc);
+
+  const resolvedSrc =
+    attempt === "fallback"
+      ? FALLBACK_LOGO_SRC
+      : attempt === "direct"
+        ? normalizedSrc
+        : proxyUrl(normalizedSrc);
+
+  // Immediate fallback when source is missing.
+  if (!src || src === "/placeholder.png") {
     return (
       <div
         className={className}
@@ -104,9 +139,9 @@ export default function OptimizedImage({
         />
       )}
       <NextImage
-        src={resolvedSrc || FALLBACK_LOGO_SRC}
+        src={resolvedSrc}
         alt={alt}
-        unoptimized={resolvedSrc.startsWith("/new/api/img-proxy")}
+        unoptimized={isExternal}
         width={fill ? undefined : (width || 400)}
         height={fill ? undefined : (height || 400)}
         fill={fill}
@@ -128,7 +163,13 @@ export default function OptimizedImage({
           onLoad?.();
         }}
         onError={() => {
-          setErrored(true);
+          if (!isExternal || attempt === "fallback") {
+            setAttempt("fallback");
+          } else if (attempt === "proxy") {
+            setAttempt("direct");
+          } else {
+            setAttempt("fallback");
+          }
           setLoaded(false);
         }}
       />

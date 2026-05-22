@@ -20,6 +20,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const shouldReduceMotion = useReducedMotion();
   const scrolledRef = useRef(false);
+  const lastYRef = useRef(0);
 
   useEffect(() => {
     let ticking = false;
@@ -27,8 +28,13 @@ export default function Header() {
     const updateScrolled = () => {
       ticking = false;
       const y = window.scrollY;
-      // Use hysteresis to prevent sticky header bounce near threshold.
-      const nextScrolled = scrolledRef.current ? y > 40 : y > 90;
+
+      // Ignore tiny deltas to avoid sticky-header jitter on touchpads.
+      if (Math.abs(y - lastYRef.current) < 6) return;
+      lastYRef.current = y;
+
+      // Wide hysteresis band prevents bounce when header height animates.
+      const nextScrolled = scrolledRef.current ? y > 12 : y > 120;
       if (scrolledRef.current !== nextScrolled) {
         scrolledRef.current = nextScrolled;
         setScrolled(nextScrolled);

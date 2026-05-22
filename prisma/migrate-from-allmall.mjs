@@ -81,6 +81,13 @@ function isAyoubTechAllowed(row, mappedSlug) {
 // ─── CATEGORY MAPPING ──────────────────────────────────────────────────────────
 // Maps ALL-MALL category name (case-insensitive) → Technodel category slug
 const CATEGORY_MAP = {
+  // Supplier name leakage in source category field
+  "electroslab": "accessories",
+  "ezone": "accessories",
+  "ayoub": "accessories",
+  "comparts": "accessories",
+  "jak": "accessories",
+
   // Phones
   "phones": "smartphones",
   "mobile": "smartphones",
@@ -345,6 +352,25 @@ function query(dbPath, sql) {
   return JSON.parse(out || "[]");
 }
 
+function normalizeSiteUrl(rawUrl) {
+  const trimmed = String(rawUrl || "").trim();
+  if (!trimmed) return "";
+  const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  return withProtocol.replace(/\/$/, "");
+}
+
+function inferCompetitorName(site) {
+  const siteName = String(site?.name || "").trim();
+  if (siteName) return siteName;
+  try {
+    const host = new URL(normalizeSiteUrl(site?.url || "")).hostname.replace(/^www\./i, "");
+    const base = host.split(".")[0] || "Supplier";
+    return base.charAt(0).toUpperCase() + base.slice(1);
+  } catch {
+    return "Supplier";
+  }
+}
+
 async function main() {
   console.log("=== ALL-MALL → Technodel Product Migration ===\n");
 
@@ -374,6 +400,7 @@ async function main() {
   // 4.5. Resolve allowed supplier site IDs from ALL-MALL's Site table
   const allSites = query(SRC_DB, "SELECT id, name, url FROM Site");
   const allowedSiteIds = [];
+  const allowedSites = [];
   const dslrSiteIds = new Set();
   const ayoubSiteIds = new Set();
   const electroslabSiteIds = new Set();
@@ -385,6 +412,7 @@ async function main() {
     );
     if (isAllowed) {
       allowedSiteIds.push(`'${String(site.id).replace(/'/g, "''")}'`);
+      allowedSites.push(site);
       if (urlLower.includes(DSLR_SITE_PATTERN) || nameLower.includes(DSLR_SITE_PATTERN)) {
         dslrSiteIds.add(site.id);
       }
@@ -403,6 +431,35 @@ async function main() {
   const siteConditions = allowedSiteIds.join(",");
   console.log(`Allowed supplier sites: ${allowedSiteIds.length} (DSLR sites: ${dslrSiteIds.size})`);
   console.log(`  IDs: ${siteConditions}\n`);
+
+  // 4.6. Ensure each allowed supplier exists as a Competitor record.
+  const siteIdToCompetitorId = new Map();
+  for (const site of allowedSites) {
+    const competitorUrl = normalizeSiteUrl(site.url);
+    if (!competitorUrl) continue;
+
+    const competitorName = inferCompetitorName(site);
+    const competitor = await dst.competitor.upsert({
+      where: { url: competitorUrl },
+      update: {
+        name: competitorName,
+        status: "active",
+      },
+      create: {
+        name: competitorName,
+        url: competitorUrl,
+        status: "active",
+        scrapeMethod: "cheerio",
+        markupPct: 10,
+        markupFlat: 0,
+        markupMode: "percent",
+        currency: "USD",
+      },
+    });
+
+    siteIdToCompetitorId.set(String(site.id), competitor.id);
+  }
+  console.log(`Supplier competitors ensured: ${siteIdToCompetitorId.size}\n`);
 
   // 5. Build category ID mapping from name → Technodel category ID
   let mappedCount = 0;
@@ -563,6 +620,7 @@ async function main() {
         : null;
 
       try {
+        const competitorId = siteIdToCompetitorId.get(String(row.siteId)) || null;
         await dst.product.create({
           data: {
             slug,
@@ -580,6 +638,7 @@ async function main() {
             sourceId: row.sourceId || null,
             sourceUrl: row.sourceUrl || null,
             sourcePrice: row.sourcePrice || null,
+            competitorId,
             isVisible: true,
             isFeatured: false,
             isNew: true,
