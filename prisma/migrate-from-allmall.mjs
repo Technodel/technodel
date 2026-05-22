@@ -14,11 +14,13 @@ const SRC_DB = "/var/www/all-mall/dev.db";
 // ─── ALLOWED SUPPLIERS ────────────────────────────────────────────────────────
 // Only import products from these 5 Lebanese tech suppliers.
 // Matched against ALL-MALL's Site.url and Site.name (case-insensitive substring).
-const ALLOWED_SITE_PATTERNS = ["ezone", "ayoub", "pacmax", "comparts", "jak"];
+const ALLOWED_SITE_PATTERNS = ["ezone", "ayoub", "pacmax", "comparts", "jak", "electroslab"];
 
 // DSLR restriction: never import laptops from DSLR.
 const DSLR_SITE_PATTERN = "dslr";
 const DSLR_EXCLUDED_CATEGORY_SLUG = "laptops";
+const ELECTROSLAB_SITE_PATTERN = "electroslab";
+const ELECTROSLAB_EXCLUDED_CATEGORY_SLUG = "laptops";
 
 // ─── STATIONERY / NON-TECH TITLE BLACKLIST ────────────────────────────────────
 // Products whose titles contain any of these strings are NEVER imported,
@@ -374,6 +376,7 @@ async function main() {
   const allowedSiteIds = [];
   const dslrSiteIds = new Set();
   const ayoubSiteIds = new Set();
+  const electroslabSiteIds = new Set();
   for (const site of allSites) {
     const urlLower = (site.url || "").toLowerCase();
     const nameLower = (site.name || "").toLowerCase();
@@ -387,6 +390,9 @@ async function main() {
       }
       if (urlLower.includes("ayoub") || nameLower.includes("ayoub")) {
         ayoubSiteIds.add(site.id);
+      }
+      if (urlLower.includes(ELECTROSLAB_SITE_PATTERN) || nameLower.includes(ELECTROSLAB_SITE_PATTERN)) {
+        electroslabSiteIds.add(site.id);
       }
     }
   }
@@ -504,6 +510,12 @@ async function main() {
       // DSLR restriction: skip laptops from DSLR supplier
       const mappedSlug = CATEGORY_MAP[normalizeCat(row.category)];
       if (dslrSiteIds.has(row.siteId) && mappedSlug === DSLR_EXCLUDED_CATEGORY_SLUG) {
+        skipped++;
+        continue;
+      }
+
+      // Electroslab restriction: do not import laptops from this supplier.
+      if (electroslabSiteIds.has(row.siteId) && mappedSlug === ELECTROSLAB_EXCLUDED_CATEGORY_SLUG) {
         skipped++;
         continue;
       }
