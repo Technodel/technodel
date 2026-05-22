@@ -1,5 +1,7 @@
 import { Metadata } from "next";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { searchProductsWithAi } from "@/lib/ai-search";
 import ShopClient from "@/app/shop/ShopClient";
 
 export const revalidate = 60;
@@ -28,58 +30,120 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 export default async function SearchPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const sp = await searchParams;
   const q = sp.q?.trim() || "";
-  const page = Math.max(1, parseInt(sp.page || "1"));
+  const pageRaw = Number.parseInt(sp.page || "1", 10);
+  const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
   const sort = sp.sort || "popular";
   const limit = 24;
 
-  const where: any = { isVisible: true };
-  if (q) where.OR = [
-    { title: { contains: q } },
-    { brand: { contains: q } },
-    { seoKeywords: { contains: q } },
-    { shortDescription: { contains: q } },
-  ];
+  const categoriesPromise = prisma.category.findMany({
+    where: { isVisible: true, parentId: null },
+    orderBy: { sortOrder: "asc" },
+    select: { id: true, name: true, slug: true, icon: true, _count: { select: { products: true } } },
+  }).catch(() => []);
 
-  const orderBy: any =
+  const orderBy: Prisma.ProductOrderByWithRelationInput =
     sort === "price_asc" ? { displayPrice: "asc" } :
     sort === "price_desc" ? { displayPrice: "desc" } :
     sort === "newest" ? { createdAt: "desc" } :
     { orderCount: "desc" };
 
-  const [products, total, categories] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        brand: true,
-        displayPrice: true,
-        comparePrice: true,
-        images: true,
-        isNew: true,
-        isFeatured: true,
-        stock: true,
-        lowStockThresh: true,
-        category: { select: { name: true, slug: true } },
-      },
-      orderBy,
-      take: limit,
-      skip: (page - 1) * limit,
-    }).catch(() => []),
-    prisma.product.count({ where }).catch(() => 0),
-    prisma.category.findMany({
-      where: { isVisible: true, parentId: null },
-      orderBy: { sortOrder: "asc" },
-      select: { id: true, name: true, slug: true, icon: true, _count: { select: { products: true } } },
-    }).catch(() => []),
-  ]);
+  let parsedProducts: Array<{
+    id: string;
+    slug: string;
+    title: string;
+    brand: string | null;
+    displayPrice: number;
+    comparePrice: number | null;
+    imageUrl: string;
+    isNew: boolean;
+    isFeatured: boolean;
+    stock: number;
+    lowStockThresh: number;
+    category: { name: string; slug: string };
+  }> = [];
+  let total = 0;
 
-  const parsedProducts = products.map((p) => {
-    let imageUrl = "";
-    try { imageUrl = JSON.parse(p.images)[0] || ""; } catch {}
-    return { ...p, imageUrl };
-  });
+  if (q) {
+    const ai = await searchProductsWithAi({ q, page, limit, sort }).catch(() => null);
+    if (ai) {
+      parsedProducts = ai.results;
+      total = ai.total;
+    } else {
+      const where = {
+        isVisible: true,
+        OR: [
+          { title: { contains: q } },
+          { brand: { contains: q } },
+          { seoKeywords: { contains: q } },
+          { shortDescription: { contains: q } },
+        ],
+      };
+
+      const [products, fallbackTotal] = await Promise.all([
+        prisma.product.findMany({
+          where,
+          select: {
+            id: true,
+            slug: true,
+            title: true,
+            brand: true,
+            displayPrice: true,
+            comparePrice: true,
+            images: true,
+            isNew: true,
+            isFeatured: true,
+            stock: true,
+            lowStockThresh: true,
+            category: { select: { name: true, slug: true } },
+          },
+          orderBy,
+          take: limit,
+          skip: (page - 1) * limit,
+        }),
+        prisma.product.count({ where }),
+      ]).catch(() => [[], 0] as const);
+
+      parsedProducts = products.map((p) => {
+        let imageUrl = "";
+        try { imageUrl = JSON.parse(p.images)[0] || ""; } catch {}
+        return { ...p, imageUrl };
+      });
+      total = fallbackTotal;
+    }
+  } else {
+    const [products, defaultTotal] = await Promise.all([
+      prisma.product.findMany({
+        where: { isVisible: true },
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          brand: true,
+          displayPrice: true,
+          comparePrice: true,
+          images: true,
+          isNew: true,
+          isFeatured: true,
+          stock: true,
+          lowStockThresh: true,
+          category: { select: { name: true, slug: true } },
+        },
+        orderBy,
+        take: limit,
+        skip: (page - 1) * limit,
+      }),
+      prisma.product.count({ where: { isVisible: true } }),
+    ]).catch(() => [[], 0] as const);
+
+    parsedProducts = products.map((p) => {
+      let imageUrl = "";
+      try { imageUrl = JSON.parse(p.images)[0] || ""; } catch {}
+      return { ...p, imageUrl };
+    });
+    total = defaultTotal;
+  }
+
+  const categories = await categoriesPromise;
 
   return (
     <ShopClient
