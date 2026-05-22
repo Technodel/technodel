@@ -57,14 +57,8 @@ type RawProductRow = {
   title: string;
   brand: string | null;
   displayPrice: number;
-  comparePrice: number | null;
   images: string;
-  isNew: number | boolean;
-  isFeatured: number | boolean;
-  stock: number;
-  lowStockThresh: number;
   orderCount: number;
-  createdAt: string | Date;
   categoryName: string | null;
   categorySlug: string | null;
 };
@@ -266,25 +260,24 @@ function mapAnalysis(analysis: AiQueryAnalysis | null): AiSearchResponse["analys
   };
 }
 
-function mapRawRow(row: RawProductRow): AiSearchProduct & { _orderCount: number; _createdAt: Date } {
+function mapRawRow(row: RawProductRow): AiSearchProduct & { _orderCount: number } {
   return {
     id: row.id,
     slug: row.slug,
     title: row.title,
     brand: row.brand,
     displayPrice: Number(row.displayPrice) || 0,
-    comparePrice: row.comparePrice === null ? null : Number(row.comparePrice),
+    comparePrice: null,
     imageUrl: firstImage(row.images),
-    isNew: Boolean(row.isNew),
-    isFeatured: Boolean(row.isFeatured),
-    stock: Number(row.stock) || 0,
-    lowStockThresh: Number(row.lowStockThresh) || 0,
+    isNew: false,
+    isFeatured: false,
+    stock: 999,
+    lowStockThresh: 5,
     category: {
       name: row.categoryName || "",
       slug: row.categorySlug || "",
     },
     _orderCount: Number(row.orderCount) || 0,
-    _createdAt: new Date(row.createdAt),
   };
 }
 
@@ -309,8 +302,7 @@ async function fallbackContainsSearch(opts: {
 
   const [rows, countRows] = await Promise.all([
     prisma.$queryRawUnsafe<RawProductRow[]>(
-      `SELECT p.id, p.slug, p.title, p.brand, p.displayPrice, p.comparePrice, p.images,
-              p.isNew, p.isFeatured, p.stock, p.lowStockThresh, p.orderCount, p.createdAt,
+      `SELECT p.id, p.slug, p.title, p.brand, p.displayPrice, p.images, p.orderCount,
               c.name AS categoryName, c.slug AS categorySlug
        FROM Product p
        LEFT JOIN Category c ON c.id = p.categoryId
@@ -334,7 +326,7 @@ async function fallbackContainsSearch(opts: {
   return {
     results: rows.map((row) => {
       const mapped = mapRawRow(row);
-      const { _orderCount, _createdAt, ...item } = mapped;
+      const { _orderCount, ...item } = mapped;
       return item;
     }),
     total,
@@ -358,8 +350,7 @@ export async function searchProductsWithAi(options: SearchOptions): Promise<AiSe
   });
 
   const productsPromise = prisma.$queryRawUnsafe<RawProductRow[]>(
-    `SELECT p.id, p.slug, p.title, p.brand, p.displayPrice, p.comparePrice, p.images,
-            p.isNew, p.isFeatured, p.stock, p.lowStockThresh, p.orderCount, p.createdAt,
+    `SELECT p.id, p.slug, p.title, p.brand, p.displayPrice, p.images, p.orderCount,
             c.name AS categoryName, c.slug AS categorySlug
      FROM Product p
      LEFT JOIN Category c ON c.id = p.categoryId
@@ -408,7 +399,7 @@ export async function searchProductsWithAi(options: SearchOptions): Promise<AiSe
 
       if (score <= 0) return null;
 
-      const item: AiSearchProduct & { _score: number; _orderCount: number; _createdAt: Date } = {
+      const item: AiSearchProduct & { _score: number; _orderCount: number } = {
         id: p.id,
         slug: p.slug,
         title: p.title,
@@ -424,12 +415,11 @@ export async function searchProductsWithAi(options: SearchOptions): Promise<AiSe
         score,
         _score: score,
         _orderCount: p._orderCount,
-        _createdAt: p._createdAt,
       };
 
       return item;
     })
-    .filter((p): p is AiSearchProduct & { _score: number; _orderCount: number; _createdAt: Date } => Boolean(p));
+    .filter((p): p is AiSearchProduct & { _score: number; _orderCount: number } => Boolean(p));
 
   if (!scored.length) {
     const fallback = await fallbackContainsSearch({ q, page, limit, sort });
@@ -447,13 +437,13 @@ export async function searchProductsWithAi(options: SearchOptions): Promise<AiSe
   } else if (sort === "price_desc") {
     scored.sort((a, b) => b.displayPrice - a.displayPrice || b._score - a._score);
   } else if (sort === "newest") {
-    scored.sort((a, b) => b._createdAt.getTime() - a._createdAt.getTime() || b._score - a._score);
+    scored.sort((a, b) => b._orderCount - a._orderCount || b._score - a._score);
   } else {
     scored.sort((a, b) => b._score - a._score || b._orderCount - a._orderCount);
   }
 
   const start = (page - 1) * limit;
-  const paged = scored.slice(start, start + limit).map(({ _score, _orderCount, _createdAt, ...item }) => item);
+  const paged = scored.slice(start, start + limit).map(({ _score, _orderCount, ...item }) => item);
 
   return {
     results: paged,
