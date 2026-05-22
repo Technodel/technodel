@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { aiChat, parseAiJson } from "@/lib/ai-client";
+import { isTechnodelStorefrontProduct } from "@/lib/catalog-filter";
 
 export interface AiQueryAnalysis {
   intent: string;
@@ -61,6 +62,9 @@ type RawProductRow = {
   orderCount: number;
   categoryName: string | null;
   categorySlug: string | null;
+  sourceUrl: string | null;
+  competitorName: string | null;
+  competitorUrl: string | null;
 };
 
 const aiCache = new Map<string, { result: AiQueryAnalysis; ts: number }>();
@@ -300,31 +304,33 @@ async function fallbackContainsSearch(opts: {
           ? "p.createdAt DESC"
           : "p.orderCount DESC";
 
-  const [rows, countRows] = await Promise.all([
-    prisma.$queryRawUnsafe<RawProductRow[]>(
-      `SELECT p.id, p.slug, p.title, p.brand, p.displayPrice, p.images, p.orderCount,
-              c.name AS categoryName, c.slug AS categorySlug
-       FROM Product p
-       LEFT JOIN Category c ON c.id = p.categoryId
-       WHERE p.isVisible = 1
-         AND (p.title LIKE ? OR p.brand LIKE ? OR p.seoKeywords LIKE ? OR p.shortDescription LIKE ?)
-       ORDER BY ${orderSql}
-       LIMIT ? OFFSET ?`,
-      likeQ, likeQ, likeQ, likeQ, limit, offset,
-    ),
-    prisma.$queryRawUnsafe<Array<{ total: number }>>(
-      `SELECT COUNT(*) AS total
-       FROM Product p
-       WHERE p.isVisible = 1
-         AND (p.title LIKE ? OR p.brand LIKE ? OR p.seoKeywords LIKE ? OR p.shortDescription LIKE ?)`,
-      likeQ, likeQ, likeQ, likeQ,
-    ),
-  ]);
+      const rows = await prisma.$queryRawUnsafe<RawProductRow[]>(
+        `SELECT p.id, p.slug, p.title, p.brand, p.displayPrice, p.images, p.orderCount,
+                c.name AS categoryName, c.slug AS categorySlug,
+                p.sourceUrl AS sourceUrl, cp.name AS competitorName, cp.url AS competitorUrl
+         FROM Product p
+         LEFT JOIN Category c ON c.id = p.categoryId
+         LEFT JOIN Competitor cp ON cp.id = p.competitorId
+         WHERE p.isVisible = 1
+           AND (p.title LIKE ? OR p.brand LIKE ? OR p.seoKeywords LIKE ? OR p.shortDescription LIKE ?)
+         ORDER BY ${orderSql}
+         LIMIT ?`,
+        likeQ, likeQ, likeQ, likeQ, 4000,
+      );
 
-  const total = Number(countRows[0]?.total || 0);
+      const filteredRows = rows.filter((row) => isTechnodelStorefrontProduct({
+        title: row.title,
+        sourceUrl: row.sourceUrl,
+        competitorName: row.competitorName,
+        competitorUrl: row.competitorUrl,
+        categorySlug: row.categorySlug,
+      }));
+
+      const total = filteredRows.length;
+      const pagedRows = filteredRows.slice(offset, offset + limit);
 
   return {
-    results: rows.map((row) => {
+        results: pagedRows.map((row) => {
       const mapped = mapRawRow(row);
       const { _orderCount, ...item } = mapped;
       return item;
@@ -351,9 +357,11 @@ export async function searchProductsWithAi(options: SearchOptions): Promise<AiSe
 
   const productsPromise = prisma.$queryRawUnsafe<RawProductRow[]>(
     `SELECT p.id, p.slug, p.title, p.brand, p.displayPrice, p.images, p.orderCount,
-            c.name AS categoryName, c.slug AS categorySlug
+         c.name AS categoryName, c.slug AS categorySlug,
+         p.sourceUrl AS sourceUrl, cp.name AS competitorName, cp.url AS competitorUrl
      FROM Product p
      LEFT JOIN Category c ON c.id = p.categoryId
+       LEFT JOIN Competitor cp ON cp.id = p.competitorId
      WHERE p.isVisible = 1 AND p.displayPrice > 0
      ORDER BY p.orderCount DESC
      LIMIT ?`,
@@ -363,6 +371,13 @@ export async function searchProductsWithAi(options: SearchOptions): Promise<AiSe
   const categoryRows = await categoriesPromise;
   const analysisPromise = analyzeWithAi(q, normalizeCategoryNames(categoryRows));
   const products = await productsPromise;
+  const filteredProducts = products.filter((row) => isTechnodelStorefrontProduct({
+    title: row.title,
+    sourceUrl: row.sourceUrl,
+    competitorName: row.competitorName,
+    competitorUrl: row.competitorUrl,
+    categorySlug: row.categorySlug,
+  }));
   const analysis = await analysisPromise;
 
   const baseTerms = q
@@ -382,7 +397,7 @@ export async function searchProductsWithAi(options: SearchOptions): Promise<AiSe
   const minPrice = analysis?.minPrice ?? null;
   const intent = analysis?.intent;
 
-  const scored = products
+  const scored = filteredProducts
     .map((row) => {
       const p = mapRawRow(row);
       const score = scoreProduct({

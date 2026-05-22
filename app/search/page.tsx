@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { searchProductsWithAi } from "@/lib/ai-search";
+import { TECH_CATEGORY_SLUGS, technodelSupplierWhere } from "@/lib/catalog-filter";
 import ShopClient from "@/app/shop/ShopClient";
 
 export const revalidate = 60;
@@ -36,7 +37,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const limit = 24;
 
   const categoriesPromise = prisma.category.findMany({
-    where: { isVisible: true, parentId: null },
+    where: { isVisible: true, parentId: null, slug: { in: [...TECH_CATEGORY_SLUGS] } },
     orderBy: { sortOrder: "asc" },
     select: { id: true, name: true, slug: true, icon: true, _count: { select: { products: true } } },
   }).catch(() => []);
@@ -69,15 +70,14 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       parsedProducts = ai.results;
       total = ai.total;
     } else {
-      const where = {
-        isVisible: true,
+      const where = technodelSupplierWhere({
         OR: [
           { title: { contains: q } },
           { brand: { contains: q } },
           { seoKeywords: { contains: q } },
           { shortDescription: { contains: q } },
         ],
-      };
+      });
 
       const [products, fallbackTotal] = await Promise.all([
         prisma.product.findMany({
@@ -111,9 +111,10 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       total = fallbackTotal;
     }
   } else {
+    const defaultWhere = technodelSupplierWhere();
     const [products, defaultTotal] = await Promise.all([
       prisma.product.findMany({
-        where: { isVisible: true },
+        where: defaultWhere,
         select: {
           id: true,
           slug: true,
@@ -132,7 +133,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         take: limit,
         skip: (page - 1) * limit,
       }),
-      prisma.product.count({ where: { isVisible: true } }),
+      prisma.product.count({ where: defaultWhere }),
     ]).catch(() => [[], 0] as const);
 
     parsedProducts = products.map((p) => {

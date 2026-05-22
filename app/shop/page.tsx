@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
+import { TECH_CATEGORY_SLUGS, technodelSupplierWhere } from "@/lib/catalog-filter";
 import ShopClient from "./ShopClient";
 
 export const revalidate = 60;
@@ -26,7 +27,8 @@ export const metadata: Metadata = {
 
 export default async function ShopPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const sp = await searchParams;
-  const page = parseInt(sp.page || "1");
+  const parsedPage = Number.parseInt(sp.page || "1", 10);
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
   const sort = sp.sort || "featured";
   const featured = sp.featured === "1";
   const isNew = sp.new === "1";
@@ -37,13 +39,15 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   const maxPrice = parseFloat(sp.maxPrice || "999999");
   const limit = 24;
 
-  const where: any = { isVisible: true };
-  if (category) where.category = { slug: category };
-  if (brand) where.brand = { contains: brand };
-  if (featured) where.isFeatured = true;
-  if (isNew) where.isNew = true;
-  if (q) where.OR = [{ title: { contains: q } }, { brand: { contains: q } }];
-  if (maxPrice < 999999) where.displayPrice = { gte: minPrice, lte: maxPrice };
+  const extraWhere: any = {};
+  if (category) extraWhere.category = { slug: category };
+  if (brand) extraWhere.brand = { contains: brand };
+  if (featured) extraWhere.isFeatured = true;
+  if (isNew) extraWhere.isNew = true;
+  if (q) extraWhere.OR = [{ title: { contains: q } }, { brand: { contains: q } }];
+  if (maxPrice < 999999) extraWhere.displayPrice = { gte: minPrice, lte: maxPrice };
+
+  const where: any = technodelSupplierWhere(extraWhere);
 
   const orderBy: any =
     sort === "price_asc" ? { displayPrice: "asc" } :
@@ -77,7 +81,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
     }).catch(() => []),
     prisma.product.count({ where }).catch(() => 0),
     prisma.category.findMany({
-      where: { isVisible: true, parentId: null },
+      where: { isVisible: true, parentId: null, slug: { in: [...TECH_CATEGORY_SLUGS] } },
       orderBy: { sortOrder: "asc" },
       select: { id: true, name: true, slug: true, icon: true, _count: { select: { products: true } } },
     }).catch(() => []),

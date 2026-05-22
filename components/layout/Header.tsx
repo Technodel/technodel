@@ -78,13 +78,13 @@ export default function Header() {
       {/* Top bar — premium announcement strip (hidden on mobile) */}
       <motion.div
         className="hide-mobile"
-        animate={shouldReduceMotion ? undefined : { maxHeight: scrolled ? 0 : 34, opacity: scrolled ? 0 : 1 }}
+        animate={shouldReduceMotion ? undefined : { maxHeight: scrolled ? 0 : 48, opacity: scrolled ? 0 : 1 }}
         transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
         style={{ overflow: "hidden" }}
       >
         <div style={{
           background: isLight ? "#000" : "linear-gradient(135deg, rgba(0,200,255,0.06), rgba(124,58,255,0.04))",
-          padding: "6px 0",
+          padding: "8px 0",
           borderBottom: isLight ? "none" : "1px solid rgba(26,46,74,0.3)",
         }}>
           <div style={{
@@ -121,7 +121,8 @@ export default function Header() {
                   fontSize: 11, padding: "2px 10px", borderRadius: 99,
                   border: "1px solid var(--c-border)", background: "transparent",
                   color: "var(--c-muted)", cursor: "pointer",
-                  fontWeight: 700,
+                  fontWeight: 700, height: 24, lineHeight: 1,
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
                 }}
                 title="Toggle currency"
               >
@@ -136,6 +137,8 @@ export default function Header() {
                   fontSize: 11, padding: "2px 10px", borderRadius: 99,
                   border: "1px solid var(--c-border)", background: "transparent",
                   color: "var(--c-muted)", cursor: "pointer",
+                  fontWeight: 700, height: 24, lineHeight: 1,
+                  display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
                 }}
                 title="Toggle theme"
               >

@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { TECH_CATEGORY_SLUGS, technodelSupplierWhere } from "@/lib/catalog-filter";
 import ShopClient from "@/app/shop/ShopClient";
 
 interface Props { params: Promise<{ category: string }>; searchParams: Promise<Record<string, string>>; }
@@ -43,11 +44,12 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const cat = await prisma.category.findUnique({ where: { slug, isVisible: true } }).catch(() => null);
   if (!cat) notFound();
 
-  const page = Math.max(1, parseInt(sp.page || "1"));
+  const parsedPage = Number.parseInt(sp.page || "1", 10);
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
   const sort = sp.sort || "featured";
   const limit = 24;
 
-  const where: any = { isVisible: true, category: { slug } };
+  const where: any = technodelSupplierWhere({ category: { slug } });
   const orderBy: any =
     sort === "price_asc" ? { displayPrice: "asc" } :
     sort === "price_desc" ? { displayPrice: "desc" } :
@@ -80,7 +82,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     }).catch(() => []),
     prisma.product.count({ where }).catch(() => 0),
     prisma.category.findMany({
-      where: { isVisible: true, parentId: null },
+      where: { isVisible: true, parentId: null, slug: { in: [...TECH_CATEGORY_SLUGS] } },
       orderBy: { sortOrder: "asc" },
       select: { id: true, name: true, slug: true, icon: true, _count: { select: { products: true } } },
     }).catch(() => []),

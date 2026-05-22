@@ -4,6 +4,95 @@ import HomeClientAr from "@/components/ar/HomeClientAr";
 export const dynamic = "force-dynamic";
 
 const SECTION_POOL_SIZE = 24;
+const TECH_CATEGORY_SLUGS = [
+  "smartphones",
+  "laptops",
+  "tablets",
+  "gaming",
+  "audio",
+  "accessories",
+  "networking",
+  "cameras",
+  "printers",
+  "smart-home",
+  "wearables",
+  "storage",
+];
+
+const NON_TECH_TITLE_TERMS = [
+  "locknlock",
+  "lock n lock",
+  "lock&lock",
+  "food container",
+  "food containers",
+  "plastic food container",
+  "plastic food containers",
+  "pool",
+  "pools",
+  "swimming",
+  "kitchen",
+  "kitchenware",
+  "cookware",
+  "pencil bag",
+  "pencil case",
+  "sport bag",
+  "sports bag",
+  "backpack",
+  "zippers",
+  "zipper",
+  "cat food",
+  "dog food",
+  "reptile",
+  "tissue",
+  "liquid liner",
+  "coffee",
+  "espresso",
+  "hazelnut syrup",
+  "syrup",
+  "pods",
+  "decaf",
+  "filter paper",
+  "capsule machine",
+  "coffee machine",
+];
+
+const ALLOWED_SUPPLIER_TERMS = [
+  "ayoub",
+  "ezone",
+  "pacmax",
+  "comparts",
+  "jak",
+  "jimmy",
+  "electroslab",
+  "electroslob",
+];
+
+const BLOCKED_IMAGE_HOST_TERMS = [
+  "pacmax.me",
+  "/new/logo.png",
+  "/placeholder.png",
+];
+
+function baseCatalogWhere(extra = {}) {
+  return {
+    isVisible: true,
+    images: { not: "[]" },
+    category: { slug: { in: TECH_CATEGORY_SLUGS } },
+    AND: [
+      { images: { not: "" } },
+      ...BLOCKED_IMAGE_HOST_TERMS.map((term) => ({ images: { not: { contains: term } } })),
+      ...NON_TECH_TITLE_TERMS.map((term) => ({ title: { not: { contains: term } } })),
+      {
+        OR: [
+          ...ALLOWED_SUPPLIER_TERMS.map((term) => ({ sourceUrl: { contains: term } })),
+          ...ALLOWED_SUPPLIER_TERMS.map((term) => ({ competitor: { name: { contains: term } } })),
+          ...ALLOWED_SUPPLIER_TERMS.map((term) => ({ competitor: { url: { contains: term } } })),
+        ],
+      },
+    ],
+    ...extra,
+  };
+}
 
 function randomSkip(total: number, take: number) {
   if (total <= take) return 0;
@@ -42,13 +131,13 @@ const CATEGORY_ARABIC_ICONS: Record<string, string> = {
 
 export default async function ArabicHomePage() {
   const [featuredTotal, newArrivalsTotal] = await Promise.all([
-    prisma.product.count({ where: { isVisible: true } }).catch(() => 0),
-    prisma.product.count({ where: { isVisible: true, isNew: true } }).catch(() => 0),
+    prisma.product.count({ where: baseCatalogWhere() }).catch(() => 0),
+    prisma.product.count({ where: baseCatalogWhere({ isNew: true }) }).catch(() => 0),
   ]);
 
   const [featured, categories, banners, newArrivals] = await Promise.all([
     prisma.product.findMany({
-      where: { isVisible: true },
+      where: baseCatalogWhere(),
       select: {
         id: true,
         slug: true,
@@ -80,7 +169,7 @@ export default async function ArabicHomePage() {
       take: 5,
     }).catch(() => []),
     prisma.product.findMany({
-      where: { isVisible: true, isNew: true },
+      where: baseCatalogWhere({ isNew: true }),
       select: {
         id: true,
         slug: true,

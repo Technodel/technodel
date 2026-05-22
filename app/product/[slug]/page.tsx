@@ -27,15 +27,11 @@ function extractSourceProductId(slug: string): string | null {
   return match?.[1] ?? null;
 }
 
-function extractTrailingToken(slug: string): string | null {
-  const clean = (slug || "").split(/[?#]/)[0];
-  const parts = clean.split("-").filter(Boolean);
-  return parts.length > 0 ? parts[parts.length - 1] : null;
-}
-
 async function findProductBySlugWithFallback(slug: string) {
   for (const candidate of slugCandidates(slug)) {
-    const bySlug = await prisma.product.findUnique({ where: { slug: candidate } }).catch(() => null);
+    const bySlug = await prisma.product.findFirst({
+      where: { slug: candidate, isVisible: true },
+    }).catch(() => null);
     if (bySlug) return bySlug;
   }
 
@@ -44,7 +40,9 @@ async function findProductBySlugWithFallback(slug: string) {
 
   return prisma.product.findFirst({
     where: {
+      isVisible: true,
       OR: [
+        { sourceId },
         { sourceUrl: { contains: `/p=${sourceId}` } },
         { sourceUrl: { contains: `p=${sourceId}` } },
       ],
@@ -102,36 +100,46 @@ export default async function ProductPage({ params }: Props) {
   const candidates = slugCandidates(slug);
   const sourceSeed = decodeSlugValue(slug || "").trim().toLowerCase();
   const sourceId = extractSourceProductId(sourceSeed);
-  const trailingToken = extractTrailingToken(sourceSeed);
-  const product = await prisma.product.findFirst({
-    where: {
-      OR: [
-        ...candidates.map((value) => ({ slug: value })),
-        ...(sourceId
-          ? [
-              { sourceUrl: { contains: `/p=${sourceId}` } },
-              { sourceUrl: { contains: `p=${sourceId}` } },
-              { sourceId: sourceId },
-            ]
-          : []),
-        ...(trailingToken ? [{ sourceId: { contains: trailingToken } }] : []),
-      ],
+  const productInclude = {
+    category: { select: { name: true, slug: true } },
+    variants: true,
+    reviews: {
+      where: { isApproved: true },
+      include: { user: { select: { name: true, id: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 20,
     },
-    include: {
-      category: { select: { name: true, slug: true } },
-      variants: true,
-      reviews: {
-        where: { isApproved: true },
-        include: { user: { select: { name: true, id: true } } },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      },
-      competitor: { select: { id: true, name: true, url: true, logoUrl: true } },
-    },
-    orderBy: { updatedAt: "desc" },
+    competitor: { select: { id: true, name: true, url: true, logoUrl: true } },
+  } as const;
+
+  const findBySlug = async (value: string) => prisma.product.findFirst({
+    where: { slug: value, isVisible: true },
+    include: productInclude,
   }).catch(() => null);
 
-  if (!product || !product.isVisible) notFound();
+  const firstCandidate = candidates[0];
+  let product = firstCandidate ? await findBySlug(firstCandidate) : null;
+
+  for (let i = 1; !product && i < candidates.length; i += 1) {
+    product = await findBySlug(candidates[i]);
+  }
+
+  if (!product && sourceId) {
+    product = await prisma.product.findFirst({
+      where: {
+        isVisible: true,
+        OR: [
+          { sourceId },
+          { sourceUrl: { contains: `/p=${sourceId}` } },
+          { sourceUrl: { contains: `p=${sourceId}` } },
+        ],
+      },
+      include: productInclude,
+      orderBy: { updatedAt: "desc" },
+    }).catch(() => null);
+  }
+
+  if (!product) notFound();
 
   // Related products
   const related = await prisma.product.findMany({

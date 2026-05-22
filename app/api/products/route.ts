@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { technodelSupplierWhere } from "@/lib/catalog-filter";
 
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams;
-  const page = Math.max(1, parseInt(sp.get("page") || "1"));
-  const limit = Math.min(48, parseInt(sp.get("limit") || "24"));
+  const parsedPage = Number.parseInt(sp.get("page") || "1", 10);
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const parsedLimit = Number.parseInt(sp.get("limit") || "24", 10);
+  const limit = Number.isFinite(parsedLimit) ? Math.min(48, Math.max(1, parsedLimit)) : 24;
   const category = sp.get("category");
   const brand = sp.get("brand");
   const minPrice = parseFloat(sp.get("minPrice") || "0");
@@ -14,13 +17,15 @@ export async function GET(req: NextRequest) {
   const isNew = sp.get("new") === "1";
   const q = sp.get("q");
 
-  const where: any = { isVisible: true };
-  if (category) where.category = { slug: category };
-  if (brand) where.brand = { contains: brand };
-  if (featured) where.isFeatured = true;
-  if (isNew) where.isNew = true;
-  if (q) where.OR = [{ title: { contains: q } }, { brand: { contains: q } }];
-  where.displayPrice = { gte: minPrice, lte: maxPrice };
+  const extraWhere: any = {};
+  if (category) extraWhere.category = { slug: category };
+  if (brand) extraWhere.brand = { contains: brand };
+  if (featured) extraWhere.isFeatured = true;
+  if (isNew) extraWhere.isNew = true;
+  if (q) extraWhere.OR = [{ title: { contains: q } }, { brand: { contains: q } }];
+  extraWhere.displayPrice = { gte: minPrice, lte: maxPrice };
+
+  const where: any = technodelSupplierWhere(extraWhere);
 
   const orderBy: any =
     sort === "price_asc" ? { displayPrice: "asc" } :

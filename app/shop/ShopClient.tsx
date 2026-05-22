@@ -24,6 +24,12 @@ export default function ShopClient({ products, total, pages, page, categories, i
   const router = useRouter();
   const [sort, setSort] = useState(initialFilters.sort);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const maxVisiblePages = 10;
+  const safePages = Math.max(1, pages);
+  const currentPage = Math.min(Math.max(page, 1), safePages);
+  const windowStart = Math.floor((currentPage - 1) / maxVisiblePages) * maxVisiblePages + 1;
+  const windowEnd = Math.min(safePages, windowStart + maxVisiblePages - 1);
+  const visiblePages = Array.from({ length: windowEnd - windowStart + 1 }, (_, i) => windowStart + i);
 
   function navigate(overrides: Record<string, any>) {
     const sp = new URLSearchParams();
@@ -154,14 +160,44 @@ export default function ShopClient({ products, total, pages, page, categories, i
           {/* Pagination */}
           {pages > 1 && (
             <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 48 }}>
-              {Array.from({ length: Math.min(pages, 10) }, (_, i) => i + 1).map((p) => (
+              <button
+                onClick={() => navigate({ page: currentPage - 1 })}
+                disabled={currentPage <= 1}
+                style={{
+                  width: 40, height: 40, borderRadius: "var(--r-sm)", border: "1px solid var(--c-border)",
+                  background: "var(--c-surface)", color: "var(--c-text)",
+                  fontWeight: 700, cursor: currentPage <= 1 ? "not-allowed" : "pointer", fontSize: 16,
+                  opacity: currentPage <= 1 ? 0.45 : 1,
+                }}
+                aria-label="Previous page"
+              >
+                {"<"}
+              </button>
+
+              {windowStart > 1 && (
+                <>
+                  <button
+                    onClick={() => navigate({ page: 1 })}
+                    style={{
+                      minWidth: 40, height: 40, borderRadius: "var(--r-sm)", border: "1px solid var(--c-border)",
+                      background: "var(--c-surface)", color: "var(--c-text)",
+                      fontWeight: 700, cursor: "pointer", fontSize: 14, padding: "0 8px",
+                    }}
+                  >
+                    1
+                  </button>
+                  <span style={{ alignSelf: "center", color: "var(--c-muted)", padding: "0 2px" }}>...</span>
+                </>
+              )}
+
+              {visiblePages.map((p) => (
                 <button
                   key={p}
                   onClick={() => navigate({ page: p })}
                   style={{
-                    width: 40, height: 40, borderRadius: "var(--r-sm)", border: `1px solid ${p === page ? "var(--c-accent)" : "var(--c-border)"}`,
-                    background: p === page ? "var(--c-accent)" : "var(--c-surface)",
-                    color: p === page ? "var(--c-bg)" : "var(--c-text)",
+                    width: 40, height: 40, borderRadius: "var(--r-sm)", border: `1px solid ${p === currentPage ? "var(--c-accent)" : "var(--c-border)"}`,
+                    background: p === currentPage ? "var(--c-accent)" : "var(--c-surface)",
+                    color: p === currentPage ? "var(--c-bg)" : "var(--c-text)",
                     fontWeight: 700, cursor: "pointer", fontSize: 14,
                     transition: "all 0.2s ease",
                   }}
@@ -169,6 +205,36 @@ export default function ShopClient({ products, total, pages, page, categories, i
                   {p}
                 </button>
               ))}
+
+              {windowEnd < safePages && (
+                <>
+                  <span style={{ alignSelf: "center", color: "var(--c-muted)", padding: "0 2px" }}>...</span>
+                  <button
+                    onClick={() => navigate({ page: safePages })}
+                    style={{
+                      minWidth: 40, height: 40, borderRadius: "var(--r-sm)", border: "1px solid var(--c-border)",
+                      background: "var(--c-surface)", color: "var(--c-text)",
+                      fontWeight: 700, cursor: "pointer", fontSize: 14, padding: "0 8px",
+                    }}
+                  >
+                    {safePages}
+                  </button>
+                </>
+              )}
+
+              <button
+                onClick={() => navigate({ page: currentPage + 1 })}
+                disabled={currentPage >= safePages}
+                style={{
+                  width: 40, height: 40, borderRadius: "var(--r-sm)", border: "1px solid var(--c-border)",
+                  background: "var(--c-surface)", color: "var(--c-text)",
+                  fontWeight: 700, cursor: currentPage >= safePages ? "not-allowed" : "pointer", fontSize: 16,
+                  opacity: currentPage >= safePages ? 0.45 : 1,
+                }}
+                aria-label="Next page"
+              >
+                {">"}
+              </button>
             </div>
           )}
         </div>

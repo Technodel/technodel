@@ -20,6 +20,19 @@ const TECH_CATEGORY_SLUGS = [
 ];
 
 const NON_TECH_TITLE_TERMS = [
+  "locknlock",
+  "lock n lock",
+  "lock&lock",
+  "food container",
+  "food containers",
+  "plastic food container",
+  "plastic food containers",
+  "pool",
+  "pools",
+  "swimming",
+  "kitchen",
+  "kitchenware",
+  "cookware",
   "pencil bag",
   "pencil case",
   "sport bag",
