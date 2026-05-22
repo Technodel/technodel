@@ -92,7 +92,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                   ))}
                   {o.items.length > 2 && <div style={{ fontSize: 12, color: "var(--c-muted)" }}>+{o.items.length - 2} more</div>}
                 </td>
-                <td style={{ fontWeight: 700 }}>${o.total.toFixed(2)}</td>
+                <td style={{ fontWeight: 700 }}>${o.total.toFixed(0)}</td>
                 <td style={{ fontSize: 12, textTransform: "capitalize" }}>{o.paymentMethod}</td>
                 <td>
                   <span style={{ fontSize: 11, fontWeight: 700, color: STATUS_COLORS[o.status] || "var(--c-muted)", textTransform: "capitalize" }}>

@@ -223,7 +223,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
       title: p.title,
       subtitle: p.category?.name ? `${p.category.name} Deal` : "Hot Deal",
       imageUrl: img,
-      linkUrl: `/product/${p.slug}`,
+      linkUrl: `/product/${encodeURIComponent(p.slug)}`,
       badge: hasDiscount && pct > 0 ? `🔥 -${pct}%` : "🔥 Deal",
       imageFit: "contain" as const,
     };
@@ -251,7 +251,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
       title: product.title,
       subtitle: product.category?.name ? `Featured ${product.category.name}` : "Featured Product",
       imageUrl: parseFirstImage(product.images),
-      linkUrl: `/product/${product.slug}`,
+      linkUrl: `/product/${encodeURIComponent(product.slug)}`,
       badge: product.category?.name?.toLowerCase().includes("laptop") ? "💻 Featured Laptops" : "⭐ Featured",
     }))
     .filter((slide) => !!slide.imageUrl);

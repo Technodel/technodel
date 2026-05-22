@@ -102,7 +102,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const itemListElements = parsedProducts.map((p, i) => ({
     "@type": "ListItem",
     position: i + 1,
-    url: `https://technodel.net/product/${p.slug}`,
+    url: `https://technodel.net/new/product/${encodeURIComponent(p.slug)}`,
     name: p.title,
   }));
 

@@ -27,10 +27,10 @@ export const useCurrencyStore = create<CurrencyStore>()(
       format: (usdPrice) => {
         const { currency, rate } = get();
         if (currency === "LBP") {
-          const lbp = usdPrice * rate;
+          const lbp = Math.round(usdPrice * rate);
           return `${lbp.toLocaleString("en-US")} LBP`;
         }
-        return `$${usdPrice.toFixed(2)}`;
+        return `$${Math.round(usdPrice).toLocaleString("en-US")}`;
       },
     }),
     { name: "tn-currency" }

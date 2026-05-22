@@ -83,7 +83,7 @@ export default function SearchBar() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       if (selectedIdx >= 0 && results[selectedIdx]) {
-        router.push(`/product/${results[selectedIdx].slug}`);
+        router.push(`/product/${encodeURIComponent(results[selectedIdx].slug)}`);
         setOpen(false);
       } else {
         go();
@@ -185,7 +185,7 @@ export default function SearchBar() {
             {results.map((r, i) => (
               <Link
                 key={r.id}
-                href={`/product/${r.slug}`}
+                href={`/product/${encodeURIComponent(r.slug)}`}
                 onClick={() => setOpen(false)}
                 style={{
                   display: "flex",
@@ -233,7 +233,7 @@ export default function SearchBar() {
                   </div>
                 </div>
                 <span style={{ fontSize: 14, fontWeight: 700, color: "var(--c-accent)", flexShrink: 0 }}>
-                  ${r.displayPrice?.toFixed(2)}
+                  ${Math.round(r.displayPrice || 0)}
                 </span>
               </Link>
             ))}

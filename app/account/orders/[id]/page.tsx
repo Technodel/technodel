@@ -146,7 +146,7 @@ export default function OrderDetailPage() {
                 )}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <Link href={`/product/${item.product.slug}`} style={{
+                <Link href={`/product/${encodeURIComponent(item.product.slug)}`} style={{
                   fontWeight: 600, fontSize: 14, color: "inherit", textDecoration: "none",
                 }}>
                   {item.title}
@@ -156,11 +156,11 @@ export default function OrderDetailPage() {
                 )}
               </div>
               <div style={{ textAlign: "right", flexShrink: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>${item.price.toFixed(2)}</div>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>${item.price.toFixed(0)}</div>
                 <div style={{ fontSize: 12, color: "var(--c-muted)" }}>×{item.qty}</div>
               </div>
               <div style={{ textAlign: "right", flexShrink: 0, minWidth: 60 }}>
-                <div style={{ fontSize: 14, fontWeight: 700 }}>${item.total.toFixed(2)}</div>
+                <div style={{ fontSize: 14, fontWeight: 700 }}>${item.total.toFixed(0)}</div>
               </div>
             </div>
           ))}
@@ -173,16 +173,16 @@ export default function OrderDetailPage() {
         }}>
           <div style={{ fontWeight: 700, marginBottom: 16 }}>Order Summary</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 14 }}>
-            <Row label="Subtotal" value={`$${order.subtotal.toFixed(2)}`} />
-            <Row label="Delivery" value={`$${order.deliveryFee.toFixed(2)}`} />
+            <Row label="Subtotal" value={`$${order.subtotal.toFixed(0)}`} />
+            <Row label="Delivery" value={`$${order.deliveryFee.toFixed(0)}`} />
             {order.rewardUsed > 0 && (
-              <Row label="Rewards Used" value={`-$${order.rewardUsed.toFixed(2)}`} color="#10b981" />
+              <Row label="Rewards Used" value={`-$${order.rewardUsed.toFixed(0)}`} color="#10b981" />
             )}
             {order.discount > 0 && (
-              <Row label="Discount" value={`-$${order.discount.toFixed(2)}`} color="#10b981" />
+              <Row label="Discount" value={`-$${order.discount.toFixed(0)}`} color="#10b981" />
             )}
             <div style={{ borderTop: "1px solid var(--c-border)", paddingTop: 10 }}>
-              <Row label="Total" value={`$${order.total.toFixed(2)}`} bold />
+              <Row label="Total" value={`$${order.total.toFixed(0)}`} bold />
             </div>
           </div>
 

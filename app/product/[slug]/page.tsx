@@ -7,6 +7,21 @@ export const revalidate = 60;
 
 interface Props { params: Promise<{ slug: string }> }
 
+function decodeSlugValue(slug: string): string {
+  try {
+    return decodeURIComponent(slug || "");
+  } catch {
+    return slug || "";
+  }
+}
+
+function slugCandidates(slug: string): string[] {
+  const raw = (slug || "").trim();
+  const decoded = decodeSlugValue(raw).trim();
+  const lowered = decoded.toLowerCase();
+  return Array.from(new Set([raw, decoded, lowered].filter(Boolean)));
+}
+
 function extractSourceProductId(slug: string): string | null {
   const match = slug.match(/(?:^|-)p=(\d+)(?:$|[-_])/i);
   return match?.[1] ?? null;
@@ -19,10 +34,12 @@ function extractTrailingToken(slug: string): string | null {
 }
 
 async function findProductBySlugWithFallback(slug: string) {
-  const bySlug = await prisma.product.findUnique({ where: { slug } }).catch(() => null);
-  if (bySlug) return bySlug;
+  for (const candidate of slugCandidates(slug)) {
+    const bySlug = await prisma.product.findUnique({ where: { slug: candidate } }).catch(() => null);
+    if (bySlug) return bySlug;
+  }
 
-  const sourceId = extractSourceProductId(slug);
+  const sourceId = extractSourceProductId(decodeSlugValue(slug).toLowerCase());
   if (!sourceId) return null;
 
   return prisma.product.findFirst({
@@ -56,15 +73,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const images = ogImage ? [ogImage] : [];
   const title = product.seoTitle || `${product.title} – Best Price in Lebanon | Technodel`;
   const description = product.seoDescription || product.shortDescription || `Buy ${product.title} at the best price in Lebanon. Genuine product, fast delivery, warranty included.`;
+  const encodedSlug = encodeURIComponent(product.slug);
   return {
     title,
     description,
     keywords: product.seoKeywords || `${product.brand || ""}, ${product.title}, buy ${product.title} Lebanon, best price Lebanon`.toLowerCase(),
-    alternates: { canonical: `https://technodel.net/new/product/${product.slug}` },
+    alternates: { canonical: `https://technodel.net/new/product/${encodedSlug}` },
     openGraph: {
       title,
       description,
-      url: `https://technodel.net/new/product/${product.slug}`,
+      url: `https://technodel.net/new/product/${encodedSlug}`,
       siteName: "Technodel",
       type: "website" as const,
       locale: "en_US",
@@ -81,14 +99,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
-  const normalizedSlug = decodeURIComponent(slug || "").trim().toLowerCase();
-
-  const sourceId = extractSourceProductId(normalizedSlug);
-  const trailingToken = extractTrailingToken(normalizedSlug);
+  const candidates = slugCandidates(slug);
+  const sourceSeed = decodeSlugValue(slug || "").trim().toLowerCase();
+  const sourceId = extractSourceProductId(sourceSeed);
+  const trailingToken = extractTrailingToken(sourceSeed);
   const product = await prisma.product.findFirst({
     where: {
       OR: [
-        { slug: normalizedSlug },
+        ...candidates.map((value) => ({ slug: value })),
         ...(sourceId
           ? [
               { sourceUrl: { contains: `/p=${sourceId}` } },
@@ -168,7 +186,7 @@ export default async function ProductPage({ params }: Props) {
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://technodel.net/new" },
       { "@type": "ListItem", position: 2, name: product.category.name, item: `https://technodel.net/new/shop/${product.category.slug}` },
-      { "@type": "ListItem", position: 3, name: product.title, item: `https://technodel.net/new/product/${product.slug}` },
+      { "@type": "ListItem", position: 3, name: product.title, item: `https://technodel.net/new/product/${encodeURIComponent(product.slug)}` },
     ],
   };
 
@@ -181,7 +199,7 @@ export default async function ProductPage({ params }: Props) {
     sku: product.sku,
     brand: product.brand ? { "@type": "Brand", name: product.brand } : undefined,
     image: parsed.images,
-    url: `https://technodel.net/new/product/${product.slug}`,
+    url: `https://technodel.net/new/product/${encodeURIComponent(product.slug)}`,
     category: product.category.name,
     offers: {
       "@type": "Offer",
@@ -192,7 +210,7 @@ export default async function ProductPage({ params }: Props) {
       availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
       seller: { "@type": "Organization", name: "Technodel", url: "https://technodel.net/new" },
-      url: `https://technodel.net/new/product/${product.slug}`,
+      url: `https://technodel.net/new/product/${encodeURIComponent(product.slug)}`,
     },
     aggregateRating: product.reviewCount > 0 ? {
       "@type": "AggregateRating",

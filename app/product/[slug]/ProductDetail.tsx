@@ -525,7 +525,7 @@ export default function ProductDetail({ product, related }: { product: Product; 
           <motion.div variants={fadeInUp} style={{ marginTop: 12, marginBottom: 12 }}>
             <motion.a
               href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "961XXXXXXXX"}?text=${encodeURIComponent(
-                `Hi Technodel, I want to order:\n\n${product.title}\nPrice: $${price}\nQty: ${qty}${selectedVariant ? `\nVariant: ${selectedVariant.label}: ${selectedVariant.value}` : ""}\n\nLink: https://technodel.net/product/${product.slug}`
+                `Hi Technodel, I want to order:\n\n${product.title}\nPrice: $${Math.round(price)}\nQty: ${qty}${selectedVariant ? `\nVariant: ${selectedVariant.label}: ${selectedVariant.value}` : ""}\n\nLink: https://technodel.net/new/product/${encodeURIComponent(product.slug)}`
               )}`}
               target="_blank"
               rel="noopener noreferrer"

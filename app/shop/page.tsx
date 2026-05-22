@@ -99,7 +99,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   const itemListElements = parsedProducts.slice(0, 100).map((p, i) => ({
     "@type": "ListItem",
     position: i + 1,
-    url: `https://technodel.net/product/${p.slug}`,
+    url: `https://technodel.net/new/product/${encodeURIComponent(p.slug)}`,
     name: p.title,
   }));
 

@@ -93,7 +93,7 @@ export default async function AdminDashboard() {
                 <tr key={o.id}>
                   <td><Link href={`/admin/orders/${o.id}`} style={{ color: "var(--c-accent)", textDecoration: "none", fontWeight: 600 }}>{o.orderNumber}</Link></td>
                   <td style={{ color: "var(--c-muted)" }}>{o.guestName || "Customer"}</td>
-                  <td style={{ fontWeight: 600 }}>${o.total.toFixed(2)}</td>
+                  <td style={{ fontWeight: 600 }}>${o.total.toFixed(0)}</td>
                   <td><StatusBadge status={o.status} /></td>
                 </tr>
               ))}

@@ -118,7 +118,7 @@ export default function AdminProductsClient({ products, total, pages, page, cate
                   </td>
                   <td style={{ fontSize: 12, color: "var(--c-muted)" }}>{p.sku}</td>
                   <td style={{ fontSize: 13 }}>{p.category?.name}</td>
-                  <td style={{ fontWeight: 700, color: "var(--c-accent)" }}>${p.displayPrice.toFixed(2)}</td>
+                  <td style={{ fontWeight: 700, color: "var(--c-accent)" }}>${p.displayPrice.toFixed(0)}</td>
                   <td style={{ color: p.stock === 0 ? "var(--c-danger)" : "var(--c-text)" }}>{p.stock}</td>
                   <td>
                     <button

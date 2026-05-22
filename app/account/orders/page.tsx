@@ -114,7 +114,7 @@ export default function AccountOrdersPage() {
                     }}>
                       {order.status}
                     </span>
-                    <div style={{ fontSize: 20, fontWeight: 800 }}>${order.total.toFixed(2)}</div>
+                    <div style={{ fontSize: 20, fontWeight: 800 }}>${order.total.toFixed(0)}</div>
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>

@@ -63,8 +63,8 @@ export default function CheckoutPage() {
       if (form.paymentMethod === "crypto") {
         const cryptoMsg = encodeURIComponent(
           `Hi Technodel! Order #${data.orderNumber}\n\n` +
-          items.map((i) => `• ${i.title} × ${i.quantity} = $${(i.price * i.quantity).toFixed(2)}`).join("\n") +
-          `\n\nTotal: $${grandTotal.toFixed(2)}\n\nPlease share USDT (TRC20) wallet address for payment.`
+          items.map((i) => `• ${i.title} × ${i.quantity} = $${(i.price * i.quantity).toFixed(0)}`).join("\n") +
+          `\n\nTotal: $${grandTotal.toFixed(0)}\n\nPlease share USDT (TRC20) wallet address for payment.`
         );
         window.open(`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${cryptoMsg}`, "_blank");
       }
@@ -198,19 +198,19 @@ export default function CheckoutPage() {
                   <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.title}</div>
                   <div style={{ fontSize: 12, color: "var(--c-muted)" }}>×{item.quantity}</div>
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 700 }}>${(item.price * item.quantity).toFixed(2)}</div>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>${(item.price * item.quantity).toFixed(0)}</div>
               </div>
             ))}
           </div>
           <div style={{ borderTop: "1px solid var(--c-border)", paddingTop: 16, display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: "var(--c-muted)" }}>
-              <span>Subtotal</span><span>${subtotal.toFixed(2)}</span>
+              <span>Subtotal</span><span>${subtotal.toFixed(0)}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: "var(--c-muted)" }}>
-              <span>Delivery</span><span>${DELIVERY.toFixed(2)}</span>
+              <span>Delivery</span><span>${DELIVERY.toFixed(0)}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, fontWeight: 800, paddingTop: 8, borderTop: "1px solid var(--c-border)" }}>
-              <span>Total</span><span style={{ color: "var(--c-accent)" }}>${grandTotal.toFixed(2)}</span>
+              <span>Total</span><span style={{ color: "var(--c-accent)" }}>${grandTotal.toFixed(0)}</span>
             </div>
           </div>
         </div>

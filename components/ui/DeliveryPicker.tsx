@@ -90,7 +90,7 @@ export default function DeliveryPicker({ subtotal, onDeliveryChange }: Props) {
           📍 {selected?.name || "Select region"} —
           {" "}{deliveryFee === 0
             ? <span style={{ color: "#00e676", fontWeight: 700 }}>FREE</span>
-            : <span>${deliveryFee.toFixed(2)}</span>
+            : <span>${deliveryFee.toFixed(0)}</span>
           }
           {" "}· {selected?.estimateDays || "1-3"} days
         </span>
@@ -143,7 +143,7 @@ export default function DeliveryPicker({ subtotal, onDeliveryChange }: Props) {
                       </div>
                     </div>
                     <div style={{ fontWeight: 700, fontSize: 15, color: zFee === 0 ? "#00e676" : "var(--c-accent)" }}>
-                      {zFee === 0 ? "FREE" : `$${zFee.toFixed(2)}`}
+                      {zFee === 0 ? "FREE" : `$${zFee.toFixed(0)}`}
                     </div>
                   </motion.button>
                 );

@@ -81,7 +81,7 @@ export default function WishlistPage() {
                   transition: "all 0.2s",
                 }}
               >
-                <Link href={`/product/${item.product.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
+                <Link href={`/product/${encodeURIComponent(item.product.slug)}`} style={{ textDecoration: "none", color: "inherit" }}>
                   <div style={{
                     height: 180, background: "var(--c-surface2)",
                     display: "flex", alignItems: "center", justifyContent: "center",
@@ -101,7 +101,7 @@ export default function WishlistPage() {
                       {item.product.brand}
                     </div>
                   )}
-                  <Link href={`/product/${item.product.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
+                  <Link href={`/product/${encodeURIComponent(item.product.slug)}`} style={{ textDecoration: "none", color: "inherit" }}>
                     <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                       {item.product.title}
                     </h3>

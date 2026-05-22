@@ -14,9 +14,9 @@ export function evalPriceFormula(formula: string, cost: number, source?: number)
 }
 
 export function formatPrice(price: number, currency = "USD"): string {
-  if (currency === "USD") return `$${price.toFixed(2)}`;
+  if (currency === "USD") return `$${Math.round(price).toLocaleString()}`;
   if (currency === "LBP") return `${Math.round(price).toLocaleString()} LBP`;
-  return `${price.toFixed(2)} ${currency}`;
+  return `${Math.round(price).toLocaleString()} ${currency}`;
 }
 
 export function generateSlug(text: string): string {

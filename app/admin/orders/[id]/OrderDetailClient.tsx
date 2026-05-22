@@ -92,17 +92,17 @@ export default function OrderDetailClient({ order }: { order: any }) {
               return (
                 <tr key={item.id}>
                   <td>
-                    <a href={`/product/${item.product?.slug}`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--c-accent)", textDecoration: "none", fontWeight: 600 }}>
+                    <a href={`/product/${encodeURIComponent(item.product?.slug || "")}`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--c-accent)", textDecoration: "none", fontWeight: 600 }}>
                       {item.title}
                     </a>
                   </td>
                   <td style={{ color: "var(--c-muted)", fontSize: 12 }}>{item.variantLabel || "—"}</td>
                   <td>{item.qty}</td>
-                  <td>${item.price.toFixed(2)}</td>
-                  <td style={{ fontWeight: 700 }}>${(item.price * item.qty).toFixed(2)}</td>
-                  <td style={{ color: "#ff6b6b", fontSize: 12 }}>{item.costPrice ? `$${item.costPrice.toFixed(2)}` : "—"}</td>
+                  <td>${item.price.toFixed(0)}</td>
+                  <td style={{ fontWeight: 700 }}>${(item.price * item.qty).toFixed(0)}</td>
+                  <td style={{ color: "#ff6b6b", fontSize: 12 }}>{item.costPrice ? `$${item.costPrice.toFixed(0)}` : "—"}</td>
                   <td style={{ color: margin !== null && margin > 0 ? "#10b981" : "#ff6b6b", fontSize: 12 }}>
-                    {margin !== null ? `$${margin.toFixed(2)}` : "—"}
+                    {margin !== null ? `$${margin.toFixed(0)}` : "—"}
                   </td>
                   <td style={{ fontSize: 11 }}>
                     {item.sourceUrl ? (
@@ -120,12 +120,12 @@ export default function OrderDetailClient({ order }: { order: any }) {
         {/* Totals */}
         <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}>
           <div style={{ width: 280, fontSize: 14, display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span>Subtotal</span><span>${order.subtotal.toFixed(2)}</span></div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span>Delivery</span><span>${order.deliveryFee.toFixed(2)}</span></div>
-            {order.discount > 0 && <div style={{ display: "flex", justifyContent: "space-between", color: "#10b981" }}><span>Discount</span><span>-${order.discount.toFixed(2)}</span></div>}
-            <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 17, paddingTop: 8, borderTop: "1px solid var(--c-border)" }}><span>Total</span><span>${order.total.toFixed(2)}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}><span>Subtotal</span><span>${order.subtotal.toFixed(0)}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}><span>Delivery</span><span>${order.deliveryFee.toFixed(0)}</span></div>
+            {order.discount > 0 && <div style={{ display: "flex", justifyContent: "space-between", color: "#10b981" }}><span>Discount</span><span>-${order.discount.toFixed(0)}</span></div>}
+            <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 17, paddingTop: 8, borderTop: "1px solid var(--c-border)" }}><span>Total</span><span>${order.total.toFixed(0)}</span></div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: profit >= 0 ? "#10b981" : "#ff6b6b" }}>
-              <span>Est. Profit ⓐ</span><span>${profit.toFixed(2)}</span>
+              <span>Est. Profit ⓐ</span><span>${profit.toFixed(0)}</span>
             </div>
           </div>
         </div>

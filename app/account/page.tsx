@@ -159,7 +159,7 @@ export default function AccountPage() {
                   }}>
                     {order.status}
                   </span>
-                  <span style={{ fontWeight: 700, fontSize: 16 }}>${order.total.toFixed(2)}</span>
+                  <span style={{ fontWeight: 700, fontSize: 16 }}>${order.total.toFixed(0)}</span>
                   <span style={{ color: "var(--c-muted)", fontSize: 14 }}>→</span>
                 </div>
               </Link>

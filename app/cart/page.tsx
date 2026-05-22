@@ -105,7 +105,7 @@ export default function CartPage() {
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <Link
-                    href={`/product/${item.slug}`}
+                    href={`/product/${encodeURIComponent(item.slug)}`}
                     style={{
                       fontWeight: 700, fontSize: 15, color: "var(--c-text)",
                       textDecoration: "none", display: "block",

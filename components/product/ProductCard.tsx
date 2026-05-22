@@ -85,7 +85,7 @@ export default function ProductCard({ product }: Props) {
       variants={cardHover}
       style={{ position: "relative", height: "100%", display: "flex", flexDirection: "column" }}
     >
-      <Link href={`/product/${product.slug}`} style={{ textDecoration: "none", display: "flex", flexDirection: "column", height: "100%" }}>
+      <Link href={`/product/${encodeURIComponent(product.slug)}`} style={{ textDecoration: "none", display: "flex", flexDirection: "column", height: "100%" }}>
         <div
           className="product-card"
           style={{ position: "relative", height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}
