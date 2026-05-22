@@ -13,6 +13,8 @@ export const TECH_CATEGORY_SLUGS = [
   "smart-home",
   "wearables",
   "storage",
+  "monitors",
+  "electronic-components",
 ] as const;
 
 export const TECHNODEL_SUPPLIER_TERMS = [

@@ -22,6 +22,25 @@ const DSLR_EXCLUDED_CATEGORY_SLUG = "laptops";
 const ELECTROSLAB_SITE_PATTERN = "electroslab";
 const ELECTROSLAB_EXCLUDED_CATEGORY_SLUG = "laptops";
 
+const REQUIRED_CATEGORY_DEFS = [
+  {
+    name: "Electronic Components",
+    slug: "electronic-components",
+    sortOrder: 13,
+    isVisible: true,
+    seoTitle: "Electronic Components",
+    seoDescription: "Browse electronic components and development modules at Technodel Lebanon",
+  },
+  {
+    name: "Monitors",
+    slug: "monitors",
+    sortOrder: 14,
+    isVisible: true,
+    seoTitle: "Monitors",
+    seoDescription: "Browse computer monitors at Technodel Lebanon",
+  },
+];
+
 // ─── STATIONERY / NON-TECH TITLE BLACKLIST ────────────────────────────────────
 // Products whose titles contain any of these strings are NEVER imported,
 // regardless of which category they appear in. This blocks Antoine Library
@@ -82,11 +101,19 @@ function isAyoubTechAllowed(row, mappedSlug) {
 // Maps ALL-MALL category name (case-insensitive) → Technodel category slug
 const CATEGORY_MAP = {
   // Supplier name leakage in source category field
-  "electroslab": "accessories",
+  "electroslab": "electronic-components",
+  "electroslob": "electronic-components",
   "ezone": "accessories",
   "ayoub": "accessories",
   "comparts": "accessories",
   "jak": "accessories",
+
+  // Electronic components / modules
+  "electronic components": "electronic-components",
+  "electronic component": "electronic-components",
+  "components": "electronic-components",
+  "dev boards": "electronic-components",
+  "development boards": "electronic-components",
 
   // Phones
   "phones": "smartphones",
@@ -231,10 +258,10 @@ const CATEGORY_MAP = {
   "keyboards": "accessories",
   "mice": "accessories",
   "mice & trackballs": "accessories",
-  "monitors": "accessories",
-  "monitor screens": "accessories",
-  "computer monitors": "accessories",
-  "portable monitors": "accessories",
+  "monitors": "monitors",
+  "monitor screens": "monitors",
+  "computer monitors": "monitors",
+  "portable monitors": "monitors",
   "desktops": "accessories",
   "desktops & pcs": "accessories",
   "desktop computers": "accessories",
@@ -395,6 +422,13 @@ async function main() {
   const existingCats = await dst.category.findMany();
   const catBySlug = {};
   for (const c of existingCats) catBySlug[c.slug] = c.id;
+
+  for (const def of REQUIRED_CATEGORY_DEFS) {
+    if (catBySlug[def.slug]) continue;
+    const created = await dst.category.create({ data: def });
+    catBySlug[created.slug] = created.id;
+    existingCats.push(created);
+  }
   console.log(`Technodel categories: ${existingCats.length}\n`);
 
   // 4.5. Resolve allowed supplier site IDs from ALL-MALL's Site table
@@ -558,21 +592,22 @@ async function main() {
       }
 
       // Get category ID
-      const categoryId = catNameToId[row.category];
+      let categoryId = catNameToId[row.category];
+      let mappedSlug = CATEGORY_MAP[normalizeCat(row.category)];
+
+      // Force all Electroslab products into Electronic Components.
+      if (electroslabSiteIds.has(row.siteId)) {
+        mappedSlug = "electronic-components";
+        categoryId = catBySlug[mappedSlug];
+      }
+
       if (!categoryId) {
         skipped++;
         continue;
       }
 
       // DSLR restriction: skip laptops from DSLR supplier
-      const mappedSlug = CATEGORY_MAP[normalizeCat(row.category)];
       if (dslrSiteIds.has(row.siteId) && mappedSlug === DSLR_EXCLUDED_CATEGORY_SLUG) {
-        skipped++;
-        continue;
-      }
-
-      // Electroslab restriction: do not import laptops from this supplier.
-      if (electroslabSiteIds.has(row.siteId) && mappedSlug === ELECTROSLAB_EXCLUDED_CATEGORY_SLUG) {
         skipped++;
         continue;
       }
