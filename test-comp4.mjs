@@ -1,1 +1,0 @@
-import { PrismaClient } from "@prisma/client"; const p = new PrismaClient(); p.product.findMany({ where: { title: { contains: "Mars 2 in 1 convertible" } }, include: { competitor: true } }).then(c => console.log(JSON.stringify(c, null, 2))).finally(() => p.$disconnect());

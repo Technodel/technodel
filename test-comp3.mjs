@@ -1,1 +1,0 @@
-import { PrismaClient } from "@prisma/client"; const p = new PrismaClient(); p.product.findUnique({ where: { slug: "mars-2-in-1-convertible-and-tablet-steel-13-mars-2-in--1779294437736xjh0" }, include: { competitor: true } }).then(c => console.log(JSON.stringify(c, null, 2))).finally(() => p.$disconnect());
