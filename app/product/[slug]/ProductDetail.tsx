@@ -137,6 +137,9 @@ export default function ProductDetail({ product, related }: { product: Product; 
     competitorUrl: product.competitor?.url || "",
     sku: product.sku,
   });
+  
+  // Consistent pseudo-random 5-digit number based on product ID to avoid hydration mismatch
+  const randomSuffix = (Array.from(product.id || "").reduce((acc, char) => acc + char.charCodeAt(0), 0) * 317) % 90000 + 10000;
   const cleanShortDescription = normalizeMojibake(product.shortDescription || "");
 
   function handleMouseMove(e: React.MouseEvent) {
@@ -728,7 +731,7 @@ export default function ProductDetail({ product, related }: { product: Product; 
                 }}
                 title="Supplier SKU"
               >
-                SKU: {supplierCode}
+                SKU: {supplierCode}-{randomSuffix}
               </motion.span>
             )}
           </motion.div>
