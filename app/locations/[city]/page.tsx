@@ -99,7 +99,7 @@ export default async function LocationPage({ params }: Props) {
     "@type": "ComputerStore",
     name: `Technodel ${info.name}`,
     url: `https://technodel.net/new/locations/${city}`,
-    logo: "https://technodel.net/logo.png",
+    logo: "https://technodel.net/new/logo.png",
     image: "https://technodel.net/og-image.png",
     description: info.metaDesc,
     address: {

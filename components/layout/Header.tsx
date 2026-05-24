@@ -179,7 +179,7 @@ export default function Header() {
           >
             <Link href="/" style={{ textDecoration: "none", flexShrink: 0, display: "flex", alignItems: "center" }}>
               <Image
-                src="/logo.png?v=2" unoptimized
+                src="/new/logo.png?v=2" unoptimized
                 alt="Technodel"
                 width={220}
                 height={110}

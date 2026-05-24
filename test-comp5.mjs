@@ -1,0 +1,1 @@
+import { PrismaClient } from "@prisma/client"; const p = new PrismaClient(); p.product.findFirst({ where: { slug: { contains: "mars-2-in-1" } }, include: { competitor: true } }).then(c => console.log(JSON.stringify(c, null, 2))).finally(() => p.$disconnect());

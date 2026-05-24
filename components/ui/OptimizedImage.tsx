@@ -29,7 +29,7 @@ function normalizeSourceUrl(src: string): string {
   return src;
 }
 
-const FALLBACK_LOGO_SRC = "/logo.png?v=2";
+const FALLBACK_LOGO_SRC = "/new/logo.png?v=2";
 
 type ImageAttempt = "proxy" | "direct" | "fallback";
 

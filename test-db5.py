@@ -1,0 +1,1 @@
+import sqlite3; db=sqlite3.connect("prisma/dev.db"); c=db.cursor(); c.execute("UPDATE Product SET images=replace(images,'https://technodel.tech/logo.png','/new/logo.png?v=2')"); db.commit(); print(c.rowcount, "rows updated")

@@ -59,7 +59,7 @@ const organizationSchema = {
   "@type": "Organization",
   name: "تكنوديل",
   url: "https://technodel.net",
-  logo: "https://technodel.net/logo.png",
+  logo: "https://technodel.net/new/logo.png",
   description: "أفضل متجر إلكترونيات في لبنان — لابتوبات، هواتف ذكية، إكسسوارات والمزيد.",
   address: { "@type": "PostalAddress", addressCountry: "LB" },
   contactPoint: {
