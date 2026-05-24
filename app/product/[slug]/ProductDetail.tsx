@@ -729,7 +729,7 @@ export default function ProductDetail({ product, related }: { product: Product; 
                   userSelect: "all",
                   cursor: "text"
                 }}
-                title="Supplier SKU"
+                title="Product SKU"
               >
                 SKU: {supplierCode}-{randomSuffix}
               </motion.span>
