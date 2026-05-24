@@ -25,6 +25,13 @@ import {
 } from "@/lib/scraper";
 import { sanitizeProductBrand } from "@/lib/brand";
 import { generateSlug, generateSku, normalizeUrlWithProtocol } from "@/lib/utils";
+import { applyImportCategoryGuard, getImportGuardCategoryIds } from "@/lib/category-guard";
+import {
+  buildCanonicalDescription,
+  buildCanonicalShortDescription,
+  buildCanonicalTitle,
+  normalizeMojibake,
+} from "@/lib/product-copy";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -153,6 +160,7 @@ export async function POST(req: NextRequest) {
     if (!cat) return NextResponse.json({ error: "categoryId not found" }, { status: 400 });
     steps.push(`Target category: ${cat.name}`);
   }
+  const guardIds = await getImportGuardCategoryIds();
 
   // ── Step 4: Scrape & import ─────────────────────────────────────────────────
   const urlList = [...allUrls].slice(0, limit * 4); // take a wider pool in case some fail
@@ -170,6 +178,23 @@ export async function POST(req: NextRequest) {
         ? applyCompetitorPricing(scraped.price, competitor!)
         : 0;
       const safeBrand = sanitizeProductBrand(scraped.brand, competitor?.name);
+      const canonicalTitle = buildCanonicalTitle({
+        title: scraped.title,
+        brand: safeBrand,
+        sourceUrl: url,
+      });
+      const canonicalShortDescription = buildCanonicalShortDescription({
+        title: canonicalTitle,
+        brand: safeBrand,
+        sourceUrl: url,
+      });
+      const canonicalDescription = buildCanonicalDescription({
+        title: canonicalTitle,
+        brand: safeBrand,
+        sourceUrl: url,
+        description: scraped.description,
+      });
+      const finalCategoryId = applyImportCategoryGuard(categoryId, canonicalTitle, guardIds);
 
       if (dryRun) {
         imported.push({ title: scraped.title, price: displayPrice, url });
@@ -180,7 +205,7 @@ export async function POST(req: NextRequest) {
       await prisma.competitorProduct.upsert({
         where: { competitorId_url: { competitorId, url } },
         update: {
-          title: scraped.title,
+          title: normalizeMojibake(canonicalTitle),
           price: scraped.price,
           comparePrice: scraped.comparePrice,
           images: JSON.stringify(scraped.images),
@@ -189,15 +214,15 @@ export async function POST(req: NextRequest) {
           categories: JSON.stringify(scraped.categories),
           attributes: JSON.stringify(scraped.attributes),
           platform: scraped.platform,
-          shortDesc: scraped.shortDescription,
-          description: scraped.description,
+          shortDesc: normalizeMojibake(canonicalShortDescription),
+          description: canonicalDescription,
           status: "scraped",
           scannedAt: new Date(),
         },
         create: {
           competitorId,
           url,
-          title: scraped.title,
+          title: normalizeMojibake(canonicalTitle),
           price: scraped.price,
           comparePrice: scraped.comparePrice,
           images: JSON.stringify(scraped.images),
@@ -206,24 +231,24 @@ export async function POST(req: NextRequest) {
           categories: JSON.stringify(scraped.categories),
           attributes: JSON.stringify(scraped.attributes),
           platform: scraped.platform,
-          shortDesc: scraped.shortDescription,
-          description: scraped.description,
+          shortDesc: normalizeMojibake(canonicalShortDescription),
+          description: canonicalDescription,
           status: "scraped",
           scannedAt: new Date(),
         },
       });
 
-      const slug = generateSlug(scraped.title);
+      const slug = generateSlug(canonicalTitle);
       const uniqueSlug = `${slug}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
-      const sku = scraped.sku || generateSku(scraped.title, uniqueSlug);
+      const sku = scraped.sku || generateSku(canonicalTitle, uniqueSlug);
 
       const product = await prisma.product.create({
         data: {
           slug: uniqueSlug,
           sku,
-          title: scraped.title,
-          shortDescription: scraped.shortDescription || "",
-          description: scraped.description || "",
+          title: normalizeMojibake(canonicalTitle),
+          shortDescription: normalizeMojibake(canonicalShortDescription),
+          description: canonicalDescription,
           displayPrice,
           comparePrice:
             scraped.comparePrice ??
@@ -235,7 +260,7 @@ export async function POST(req: NextRequest) {
           images: JSON.stringify(scraped.images),
           brand: safeBrand,
           attributes: JSON.stringify(scraped.attributes),
-          categoryId,
+          categoryId: finalCategoryId,
           isVisible: false, // staging — admin must activate
         },
       });
@@ -246,7 +271,7 @@ export async function POST(req: NextRequest) {
         data: { status: "cloned", clonedProductId: product.id },
       });
 
-      imported.push({ title: scraped.title, price: displayPrice, url, productId: product.id });
+      imported.push({ title: normalizeMojibake(canonicalTitle), price: displayPrice, url, productId: product.id });
     } catch (e) {
       failed.push({ url, reason: e instanceof Error ? e.message : String(e) });
     }

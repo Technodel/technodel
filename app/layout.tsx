@@ -77,7 +77,7 @@ const organizationSchema = {
   "@type": "Organization",
   name: "Technodel",
   url: "https://technodel.net/new",
-  logo: "https://technodel.net/new/logo.png",
+  logo: "https://technodel.net/logo.png",
   description: "Lebanon's premium tech store — laptops, smartphones, accessories and more.",
   address: { "@type": "PostalAddress", addressCountry: "LB" },
   contactPoint: {
@@ -113,7 +113,7 @@ const localBusinessSchema = {
   "@type": "ComputerStore",
   name: "Technodel",
   url: "https://technodel.net/new",
-  logo: "https://technodel.net/new/logo.png",
+  logo: "https://technodel.net/logo.png",
   image: "https://technodel.net/new/og-image.svg",
   description: "Lebanon's premium computer and electronics store — laptops, smartphones, gaming gear, accessories and more with fast delivery across Lebanon.",
   address: { "@type": "PostalAddress", addressCountry: "LB", addressLocality: "Beirut" },
@@ -162,7 +162,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" type="image/svg+xml" href="/new/favicon.svg" />
         <link rel="alternate icon" href="/new/favicon.ico" />
-        <link rel="apple-touch-icon" href="/new/logo.png" sizes="180x180" />
+        <link rel="apple-touch-icon" href="/logo.png?v=2" sizes="180x180" />
         <link rel="preconnect" href="https://cdn11.bigcommerce.com" />
         <link rel="preconnect" href="https://ayoubcomputers.com" />
         <link rel="preconnect" href="https://ezone.com.lb" />

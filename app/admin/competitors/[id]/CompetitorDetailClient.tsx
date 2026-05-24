@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { apiPath } from "@/lib/api-path";
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
@@ -50,7 +51,7 @@ function SettingsTab({ competitor, onSaved }: { competitor: Competitor; onSaved:
     e.preventDefault();
     setSaving(true); setError(""); setSaved(false);
     try {
-      const res = await fetch(`/api/admin/competitors/${competitor.id}`, {
+      const res = await fetch(apiPath(`/api/admin/competitors/${competitor.id}`), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -69,7 +70,7 @@ function SettingsTab({ competitor, onSaved }: { competitor: Competitor; onSaved:
 
   async function handleDelete() {
     if (!confirm(`Delete competitor "${competitor.name}"? This also removes all scanned products.`)) return;
-    await fetch(`/api/admin/competitors/${competitor.id}`, { method: "DELETE" });
+    await fetch(apiPath(`/api/admin/competitors/${competitor.id}`), { method: "DELETE" });
     router.push("/admin/competitors");
   }
 
@@ -160,7 +161,7 @@ function ScannerTab({ competitor, categories }: { competitor: Competitor; catego
   const loadProducts = useCallback(async (offset = 0) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/competitors/${competitor.id}/products?limit=${LIMIT}&offset=${offset}&status=pending`);
+      const res = await fetch(apiPath(`/api/admin/competitors/${competitor.id}/products?limit=${LIMIT}&offset=${offset}&status=pending`));
       const data = await res.json();
       setProducts(data.items || []);
       setTotal(data.total || 0);
@@ -173,7 +174,7 @@ function ScannerTab({ competitor, categories }: { competitor: Competitor; catego
   async function handleScan() {
     setScanning(true); setScanMsg(""); setError("");
     try {
-      const res = await fetch(`/api/admin/competitors/${competitor.id}/deep-scan`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
+      const res = await fetch(apiPath(`/api/admin/competitors/${competitor.id}/deep-scan`), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Scan failed"); return; }
       setScanMsg(`✅ ${data.message}`);
@@ -189,7 +190,7 @@ function ScannerTab({ competitor, categories }: { competitor: Competitor; catego
     if (!ids.length) { setError("Select products to clone"); return; }
     setCloning(true); setCloned(0); setError("");
     try {
-      const res = await fetch(`/api/admin/competitors/${competitor.id}/products`, {
+      const res = await fetch(apiPath(`/api/admin/competitors/${competitor.id}/products`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids, categoryId }),
@@ -328,7 +329,7 @@ function ClonedProductsTab({ competitor }: { competitor: Competitor }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/admin/competitors/${competitor.id}/products?status=cloned&limit=50`)
+    fetch(apiPath(`/api/admin/competitors/${competitor.id}/products?status=cloned&limit=50`))
       .then((r) => r.json())
       .then((d) => { setProducts(d.items || []); setTotal(d.total || 0); })
       .catch(() => {})

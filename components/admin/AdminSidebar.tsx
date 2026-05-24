@@ -38,7 +38,7 @@ export default function AdminSidebar() {
       {/* Logo */}
       <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid var(--c-border)" }}>
         <Link href="/" style={{ textDecoration: "none" }}>
-          <Image src="/logo.png" alt="Technodel" width={190} height={48} style={{ width: "auto", height: 42, objectFit: "contain", maxWidth: "100%" }} priority unoptimized />
+          <Image src="/logo.png?v=2" alt="Technodel" width={190} height={48} style={{ width: "auto", height: 42, objectFit: "contain", maxWidth: "100%" }} priority unoptimized />
         </Link>
         <div style={{ fontSize: 11, color: "var(--c-muted)", marginTop: 2 }}>Admin Galaxy</div>
       </div>

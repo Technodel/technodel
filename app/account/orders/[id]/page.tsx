@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/auth";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
+import { apiPath } from "@/lib/api-path";
 
 interface OrderItemData {
   id: string; title: string; qty: number; price: number; total: number;
@@ -38,7 +39,7 @@ export default function OrderDetailPage() {
   useEffect(() => {
     if (!user || !params.id) return;
     setPageLoading(true);
-    fetch(`/api/orders/${params.id}`)
+    fetch(apiPath(`/api/orders/${params.id}`))
       .then((r) => r.json())
       .then((data) => {
         if (data.order) setOrder(data.order);

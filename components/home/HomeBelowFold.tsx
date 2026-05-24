@@ -18,6 +18,7 @@ interface Props {
   categories: Category[];
   deals: ProductCardProduct[];
   newArrivals: ProductCardProduct[];
+  exploreMore: ProductCardProduct[];
 }
 
 const staggerGrid = {
@@ -59,7 +60,7 @@ const CAT_COLORS: Record<string, { bg: string; border: string; text: string; acc
   storage: { bg: "#37474f", border: "#455a64", text: "#fff", accent: "#78909c", shadow: "rgba(55,71,79,0.5)" },
 };
 
-export default function HomeBelowFold({ featured, categories, deals, newArrivals }: Props) {
+export default function HomeBelowFold({ featured, categories, deals, newArrivals, exploreMore }: Props) {
   return (
     <>
       <AnimatedSection className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
@@ -208,9 +209,21 @@ export default function HomeBelowFold({ featured, categories, deals, newArrivals
           </div>
         </motion.div>
       </AnimatedSection>
-    </>
-  );
-}
+
+        {/* Explore More - More Products */}
+        {exploreMore && exploreMore.length > 0 && (
+          <ProductSection
+            title="More Products"
+            link="/shop"
+            linkLabel="View all ?"
+            products={exploreMore}
+            emptyMessage="No more products at this time."
+            emptyIcon="??"
+          />
+        )}
+      </>
+    );
+  }
 
 function ProductSection({ title, link, linkLabel, products, emptyMessage, emptyIcon }: { title: string | ReactNode; link: string; linkLabel: string; products: ProductCardProduct[]; emptyMessage: string; emptyIcon: string }) {
   return (
@@ -260,3 +273,4 @@ function EmptyState({ message, icon = "📦" }: { message: string; icon?: string
     </motion.div>
   );
 }
+

@@ -5,6 +5,13 @@ import { prisma } from "@/lib/prisma";
 import { applyCompetitorPricing, fetchHtml, isSafeUrl, scrapeProduct } from "@/lib/scraper";
 import { sanitizeProductBrand } from "@/lib/brand";
 import { generateSku, generateSlug, normalizeUrlWithProtocol } from "@/lib/utils";
+import { applyImportCategoryGuard, getImportGuardCategoryIds } from "@/lib/category-guard";
+import {
+  buildCanonicalDescription,
+  buildCanonicalShortDescription,
+  buildCanonicalTitle,
+  normalizeMojibake,
+} from "@/lib/product-copy";
 
 function asAbsolute(baseUrl: string, href: string): string {
   try {
@@ -110,6 +117,22 @@ export async function POST(req: NextRequest) {
         : scraped.price
       : 0;
     const safeBrand = sanitizeProductBrand(scraped.brand, competitor?.name);
+    const canonicalTitle = buildCanonicalTitle({
+      title: scraped.title,
+      brand: safeBrand,
+      sourceUrl: scraped.url,
+    });
+    const canonicalShortDescription = buildCanonicalShortDescription({
+      title: canonicalTitle,
+      brand: safeBrand,
+      sourceUrl: scraped.url,
+    });
+    const canonicalDescription = buildCanonicalDescription({
+      title: canonicalTitle,
+      brand: safeBrand,
+      sourceUrl: scraped.url,
+      description: scraped.description,
+    });
 
     if (action === "preview") {
       return NextResponse.json({ scraped, displayPrice, matchedUrl: productUrl });
@@ -119,17 +142,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "categoryId is required to save" }, { status: 400 });
     }
 
-    const slug = generateSlug(scraped.title || sku || "product");
+    const guardIds = await getImportGuardCategoryIds();
+    const finalCategoryId = applyImportCategoryGuard(categoryId, canonicalTitle || `Product ${sku}`, guardIds);
+
+    const slug = generateSlug(canonicalTitle || sku || "product");
     const uniqueSlug = `${slug}-${Date.now().toString(36)}`;
-    const finalSku = scraped.sku || sku || generateSku(scraped.title || "product", uniqueSlug);
+    const finalSku = scraped.sku || sku || generateSku(canonicalTitle || "product", uniqueSlug);
 
     const product = await prisma.product.create({
       data: {
         slug: uniqueSlug,
         sku: finalSku,
-        title: scraped.title || `Product ${sku}`,
-        shortDescription: scraped.shortDescription || "",
-        description: scraped.description || "",
+        title: normalizeMojibake(canonicalTitle || `Product ${sku}`),
+        shortDescription: normalizeMojibake(canonicalShortDescription),
+        description: canonicalDescription,
         displayPrice,
         comparePrice: scraped.comparePrice ?? (scraped.price && displayPrice > scraped.price ? scraped.price : null),
         costPrice: scraped.price ?? 0,
@@ -139,7 +165,7 @@ export async function POST(req: NextRequest) {
         images: JSON.stringify(scraped.images || []),
         brand: safeBrand,
         attributes: JSON.stringify({ ...(scraped.attributes || {}), sourceSku: sku }),
-        categoryId,
+        categoryId: finalCategoryId,
       },
     });
 

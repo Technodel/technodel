@@ -96,10 +96,11 @@ function randomSkip(total: number, take: number) {
 }
 
 export default async function HomePage() {
-  const [featuredTotal, newArrivalsTotal, dealsTotal, storefrontProductCount, storefrontBrandRows] = await Promise.all([
+  const [featuredTotal, newArrivalsTotal, dealsTotal, exploreMoreTotal, storefrontProductCount, storefrontBrandRows] = await Promise.all([
     prisma.product.count({ where: baseCatalogWhere() }).catch(() => 0),
     prisma.product.count({ where: baseCatalogWhere({ isNew: true }) }).catch(() => 0),
     prisma.product.count({ where: baseCatalogWhere({ comparePrice: { not: null } }) }).catch(() => 0),
+    prisma.product.count({ where: baseCatalogWhere() }).catch(() => 0),
     prisma.product.count({ where: technodelSupplierWhere() }).catch(() => 0),
     prisma.product.findMany({
       where: technodelSupplierWhere({
@@ -113,7 +114,7 @@ export default async function HomePage() {
 
   const storefrontBrandCount = storefrontBrandRows.length;
 
-  const [featured, categories, banners, newArrivals, deals] = await Promise.all([
+  const [featured, categories, banners, newArrivals, deals, exploreMore] = await Promise.all([
     prisma.product.findMany({
       where: baseCatalogWhere(),
       select: {
@@ -190,6 +191,28 @@ export default async function HomePage() {
       skip: randomSkip(dealsTotal, SECTION_POOL_SIZE),
       take: SECTION_POOL_SIZE,
     }).catch(() => []),
+    prisma.product.findMany({
+      where: baseCatalogWhere(),
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        brand: true,
+        displayPrice: true,
+        comparePrice: true,
+        images: true,
+        isNew: true,
+        isFeatured: true,
+        stock: true,
+        lowStockThresh: true,
+        sourcePrice: true,
+        category: { select: { name: true } },
+        competitor: { select: { name: true, url: true } },
+      },
+      orderBy: { orderCount: "desc" },
+      skip: randomSkip(exploreMoreTotal, 60),
+      take: 60,
+    }).catch(() => []),
   ]);
 
   return (
@@ -199,6 +222,7 @@ export default async function HomePage() {
       banners={JSON.parse(JSON.stringify(banners))}
       newArrivals={JSON.parse(JSON.stringify(newArrivals))}
       deals={JSON.parse(JSON.stringify(deals))}
+      exploreMore={JSON.parse(JSON.stringify(exploreMore))}
       catalogStats={{ productCount: storefrontProductCount, brandCount: storefrontBrandCount }}
     />
   );

@@ -8,13 +8,32 @@
 import pkg from "@prisma/client";
 const { PrismaClient } = pkg;
 import { execSync } from "child_process";
+import path from "path";
+import fs from "fs";
+import Database from "better-sqlite3";
 
-const SRC_DB = "/var/www/all-mall/dev.db";
+function resolveSourceDbPath() {
+  if (process.env.ALL_MALL_DB_PATH && fs.existsSync(process.env.ALL_MALL_DB_PATH)) {
+    return process.env.ALL_MALL_DB_PATH;
+  }
+  const local = [
+    path.join("D:", "Projects", "ALL-MALL", "all-mall-mvp", "dev.db"),
+    path.join("D:", "Projects", "ALL-MALL", "prisma", "dev.db"),
+    "/var/www/all-mall/dev.db",
+  ];
+  for (const p of local) {
+    if (fs.existsSync(p)) return p;
+  }
+  return "/var/www/all-mall/dev.db";
+}
+
+const SRC_DB = resolveSourceDbPath();
+const TARGET_SITE_PATTERN = (process.env.TARGET_SITE_PATTERN || "").trim().toLowerCase();
 
 // ─── ALLOWED SUPPLIERS ────────────────────────────────────────────────────────
-// Only import products from these 5 Lebanese tech suppliers.
+// Only import products from approved Lebanese tech suppliers.
 // Matched against ALL-MALL's Site.url and Site.name (case-insensitive substring).
-const ALLOWED_SITE_PATTERNS = ["ezone", "ayoub", "pacmax", "comparts", "jak", "electroslab"];
+const ALLOWED_SITE_PATTERNS = ["ezone", "ayoub", "pacmax", "comparts", "jak", "electroslab", "soukmafimetlo"];
 
 // DSLR restriction: never import laptops from DSLR.
 const DSLR_SITE_PATTERN = "dslr";
@@ -97,6 +116,16 @@ function isAyoubTechAllowed(row, mappedSlug) {
   return AYOUB_TECH_CATEGORY_HINTS.some((kw) => srcCategory.includes(kw) || title.includes(kw));
 }
 
+function isLikelyCameraConferencingProduct(title) {
+  const text = (title || "").toLowerCase();
+  if (!text) return false;
+
+  const cameraPattern = /\b(webcam|conference\s*camera|video\s*conferencing|video\s*conference|conferencecam|ptz|rally\s*bar|rally\s*camera|meetup|streamcam|brio|logitech\s*c\d{3}|ip\s*camera|security\s*camera)\b/i;
+  const laptopPattern = /\b(laptop|notebook|macbook|ultrabook|chromebook|thinkpad|ideapad|vivobook|zenbook)\b/i;
+
+  return cameraPattern.test(text) && !laptopPattern.test(text);
+}
+
 // ─── CATEGORY MAPPING ──────────────────────────────────────────────────────────
 // Maps ALL-MALL category name (case-insensitive) → Technodel category slug
 const CATEGORY_MAP = {
@@ -107,6 +136,7 @@ const CATEGORY_MAP = {
   "ayoub": "accessories",
   "comparts": "accessories",
   "jak": "accessories",
+  "soukmafimetlo": "accessories",
 
   // Electronic components / modules
   "electronic components": "electronic-components",
@@ -372,11 +402,20 @@ function generateSku() {
 
 // Run sqlite3 query and return rows as array of objects
 function query(dbPath, sql) {
-  const out = execSync(`sqlite3 -json "${dbPath}" "${sql}"`, {
-    encoding: "utf-8",
-    maxBuffer: 500 * 1024 * 1024,
-  });
-  return JSON.parse(out || "[]");
+  try {
+    const out = execSync(`sqlite3 -json "${dbPath}" "${sql}"`, {
+      encoding: "utf-8",
+      maxBuffer: 500 * 1024 * 1024,
+    });
+    return JSON.parse(out || "[]");
+  } catch {
+    const db = new Database(dbPath, { readonly: true });
+    try {
+      return db.prepare(sql).all();
+    } finally {
+      db.close();
+    }
+  }
 }
 
 function normalizeSiteUrl(rawUrl) {
@@ -400,6 +439,11 @@ function inferCompetitorName(site) {
 
 async function main() {
   console.log("=== ALL-MALL → Technodel Product Migration ===\n");
+  console.log(`Source DB resolved to: ${SRC_DB}`);
+
+  if (!fs.existsSync(SRC_DB)) {
+    throw new Error(`ALL-MALL source DB not found at: ${SRC_DB}`);
+  }
 
   // 1. Count source data
   const countResult = query(SRC_DB, "SELECT COUNT(*) as c FROM Product");
@@ -441,9 +485,13 @@ async function main() {
   for (const site of allSites) {
     const urlLower = (site.url || "").toLowerCase();
     const nameLower = (site.name || "").toLowerCase();
-    const isAllowed = ALLOWED_SITE_PATTERNS.some(
+    const matchesAllowed = ALLOWED_SITE_PATTERNS.some(
       (p) => urlLower.includes(p) || nameLower.includes(p)
     );
+    const matchesTarget = !TARGET_SITE_PATTERN
+      || urlLower.includes(TARGET_SITE_PATTERN)
+      || nameLower.includes(TARGET_SITE_PATTERN);
+    const isAllowed = matchesAllowed && matchesTarget;
     if (isAllowed) {
       allowedSiteIds.push(`'${String(site.id).replace(/'/g, "''")}'`);
       allowedSites.push(site);
@@ -461,6 +509,9 @@ async function main() {
   if (allowedSiteIds.length === 0) {
     console.error("ERROR: No matching supplier sites found in ALL-MALL's Site table. Check ALLOWED_SITE_PATTERNS.");
     process.exit(1);
+  }
+  if (TARGET_SITE_PATTERN) {
+    console.log(`Target supplier filter: ${TARGET_SITE_PATTERN}`);
   }
   const siteConditions = allowedSiteIds.join(",");
   console.log(`Allowed supplier sites: ${allowedSiteIds.length} (DSLR sites: ${dslrSiteIds.size})`);
@@ -525,8 +576,13 @@ async function main() {
   console.log();
 
   // 6. Check existing products to avoid duplicates; also seed SKU counter
-  const existingProducts = await dst.product.findMany({ select: { slug: true, sku: true } });
+  const existingProducts = await dst.product.findMany({ select: { slug: true, sku: true, sourceUrl: true } });
   const existingSlugs = new Set(existingProducts.map((p) => p.slug));
+  const existingSourceUrls = new Set(
+    existingProducts
+      .map((p) => (p.sourceUrl || "").trim().toLowerCase())
+      .filter(Boolean)
+  );
   console.log(`Existing products in Technodel: ${existingSlugs.size}\n`);
 
   // Seed _skuCounter from highest existing SK-format SKU to avoid collisions
@@ -584,6 +640,12 @@ async function main() {
     );
 
     for (const row of rows) {
+      const rowSourceUrl = String(row.sourceUrl || "").trim().toLowerCase();
+      if (rowSourceUrl && existingSourceUrls.has(rowSourceUrl)) {
+        skipped++;
+        continue;
+      }
+
       // Generate unique slug
       let slug = slugify(row.title);
       if (row.sourceId) slug = slug + "-" + row.sourceId.substring(0, 10);
@@ -599,6 +661,12 @@ async function main() {
       if (electroslabSiteIds.has(row.siteId)) {
         mappedSlug = "electronic-components";
         categoryId = catBySlug[mappedSlug];
+      }
+
+      // Permanent guard: camera/conferencing products should never remain in laptops.
+      if (mappedSlug === "laptops" && isLikelyCameraConferencingProduct(row.title)) {
+        mappedSlug = "cameras";
+        categoryId = catBySlug[mappedSlug] || categoryId;
       }
 
       if (!categoryId) {
@@ -661,7 +729,7 @@ async function main() {
             slug,
             sku,
             title: row.title || "Untitled Product",
-            shortDescription: `${row.brand ? row.brand + " " : ""}${row.title || ""} — Available at Technodel Lebanon with warranty.`,
+            shortDescription: `${row.brand ? row.brand + " " : ""}${row.title || ""} - Available at Technodel Lebanon with warranty.`,
             description: row.description || `<p>${row.title}</p><p>Available at Technodel Lebanon.</p>`,
             highlights: JSON.stringify(["Official Warranty", "Fast Delivery", "Best Price in Lebanon"]),
             displayPrice: basePrice,
@@ -684,6 +752,7 @@ async function main() {
         });
         created++;
         existingSlugs.add(slug);
+        if (rowSourceUrl) existingSourceUrls.add(rowSourceUrl);
       } catch (err) {
         if (err.code === "P2002") {
           skipped++;

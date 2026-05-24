@@ -1,0 +1,1 @@
+const { PrismaClient } = require("@prisma/client"); const prisma = new PrismaClient(); prisma.product.findFirst({ where: { slug: { contains: "amd-radeon-rx-580-8gb-gddr5-dual-cooling-fans" } } }).then(x => console.log(x.sourceUrl)).finally(() => prisma.$disconnect());

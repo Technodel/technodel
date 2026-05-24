@@ -4,6 +4,8 @@ import { Icon } from "@/components/ui/Icon";
 import { useCartStore } from "@/store/cart";
 import Link from "next/link";
 import Image from "next/image";
+import { apiPath } from "@/lib/api-path";
+import DeliveryPicker from "@/components/ui/DeliveryPicker";
 
 type PaymentMethod = "cod" | "wish_money" | "crypto";
 
@@ -13,6 +15,8 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [orderId, setOrderId] = useState("");
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  const [deliveryZone, setDeliveryZone] = useState("");
 
   const [form, setForm] = useState({
     name: "", phone: "", email: "", address: "", city: "", note: "",
@@ -20,8 +24,7 @@ export default function CheckoutPage() {
   });
 
   const subtotal = total();
-  const DELIVERY = 2.5;
-  const grandTotal = subtotal + DELIVERY;
+  const grandTotal = subtotal + deliveryFee;
 
   function set(key: string, val: string) {
     setForm((p) => ({ ...p, [key]: val }));
@@ -34,7 +37,7 @@ export default function CheckoutPage() {
     }
     setLoading(true); setError("");
     try {
-      const res = await fetch("api/orders", {
+      const res = await fetch(apiPath("/api/orders"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -52,7 +55,8 @@ export default function CheckoutPage() {
             title: i.title,
           })),
           subtotal,
-          deliveryFee: DELIVERY,
+          deliveryFee: deliveryFee,
+          deliveryZone: deliveryZone,
           total: grandTotal,
         }),
       });
@@ -133,6 +137,7 @@ export default function CheckoutPage() {
             <Field label="City / Region">
               <input className="input" value={form.city} onChange={(e) => set("city", e.target.value)} placeholder="Beirut, Tripoli, Sidon..." />
             </Field>
+            <DeliveryPicker subtotal={subtotal} onDeliveryChange={(fee, zone) => { setDeliveryFee(fee); setDeliveryZone(zone); }} />
             <Field label="Order Notes (optional)">
               <textarea className="input" rows={2} value={form.note} onChange={(e) => set("note", e.target.value)} placeholder="Any special instructions..." style={{ resize: "vertical" }} />
             </Field>
@@ -207,7 +212,7 @@ export default function CheckoutPage() {
               <span>Subtotal</span><span>${subtotal.toFixed(0)}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: "var(--c-muted)" }}>
-              <span>Delivery</span><span>${DELIVERY.toFixed(0)}</span>
+              <span>Delivery</span><span>${deliveryFee.toFixed(0)}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, fontWeight: 800, paddingTop: 8, borderTop: "1px solid var(--c-border)" }}>
               <span>Total</span><span style={{ color: "var(--c-accent)" }}>${grandTotal.toFixed(0)}</span>

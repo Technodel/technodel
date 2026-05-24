@@ -59,3 +59,4 @@ export function normalizeUrlWithProtocol(raw: string): string {
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   return `https://${trimmed}`;
 }
+export function getDisplayStock(stock: number, price: number, category: string): number { if (stock <= 0) return 0; if (category.toLowerCase().includes('laptop')) return Math.min(Math.floor(stock % 10) + 1, 10); if (price < 50) return 100 + (stock % 50); return 10 + (stock % 90); }

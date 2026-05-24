@@ -96,7 +96,7 @@ export default function AboutPage() {
           <h2>📞 Get In Touch</h2>
           <p>
             Have a question? We&apos;d love to hear from you.{" "}
-            <a href="https://wa.me/961XXXXXXXX">Chat on WhatsApp</a>,{" "}
+            <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || ""}`}>Chat on WhatsApp</a>,{" "}
             visit our <Link href="/contact">Contact page</Link>, or{" "}
             <Link href="/shop">browse our store</Link>.
           </p>

@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/auth";
 import { Icon } from "@/components/ui/Icon";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
+import { apiPath } from "@/lib/api-path";
 
 interface OrderSummary {
   id: string;
@@ -35,7 +36,7 @@ export default function AccountPage() {
 
   useEffect(() => {
     if (user) {
-      fetch("/api/orders?limit=5")
+      fetch(apiPath("/api/orders?limit=5"))
         .then((r) => r.json())
         .then((data) => {
           if (data.orders) setOrders(data.orders);

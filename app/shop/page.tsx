@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Shop All Products – Technodel Lebanon",
     description: "Browse 5000+ tech products at Lebanon's #1 tech store.",
-    url: "https://technodel.net/shop",
+    url: "https://technodel.net/new/shop",
     siteName: "Technodel",
     type: "website",
     locale: "en_US",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     title: "Shop All Products – Technodel Lebanon",
     description: "Browse 5000+ tech products at Lebanon's #1 tech store.",
   },
-  alternates: { canonical: "https://technodel.net/shop" },
+  alternates: { canonical: "https://technodel.net/new/shop" },
 };
 
 export default async function ShopPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
@@ -49,6 +49,15 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
 
   const where: any = technodelSupplierWhere(extraWhere);
 
+  const facetExtraWhere: any = {};
+  if (brand) facetExtraWhere.brand = { contains: brand };
+  if (featured) facetExtraWhere.isFeatured = true;
+  if (isNew) facetExtraWhere.isNew = true;
+  if (q) facetExtraWhere.OR = [{ title: { contains: q } }, { brand: { contains: q } }];
+  if (maxPrice < 999999) facetExtraWhere.displayPrice = { gte: minPrice, lte: maxPrice };
+
+  const facetWhere: any = technodelSupplierWhere(facetExtraWhere);
+
   const orderBy: any =
     sort === "price_asc" ? { displayPrice: "asc" } :
     sort === "price_desc" ? { displayPrice: "desc" } :
@@ -56,7 +65,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
     sort === "popular" ? { orderCount: "desc" } :
     { featuredOrder: "asc" };
 
-  const [products, total, categories] = await Promise.all([
+  const [products, total, categories, categoryCounts] = await Promise.all([
     prisma.product.findMany({
       where,
       select: {
@@ -83,9 +92,22 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
     prisma.category.findMany({
       where: { isVisible: true, parentId: null, slug: { in: [...TECH_CATEGORY_SLUGS] } },
       orderBy: { sortOrder: "asc" },
-      select: { id: true, name: true, slug: true, icon: true, _count: { select: { products: true } } },
+      select: { id: true, name: true, slug: true, icon: true },
+    }).catch(() => []),
+    prisma.product.groupBy({
+      by: ["categoryId"],
+      where: facetWhere,
+      _count: { _all: true },
     }).catch(() => []),
   ]);
+
+  const categoryCountMap = new Map(categoryCounts.map((row) => [row.categoryId, row._count._all]));
+  const parsedCategories = categories
+    .map((c) => ({
+      ...c,
+      _count: { products: categoryCountMap.get(c.id) || 0 },
+    }))
+    .filter((c) => !brand || c._count.products > 0);
 
   const parsedProducts = products.map((p) => {
     let imageUrl = "";
@@ -117,7 +139,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
             "@type": "BreadcrumbList",
             itemListElement: [
               { "@type": "ListItem", position: 1, name: "Home", item: "https://technodel.net" },
-              { "@type": "ListItem", position: 2, name: "Shop", item: "https://technodel.net/shop" },
+              { "@type": "ListItem", position: 2, name: "Shop", item: "https://technodel.net/new/shop" },
             ],
           }),
         }}
@@ -130,7 +152,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
             "@type": "CollectionPage",
             name: "Shop All Products – Technodel Lebanon",
             description: "Browse our full catalog of tech products at Lebanon's #1 tech store.",
-            url: "https://technodel.net/shop",
+            url: "https://technodel.net/new/shop",
             numberOfItems: total,
             mainEntity: {
               "@type": "ItemList",
@@ -144,7 +166,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
         total={total}
         pages={Math.ceil(total / limit)}
         page={page}
-        categories={categories as any}
+        categories={parsedCategories as any}
         initialFilters={{ sort, featured, isNew, category, brand, q, minPrice, maxPrice }}
       />
     </>

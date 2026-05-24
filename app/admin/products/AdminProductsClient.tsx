@@ -2,6 +2,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { apiPath } from "@/lib/api-path";
 
 interface Product {
   id: string; title: string; sku: string; brand: string;
@@ -38,7 +39,7 @@ export default function AdminProductsClient({ products, total, pages, page, cate
     if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
     setDeleting(id);
     try {
-      const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+      const res = await fetch(apiPath(`/api/admin/products/${id}`), { method: "DELETE" });
       if (!res.ok) throw new Error("Failed");
       router.refresh();
     } catch {
@@ -49,7 +50,7 @@ export default function AdminProductsClient({ products, total, pages, page, cate
   }
 
   async function toggleField(id: string, field: "isVisible" | "isFeatured" | "isNew", value: boolean) {
-    await fetch(`/api/admin/products/${id}`, {
+    await fetch(apiPath(`/api/admin/products/${id}`), {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ [field]: !value }),

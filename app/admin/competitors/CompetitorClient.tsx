@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiPath } from "@/lib/api-path";
 
 interface Competitor {
   id: string; name: string; url: string; status: string;
@@ -21,7 +22,7 @@ export default function CompetitorClient({ competitors }: { competitors: Competi
     e.preventDefault();
     setSaving(true); setError("");
     try {
-      const res = await fetch("/api/admin/competitors", {
+      const res = await fetch(apiPath("/api/admin/competitors"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, markupPct: parseFloat(form.markupPct) }),
@@ -37,7 +38,7 @@ export default function CompetitorClient({ competitors }: { competitors: Competi
   async function scanCompetitor(id: string) {
     setScanning(id);
     try {
-      const res = await fetch(`/api/admin/competitors/${id}/deep-scan`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ maxPages: 8 }) });
+      const res = await fetch(apiPath(`/api/admin/competitors/${id}/deep-scan`), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ maxPages: 8 }) });
       const data = await res.json();
       setScanResult((p) => ({ ...p, [id]: { count: data.totalFound || 0, error: data.error } }));
       router.refresh();

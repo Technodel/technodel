@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { apiPath } from "@/lib/api-path";
 
 type Banner = {
   id: string;
@@ -79,7 +80,7 @@ export default function BannersClient({ initialBanners }: { initialBanners: Bann
 
   async function remove(id: string) {
     if (!confirm("Delete this banner?")) return;
-    const res = await fetch(`/api/admin/banners/${id}`, { method: "DELETE" });
+    const res = await fetch(apiPath(`/api/admin/banners/${id}`), { method: "DELETE" });
     if (res.ok) setBanners((prev) => prev.filter((b) => b.id !== id));
   }
 

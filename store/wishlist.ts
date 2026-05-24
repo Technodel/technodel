@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { apiPath } from "@/lib/api-path";
 
 interface WishlistProduct {
   id: string;
@@ -36,7 +37,7 @@ export const useWishlistStore = create<WishlistStore>((set, get) => ({
   fetch: async () => {
     try {
       set({ loading: true });
-      const res = await fetch("/api/wishlist");
+      const res = await fetch(apiPath("/api/wishlist"));
       if (res.ok) {
         const data = await res.json();
         set({ items: data.items || [] });
@@ -47,7 +48,7 @@ export const useWishlistStore = create<WishlistStore>((set, get) => ({
 
   add: async (productId) => {
     try {
-      const res = await fetch("/api/wishlist", {
+      const res = await fetch(apiPath("/api/wishlist"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId }),
@@ -68,7 +69,7 @@ export const useWishlistStore = create<WishlistStore>((set, get) => ({
 
   remove: async (productId) => {
     try {
-      const res = await fetch("/api/wishlist", {
+      const res = await fetch(apiPath("/api/wishlist"), {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId }),

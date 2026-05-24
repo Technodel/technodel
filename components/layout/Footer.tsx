@@ -212,8 +212,8 @@ export default function Footer() {
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {[
                 { icon: "📍", content: "Beirut, Lebanon", href: null },
-                { icon: "📞", content: "+961 XX XXX XXX", href: "tel:+961XXXXXXXX" },
-                { icon: "💬", content: "WhatsApp Order", href: "https://wa.me/961XXXXXXXX", accent: true },
+                { icon: "📞", content: process.env.NEXT_PUBLIC_CONTACT_PHONE || "Call Us", href: `tel:${process.env.NEXT_PUBLIC_CONTACT_PHONE || ""}` },
+                { icon: "💬", content: "WhatsApp Order", href: `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || ""}`, accent: true },
                 { icon: "✉️", content: "info@technodel.net", href: "mailto:info@technodel.net" },
               ].map((item, i) => (
                 <motion.div

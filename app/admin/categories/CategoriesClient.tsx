@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiPath } from "@/lib/api-path";
 
 interface Category {
   id: string; name: string; slug: string; icon?: string | null; sortOrder: number; isVisible: boolean;
@@ -26,7 +27,7 @@ export default function CategoriesClient({ categories }: { categories: Category[
     e.preventDefault();
     setSaving(true); setError("");
     try {
-      const url = editItem ? `/api/admin/categories/${editItem.id}` : "/api/admin/categories";
+      const url = editItem ? apiPath(`/api/admin/categories/${editItem.id}`) : apiPath("/api/admin/categories");
       const method = editItem ? "PATCH" : "POST";
       const res = await fetch(url, {
         method,
@@ -43,7 +44,7 @@ export default function CategoriesClient({ categories }: { categories: Category[
 
   async function del(cat: Category) {
     if (!confirm(`Delete "${cat.name}"? All products in this category will need reassigning.`)) return;
-    await fetch(`/api/admin/categories/${cat.id}`, { method: "DELETE" });
+    await fetch(apiPath(`/api/admin/categories/${cat.id}`), { method: "DELETE" });
     router.refresh();
   }
 

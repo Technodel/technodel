@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiPath } from "@/lib/api-path";
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
@@ -135,7 +136,7 @@ function CloneByUrlTab({ categories, competitors }: { categories: Category[]; co
       if (bulkMode) {
         const urls = bulkText.split("\n").map((u) => u.trim()).filter(Boolean);
         if (!urls.length) { setError("Enter at least one URL"); return; }
-        const res = await fetch("/api/admin/clone/urls", {
+        const res = await fetch(apiPath("/api/admin/clone/urls"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ urls, competitorId: competitorId || undefined }),
@@ -147,7 +148,7 @@ function CloneByUrlTab({ categories, competitors }: { categories: Category[]; co
         setSelected(sel);
       } else {
         if (!singleUrl) { setError("Enter a URL"); return; }
-        const res = await fetch("/api/admin/clone/url", {
+        const res = await fetch(apiPath("/api/admin/clone/url"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url: singleUrl, action: "preview", competitorId: competitorId || undefined }),
@@ -172,7 +173,7 @@ function CloneByUrlTab({ categories, competitors }: { categories: Category[]; co
     let count = 0;
     for (const item of toClone) {
       try {
-        const res = await fetch("/api/admin/clone/url", {
+        const res = await fetch(apiPath("/api/admin/clone/url"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url: item.url, action: "save", categoryId, competitorId: competitorId || undefined }),
@@ -295,7 +296,7 @@ function CloneCategoryTab({ categories, competitors }: { categories: Category[];
     setError(""); setScanned(null); setSelected(new Set());
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/clone/category", {
+      const res = await fetch(apiPath("/api/admin/clone/category"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ categoryUrl: catUrl, maxPages: parseInt(maxPages) }),
@@ -320,7 +321,7 @@ function CloneCategoryTab({ categories, competitors }: { categories: Category[];
     // Clone one at a time to avoid overwhelming the server
     for (const url of urls) {
       try {
-        const res = await fetch("/api/admin/clone/url", {
+        const res = await fetch(apiPath("/api/admin/clone/url"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url, action: "save", categoryId, competitorId: competitorId || undefined }),
@@ -428,7 +429,7 @@ function CloneBySkuTab({ categories, competitors }: { categories: Category[]; co
     if (!baseUrl) { setError("Enter a site URL or select a competitor"); return; }
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/clone/sku", {
+      const res = await fetch(apiPath("/api/admin/clone/sku"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sku, siteUrl: baseUrl, action: "preview", competitorId: competitorId || undefined }),
@@ -448,7 +449,7 @@ function CloneBySkuTab({ categories, competitors }: { categories: Category[]; co
     if (!result?.ok) return;
     setSaving(true);
     const baseUrl = selectedComp?.url || siteUrl;
-    const res = await fetch("/api/admin/clone/sku", {
+    const res = await fetch(apiPath("/api/admin/clone/sku"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sku, siteUrl: baseUrl, action: "save", categoryId, competitorId: competitorId || undefined }),

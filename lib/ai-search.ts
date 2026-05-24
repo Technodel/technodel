@@ -195,6 +195,10 @@ function scoreProduct(args: {
   const brandLower = brand.toLowerCase();
   const categoryLower = category.toLowerCase();
   const queryLower = query.toLowerCase();
+  const queryTerms = queryLower
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length > 1 && !NOISE_WORDS.has(t));
 
   let score = 0;
   let titleHits = 0;
@@ -234,7 +238,7 @@ function scoreProduct(args: {
 
   if (intent === "gift" || intent === "browse") {
     if (titleHits === 0 && categoryLower.length > 0) {
-      const catMatch = allTerms.some((t) => categoryLower.includes(t) || t.includes(categoryLower));
+      const catMatch = queryTerms.some((t) => categoryLower.includes(t) || t.includes(categoryLower));
       if (catMatch) score = Math.max(score, 15);
     }
   }

@@ -26,6 +26,7 @@ export const TECHNODEL_SUPPLIER_TERMS = [
   "jimmy",
   "electroslab",
   "electroslob",
+  "soukmafimetlo",
 ] as const;
 
 const AYOUB_SUPPLIER_TERMS = ["ayoub"] as const;

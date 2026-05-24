@@ -1,0 +1,1 @@
+const { PrismaClient } = require("@prisma/client"); const prisma = new PrismaClient(); prisma.product.findMany({ where: { title: { contains: "rx 580", mode: "insensitive" } }, select: { title: true, sourceUrl: true } }).then(console.log).finally(() => prisma.$disconnect());

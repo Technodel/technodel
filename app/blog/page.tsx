@@ -29,7 +29,7 @@ const posts = [
     date: "2026-05-18",
     author: "Technodel Team",
     category: "Laptops",
-    image: "/blog/budget-laptop.jpg",
+    image: "/og-image.svg",
     readTime: "7 min read",
   },
   {
@@ -39,7 +39,7 @@ const posts = [
     date: "2026-05-16",
     author: "Technodel Team",
     category: "Smartphones",
-    image: "/blog/iphone-price.jpg",
+    image: "/og-image.svg",
     readTime: "6 min read",
   },
   {
@@ -49,7 +49,7 @@ const posts = [
     date: "2026-05-14",
     author: "Technodel Team",
     category: "Gaming",
-    image: "/blog/gaming-pc-build.jpg",
+    image: "/og-image.svg",
     readTime: "8 min read",
   },
   {
@@ -59,7 +59,7 @@ const posts = [
     date: "2026-05-12",
     author: "Technodel Team",
     category: "Printers",
-    image: "/blog/printer-guide.jpg",
+    image: "/og-image.svg",
     readTime: "7 min read",
   },
   {
@@ -69,7 +69,7 @@ const posts = [
     date: "2026-05-08",
     author: "Technodel Team",
     category: "Smartphones",
-    image: "/blog/smartphones-under500.jpg",
+    image: "/og-image.svg",
     readTime: "7 min read",
   },
   {
@@ -79,7 +79,7 @@ const posts = [
     date: "2026-05-06",
     author: "Technodel Team",
     category: "Laptops",
-    image: "/blog/macbook-price.jpg",
+    image: "/og-image.svg",
     readTime: "6 min read",
   },
   {
@@ -89,7 +89,7 @@ const posts = [
     date: "2026-05-03",
     author: "Technodel Team",
     category: "Networking",
-    image: "/blog/networking-setup.jpg",
+    image: "/og-image.svg",
     readTime: "7 min read",
   },
   {
@@ -99,7 +99,7 @@ const posts = [
     date: "2026-04-25",
     author: "Technodel Team",
     category: "Tablets",
-    image: "/blog/tablet-students.jpg",
+    image: "/og-image.svg",
     readTime: "7 min read",
   },
   {
@@ -109,7 +109,7 @@ const posts = [
     date: "2026-04-18",
     author: "Technodel Team",
     category: "Gaming",
-    image: "/blog/gaming-chair.jpg",
+    image: "/og-image.svg",
     readTime: "7 min read",
   },
   {
@@ -120,7 +120,7 @@ const posts = [
     date: "2026-05-15",
     author: "Technodel Team",
     category: "Gaming",
-    image: "/blog/gaming-laptop-guide.jpg",
+    image: "/og-image.svg",
     readTime: "8 min read",
   },
   {
@@ -131,7 +131,7 @@ const posts = [
     date: "2026-05-10",
     author: "Technodel Team",
     category: "Laptops",
-    image: "/blog/laptop-guide.jpg",
+    image: "/og-image.svg",
     readTime: "10 min read",
   },
   {
@@ -142,7 +142,7 @@ const posts = [
     date: "2026-05-05",
     author: "Technodel Team",
     category: "Smartphones",
-    image: "/blog/iphone-vs-samsung.jpg",
+    image: "/og-image.svg",
     readTime: "7 min read",
   },
   {
@@ -153,7 +153,7 @@ const posts = [
     date: "2026-04-28",
     author: "Technodel Team",
     category: "Gaming",
-    image: "/blog/build-gaming-pc.jpg",
+    image: "/og-image.svg",
     readTime: "12 min read",
   },
   {
@@ -164,7 +164,7 @@ const posts = [
     date: "2026-04-20",
     author: "Technodel Team",
     category: "Accessories",
-    image: "/blog/tech-accessories.jpg",
+    image: "/og-image.svg",
     readTime: "6 min read",
   },
   {
@@ -175,7 +175,7 @@ const posts = [
     date: "2026-04-15",
     author: "Technodel Team",
     category: "Networking",
-    image: "/blog/networking-guide.jpg",
+    image: "/og-image.svg",
     readTime: "9 min read",
   },
 ];

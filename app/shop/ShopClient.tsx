@@ -52,6 +52,10 @@ export default function ShopClient({ products, total, pages, page, categories, i
   const windowStart = Math.floor((currentPage - 1) / maxVisiblePages) * maxVisiblePages + 1;
   const windowEnd = Math.min(safePages, windowStart + maxVisiblePages - 1);
   const visiblePages = Array.from({ length: windowEnd - windowStart + 1 }, (_, i) => windowStart + i);
+  const isBrandFiltered = !!initialFilters.brand;
+  const visibleCategories = isBrandFiltered
+    ? categories.filter((c) => (c._count?.products || 0) > 0)
+    : categories;
 
   function navigate(overrides: Record<string, any>) {
     const sp = new URLSearchParams();
@@ -77,6 +81,19 @@ export default function ShopClient({ products, total, pages, page, categories, i
              "All Products"}
           </h1>
           <p style={{ color: "var(--c-muted)", fontSize: 13, marginTop: 2 }}>{total.toLocaleString()} products</p>
+          {isBrandFiltered && (
+            <div style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 10, padding: "6px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--c-border)", background: "var(--c-surface)", fontSize: 12 }}>
+              <span style={{ color: "var(--c-muted)" }}>Brand:</span>
+              <strong>{initialFilters.brand}</strong>
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => navigate({ brand: undefined, category: undefined })}
+                style={{ padding: "2px 8px", minHeight: "unset" }}
+              >
+                Clear Brand
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Sort + filter toggle */}
@@ -112,15 +129,20 @@ export default function ShopClient({ products, total, pages, page, categories, i
                   onClick={() => navigate({ category: undefined })}
                   style={{
                     border: "none", textAlign: "left", cursor: "pointer",
-                    padding: "6px 10px", borderRadius: "var(--r-sm)", fontSize: 14,
+                    padding: "6px 10px", borderRadius: "var(--r-sm)", fontSize: 14, display: "flex", justifyContent: "space-between",
                     color: !initialFilters.category ? "var(--c-accent)" : "var(--c-text)",
                     fontWeight: !initialFilters.category ? 700 : 400,
                     background: !initialFilters.category ? "rgba(0,200,255,0.1)" : "none",
                   } as any}
                 >
-                  All Categories
+                  <span>All Categories</span>
+                  {isBrandFiltered && (
+                    <span style={{ fontSize: 11, color: "var(--c-muted)" }}>
+                      {visibleCategories.reduce((sum, c) => sum + (c._count?.products || 0), 0)}
+                    </span>
+                  )}
                 </button>
-                {categories.map((c) => (
+                {visibleCategories.map((c) => (
                   <button
                     key={c.id}
                     onClick={() => navigate({ category: c.slug })}
@@ -136,6 +158,11 @@ export default function ShopClient({ products, total, pages, page, categories, i
                     {c._count && <span style={{ fontSize: 11, color: "var(--c-muted)" }}>{c._count.products}</span>}
                   </button>
                 ))}
+                {isBrandFiltered && visibleCategories.length === 0 && (
+                  <div style={{ padding: "6px 10px", fontSize: 12, color: "var(--c-muted)" }}>
+                    No categories found for this brand.
+                  </div>
+                )}
               </div>
             </div>
 

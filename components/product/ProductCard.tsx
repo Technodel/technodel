@@ -7,6 +7,7 @@ import { useAuthStore } from "@/store/auth";
 import { useWishlistStore } from "@/store/wishlist";
 import { cardHover, cardImageZoom } from "@/lib/animations";
 import { sanitizeProductBrand } from "@/lib/brand";
+import { getDisplayStock } from "@/lib/utils";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 import { Icon } from "@/components/ui/Icon";
 import { useState } from "react";
@@ -45,8 +46,10 @@ export default function ProductCard({ product }: Props) {
   const pctOff = product.comparePrice ? Math.round((savings / product.comparePrice) * 100) : 0;
   const safeBrand = sanitizeProductBrand(product.brand, product.competitor?.name);
 
+  const displayStock = (product.stock !== undefined) ? getDisplayStock(product.stock, product.displayPrice, product.category?.name || "") : undefined;
+
   const isLowStock = product.stock !== undefined && product.lowStockThresh !== undefined &&
-    product.stock > 0 && product.stock <= product.lowStockThresh;
+    product.stock > 0 && displayStock !== undefined && displayStock <= product.lowStockThresh;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -135,7 +138,7 @@ export default function ProductCard({ product }: Props) {
                 transition={{ delay: 0.25 }}
                 style={{ animation: "urgencyPulse 1.5s ease infinite" }}
               >
-                <Icon name="flame" size={12} /> Only {product.stock} left
+                <Icon name="flame" size={12} /> Only {displayStock} left
               </motion.span>
             )}
           </div>

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { apiPath } from "@/lib/api-path";
 
 interface User {
   id: string;
@@ -33,7 +34,7 @@ export const useAuthStore = create<AuthStore>()(
       login: async (email, password) => {
         try {
           set({ loading: true });
-          const res = await fetch("/api/auth/login", {
+          const res = await fetch(apiPath("/api/auth/login"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
@@ -51,7 +52,7 @@ export const useAuthStore = create<AuthStore>()(
       register: async (name, email, password, phone) => {
         try {
           set({ loading: true });
-          const res = await fetch("/api/auth/register", {
+          const res = await fetch(apiPath("/api/auth/register"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name, email, password, phone }),
@@ -68,14 +69,14 @@ export const useAuthStore = create<AuthStore>()(
 
       logout: async () => {
         try {
-          await fetch("/api/auth/logout", { method: "POST" });
+          await fetch(apiPath("/api/auth/logout"), { method: "POST" });
         } catch {}
         set({ user: null });
       },
 
       fetchUser: async () => {
         try {
-          const res = await fetch("/api/auth/me");
+          const res = await fetch(apiPath("/api/auth/me"));
           if (res.ok) {
             const data = await res.json();
             set({ user: data.user });

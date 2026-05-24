@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { apiPath } from "@/lib/api-path";
 
 interface DeliveryZone {
   id: string;
@@ -24,7 +25,7 @@ export default function DeliveryPicker({ subtotal, onDeliveryChange }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
-    fetch("/api/delivery")
+    fetch(apiPath("/api/delivery"))
       .then((r) => r.json())
       .then((data) => {
         const active = (data.zones || []).filter((z: DeliveryZone) => z.isActive);

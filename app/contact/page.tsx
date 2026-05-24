@@ -59,10 +59,10 @@ const contactMethods = [
       </svg>
     ),
     title: "Call Us",
-    detail: "+961 XX XXX XXX",
+    detail: process.env.NEXT_PUBLIC_CONTACT_PHONE || "Contact Us",
     sub: "Mon–Fri 9AM–6PM, Sat 9AM–2PM",
-    href: "tel:+961XXXXXXXXX",
-    label: "+961 XX XXX XXX",
+    href: `tel:${process.env.NEXT_PUBLIC_CONTACT_PHONE || ""}`,
+    label: process.env.NEXT_PUBLIC_CONTACT_PHONE || "+961 XX XXX XXX",
   },
   {
     icon: (
@@ -73,7 +73,7 @@ const contactMethods = [
     title: "WhatsApp",
     detail: "Chat with us",
     sub: "Quickest response time",
-    href: "https://wa.me/961XXXXXXXXX",
+    href: `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || ""}`,
     label: "Chat on WhatsApp",
   },
   {

@@ -9,6 +9,9 @@ import { useWishlistStore } from "@/store/wishlist";
 import ProductCard from "@/components/product/ProductCard";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 import { sanitizeProductBrand } from "@/lib/brand";
+import { getDisplayStock } from "@/lib/utils";
+import { normalizeMojibake } from "@/lib/product-copy";
+import { getSupplierCode } from "@/lib/supplier-code";
 import {
   staggerContainer, fadeInUp, fadeInRight, fadeInLeft,
   scaleIn, spring, sectionReveal,
@@ -36,6 +39,7 @@ interface Product {
   verifiedUserIds?: string[];
   competitor?: { id: string; name: string; url: string; logoUrl?: string | null } | null;
   sourcePrice?: number | null;
+  sourceUrl?: string | null;
 }
 
 export default function ProductDetail({ product, related }: { product: Product; related: any[] }) {
@@ -87,6 +91,10 @@ export default function ProductDetail({ product, related }: { product: Product; 
   }, [product.id, product.displayPrice]);
 
   const togglePriceWatch = () => {
+    if (!user) {
+      window.location.href = "/login";
+      return;
+    }
     try {
       const stored = JSON.parse(localStorage.getItem("tn-price-watch") || "{}");
       if (isWatching) {
@@ -119,8 +127,17 @@ export default function ProductDetail({ product, related }: { product: Product; 
   const price = product.displayPrice + (selectedVariant?.priceAdj || 0);
   const savings = product.comparePrice ? product.comparePrice - price : 0;
   const discount = product.comparePrice ? Math.round((savings / product.comparePrice) * 100) : 0;
-  const inStock = (selectedVariant?.stock ?? product.stock) > 0;
+  const rawStock = selectedVariant?.stock ?? product.stock;
+  const displayStock = getDisplayStock(rawStock, price, product.category.name);
+  const inStock = rawStock > 0;
   const safeBrand = sanitizeProductBrand(product.brand, product.competitor?.name);
+  const supplierCode = getSupplierCode({
+    sourceUrl: product.sourceUrl || "",
+    competitorName: product.competitor?.name || "",
+    competitorUrl: product.competitor?.url || "",
+    sku: product.sku,
+  });
+  const cleanShortDescription = normalizeMojibake(product.shortDescription || "");
 
   function handleMouseMove(e: React.MouseEvent) {
     if (isTouchDevice || !imgRef.current) return;
@@ -362,7 +379,12 @@ export default function ProductDetail({ product, related }: { product: Product; 
               variants={fadeInUp}
               style={{ fontSize: 15, color: "var(--c-muted)", lineHeight: 1.7, marginBottom: 20 }}
             >
-              {product.shortDescription}
+              {cleanShortDescription}
+              {supplierCode && (
+                <span style={{ display: "block", fontSize: 10, color: "var(--c-muted)", opacity: 0.6, marginTop: 4 }}>
+                  {supplierCode}
+                </span>
+              )}
             </motion.p>
           )}
 
@@ -659,12 +681,12 @@ export default function ProductDetail({ product, related }: { product: Product; 
                 {inStock ? "●" : "○"}
               </motion.span>
               {inStock
-                ? `In Stock (${selectedVariant?.stock ?? product.stock} available)`
+                ? `In Stock (${displayStock} available)`
                 : "Out of Stock"}
             </motion.span>
 
             {/* Stock urgency */}
-            {inStock && (selectedVariant?.stock ?? product.stock) <= (product.lowStockThresh || 5) && (
+            {inStock && displayStock <= (product.lowStockThresh || 5) && (
               <motion.span
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -677,7 +699,7 @@ export default function ProductDetail({ product, related }: { product: Product; 
                 >
                   🔥
                 </motion.span>
-                Only {selectedVariant?.stock ?? product.stock} left — order soon!
+                Only {displayStock} left — order soon!
               </motion.span>
             )}
 

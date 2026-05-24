@@ -111,7 +111,7 @@ export default function WarrantyPage() {
           <h2>📞 Need Help?</h2>
           <p>
             Our support team is available Sunday–Friday, 9 AM – 7 PM.
-            Contact us on <a href="https://wa.me/961XXXXXXXX">WhatsApp</a> or visit our{" "}
+            Contact us on <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || ""}`}>WhatsApp</a> or visit our{" "}
             <Link href="/contact">Contact page</Link>.
           </p>
         </div>

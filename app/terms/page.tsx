@@ -79,7 +79,7 @@ export default function TermsPage() {
         <h2>📧 Contact</h2>
         <p>
           For questions about these terms, contact us at legal@technodel.net
-          or via <a href="https://wa.me/961XXXXXXXX">WhatsApp</a>.
+          or via <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || ""}`}>WhatsApp</a>.
         </p>
       </div>
     </div>

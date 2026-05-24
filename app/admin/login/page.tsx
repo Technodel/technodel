@@ -14,7 +14,7 @@ export default function AdminLoginPage() {
       <div style={{ width: "100%", maxWidth: 420 }}>
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: 40 }}>
-          <Image src="/logo.png" alt="Technodel" width={320} height={80} style={{ width: "auto", height: 64, objectFit: "contain", maxWidth: "100%" }} priority />
+          <Image src="/logo.png?v=2" unoptimized alt="Technodel" width={320} height={80} style={{ width: "auto", height: 64, objectFit: "contain", maxWidth: "100%" }} priority />
           <div style={{ fontSize: 14, color: "var(--c-muted)", marginTop: 4 }}>Admin Galaxy 🌌</div>
         </div>
 

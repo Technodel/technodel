@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { generateSlug, generateSku } from "@/lib/utils";
+import { applyImportCategoryGuard, getImportGuardCategoryIds } from "@/lib/category-guard";
+import {
+  buildCanonicalDescription,
+  buildCanonicalShortDescription,
+  buildCanonicalTitle,
+  normalizeMojibake,
+} from "@/lib/product-copy";
 
 async function requireAdmin() {
   const session = await getSession();
@@ -42,31 +49,51 @@ export async function POST(req: NextRequest) {
   try {
     await requireAdmin();
     const body = await req.json();
+    const canonicalTitle = buildCanonicalTitle({
+      title: body.title,
+      brand: body.brand,
+      sourceUrl: body.sourceUrl,
+    });
+    const canonicalShortDescription = body.shortDescription
+      ? normalizeMojibake(body.shortDescription)
+      : buildCanonicalShortDescription({
+          title: canonicalTitle,
+          brand: body.brand,
+          sourceUrl: body.sourceUrl,
+        });
+    const canonicalDescription = buildCanonicalDescription({
+      title: canonicalTitle,
+      brand: body.brand,
+      sourceUrl: body.sourceUrl,
+      description: body.description,
+    });
+    const guardIds = await getImportGuardCategoryIds();
+    const finalCategoryId = applyImportCategoryGuard(body.categoryId, canonicalTitle || "", guardIds);
 
-    const slug = body.slug || generateSlug(body.title);
-    const sku = body.sku || generateSku(body.title);
+    const slug = body.slug || generateSlug(canonicalTitle || body.title);
+    const sku = body.sku || generateSku(canonicalTitle || body.title);
 
     const product = await prisma.product.create({
       data: {
-        title: body.title,
+        title: normalizeMojibake(canonicalTitle),
         slug,
         sku,
         brand: body.brand || "",
-        description: body.description || "",
-        shortDescription: body.shortDescription || "",
+        description: canonicalDescription,
+        shortDescription: canonicalShortDescription,
         images: JSON.stringify(body.images || []),
         specs: JSON.stringify(body.specs || []),
         highlights: JSON.stringify(body.highlights || []),
         schemaJson: body.schemaJson || "",
-        categoryId: body.categoryId,
+        categoryId: finalCategoryId,
         costPrice: body.costPrice || 0,
         sourcePrice: body.sourcePrice,
         displayPrice: body.displayPrice,
         comparePrice: body.comparePrice,
         priceFormula: body.priceFormula || "",
         sourceUrl: body.sourceUrl || "",
-        seoTitle: body.seoTitle || body.title,
-        seoDescription: body.seoDescription || body.shortDescription || "",
+        seoTitle: body.seoTitle || `Buy ${normalizeMojibake(canonicalTitle)} in Lebanon | Technodel`,
+        seoDescription: body.seoDescription || canonicalShortDescription || "",
         seoKeywords: body.seoKeywords || "",
         isFeatured: body.isFeatured || false,
         isNew: body.isNew || false,

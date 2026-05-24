@@ -86,7 +86,7 @@ export default function PrivacyPage() {
         <h2>📞 Contact</h2>
         <p>
           For privacy-related inquiries, contact us at privacy@technodel.net
-          or via <a href="https://wa.me/961XXXXXXXX">WhatsApp</a>.
+          or via <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || ""}`}>WhatsApp</a>.
         </p>
       </div>
     </div>

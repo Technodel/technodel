@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { apiPath } from "@/lib/api-path";
 
 type UserRow = {
   id: string;
@@ -29,7 +30,7 @@ export default function UsersClient({ initialUsers }: { initialUsers: UserRow[] 
 
   async function patchUser(id: string, payload: Partial<UserRow>) {
     setMsg("");
-    const res = await fetch(`/api/admin/users/${id}`, {
+    const res = await fetch(apiPath(`/api/admin/users/${id}`), {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

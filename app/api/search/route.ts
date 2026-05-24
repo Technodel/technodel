@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { searchProductsWithAi } from "@/lib/ai-search";
 
 // SQLite LIKE is case-insensitive for ASCII by default — use raw query
 
 // ─── Simple in-memory search cache ──────────────────────────────────────────────
-const cache = new Map<string, { results: any[]; ts: number }>();
+type PreviewResult = {
+  id: string;
+  slug: string;
+  title: string;
+  imageUrl: string;
+  displayPrice: number;
+  category: string;
+  brand: string;
+};
+
+const cache = new Map<string, { results: PreviewResult[]; ts: number }>();
 const CACHE_TTL = 30_000; // 30 seconds
 const CACHE_MAX = 200;
 
@@ -15,7 +25,7 @@ function getCached(key: string) {
   return null;
 }
 
-function setCache(key: string, results: any[]) {
+function setCache(key: string, results: PreviewResult[]) {
   if (cache.size >= CACHE_MAX) {
     // Evict oldest
     const oldest = [...cache.entries()].sort((a, b) => a[1].ts - b[1].ts)[0];
@@ -27,55 +37,36 @@ function setCache(key: string, results: any[]) {
 export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get("q")?.trim() || "";
   const limit = Math.min(parseInt(req.nextUrl.searchParams.get("limit") || "6"), 20);
+  const sort = req.nextUrl.searchParams.get("sort") || "popular";
 
   if (!q) return NextResponse.json({ results: [] });
 
   // Check cache
-  const cacheKey = `${q}_${limit}`;
+  const cacheKey = `${q.toLowerCase()}_${limit}_${sort}`;
   const cached = getCached(cacheKey);
   if (cached) return NextResponse.json({ results: cached, cached: true });
 
   try {
-    // Use raw SQL — SQLite LIKE is case-insensitive for ASCII
-    const likeQ = `%${q}%`;
-    const products = await prisma.$queryRawUnsafe<
-      Array<{
-        id: number;
-        slug: string;
-        title: string;
-        images: string;
-        displayPrice: number;
-        categoryName: string | null;
-        brand: string | null;
-      }>
-    >(
-      `SELECT p.id, p.slug, p.title, p.images, p.displayPrice, 
-              c.name AS categoryName, p.brand
-       FROM Product p
-       LEFT JOIN Category c ON c.id = p.categoryId
-       WHERE p.isVisible = 1
-         AND (p.title LIKE ? OR p.brand LIKE ? OR p.seoKeywords LIKE ?)
-       ORDER BY p.orderCount DESC
-       LIMIT ?`,
-      likeQ, likeQ, likeQ, limit,
-    );
+    const out = await searchProductsWithAi({ q, limit, page: 1, sort });
 
-    const results = products.map((p) => {
-      let imageUrl = "";
-      try { imageUrl = JSON.parse(p.images)[0] || ""; } catch {}
-      return {
-        id: p.id,
-        slug: p.slug,
-        title: p.title,
-        imageUrl,
-        displayPrice: p.displayPrice,
-        category: p.categoryName || "",
-        brand: p.brand || "",
-      };
-    });
+    const results: PreviewResult[] = out.results.map((p) => ({
+      id: p.id,
+      slug: p.slug,
+      title: p.title,
+      imageUrl: p.imageUrl || "",
+      displayPrice: p.displayPrice,
+      category: p.category?.name || "",
+      brand: p.brand || "",
+    }));
 
     setCache(cacheKey, results);
-    return NextResponse.json({ results, cached: false });
+    return NextResponse.json({
+      results,
+      total: out.total,
+      terms: out.terms,
+      usedFallback: out.usedFallback,
+      cached: false,
+    });
   } catch (err) {
     console.error("Search API error:", err);
     return NextResponse.json({ results: [], error: "Search failed" });

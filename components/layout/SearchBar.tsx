@@ -67,7 +67,13 @@ export default function SearchBar() {
 
   useEffect(() => {
     const fn = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setNoResults(false);
+        setError(false);
+        if (abortRef.current) abortRef.current.abort();
+        setLoading(false);
+      }
     };
     document.addEventListener("mousedown", fn);
     return () => document.removeEventListener("mousedown", fn);

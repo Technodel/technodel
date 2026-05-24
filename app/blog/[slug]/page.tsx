@@ -21,7 +21,7 @@ const posts: Record<string, {
     author: "Technodel Team",
     category: "Laptops",
     keywords: ["best laptop under 1000 lebanon", "cheap laptop lebanon", "budget laptop lebanon", "laptop under 500 lebanon", "lenovo laptop lebanon", "hp laptop lebanon"],
-    image: "/blog/budget-laptop.jpg",
+    image: "/og-image.svg",
     content: [
       "Finding a quality laptop under $1000 in Lebanon is easier than you think. Whether you need a laptop for work, study, or entertainment, there are excellent options that won't empty your wallet.",
 
@@ -69,7 +69,7 @@ const posts: Record<string, {
     author: "Technodel Team",
     category: "Smartphones",
     keywords: ["iphone price lebanon", "iphone 17 pro max lebanon", "iphone 17 lebanon price", "apple iphone lebanon", "buy iphone lebanon", "iphone 17 pro price lebanon"],
-    image: "/blog/iphone-price.jpg",
+    image: "/og-image.svg",
     content: [
       "Apple's iPhone 17 series has arrived in Lebanon, and everyone wants to know the prices. In this guide, we break down the cost of every iPhone 17 model, where to buy, and what to expect.",
 
@@ -116,7 +116,7 @@ const posts: Record<string, {
     author: "Technodel Team",
     category: "Gaming",
     keywords: ["gaming pc build lebanon", "budget gaming pc lebanon", "pc parts lebanon", "gaming pc under 800 lebanon", "build pc lebanon", "computer parts lebanon"],
-    image: "/blog/gaming-pc-build.jpg",
+    image: "/og-image.svg",
     content: [
       "Building your own gaming PC in Lebanon is more affordable than you think. With the right components, you can assemble a machine that runs the latest games smoothly without spending a fortune.",
 
@@ -168,7 +168,7 @@ const posts: Record<string, {
     author: "Technodel Team",
     category: "Printers",
     keywords: ["best printer lebanon home office", "printer price lebanon", "hp printer lebanon", "canon printer lebanon", "all in one printer lebanon", "laser printer lebanon"],
-    image: "/blog/printer-guide.jpg",
+    image: "/og-image.svg",
     content: [
       "Whether you're working remotely, running a small business, or handling school projects, a good printer is essential for your home office. In this guide, we compare the best printers available in Lebanon.",
 
@@ -223,7 +223,7 @@ const posts: Record<string, {
     author: "Technodel Team",
     category: "Smartphones",
     keywords: ["cheap smartphones lebanon", "smartphone price lebanon", "smartphone under 500 lebanon", "samsung galaxy lebanon", "xiaomi lebanon", "affordable phone lebanon"],
-    image: "/blog/smartphones-under500.jpg",
+    image: "/og-image.svg",
     content: [
       "You don't need to spend a fortune to get a great smartphone. In 2026, there are incredible options under $500 that offer flagship-level cameras, smooth performance, and all-day battery life.",
 
@@ -278,7 +278,7 @@ const posts: Record<string, {
     author: "Technodel Team",
     category: "Laptops",
     keywords: ["macbook price lebanon", "macbook air m4 lebanon", "macbook pro m4 lebanon", "apple macbook lebanon", "buy macbook lebanon", "macbook pro price lebanon"],
-    image: "/blog/macbook-price.jpg",
+    image: "/og-image.svg",
     content: [
       "Apple's MacBook lineup with M4 chips has taken performance and battery life to new heights. In this guide, we break down the prices of every MacBook model available at Technodel Lebanon.",
 
@@ -323,7 +323,7 @@ const posts: Record<string, {
     author: "Technodel Team",
     category: "Networking",
     keywords: ["networking setup home lebanon", "best router lebanon", "mesh wifi lebanon", "tp-link lebanon", "wifi router lebanon", "home network lebanon"],
-    image: "/blog/networking-setup.jpg",
+    image: "/og-image.svg",
     content: [
       "A reliable home network is essential for work, streaming, gaming, and smart home devices. In Lebanon, where internet connections vary, having the right networking equipment makes all the difference.",
 
@@ -371,7 +371,7 @@ const posts: Record<string, {
     author: "Technodel Team",
     category: "Tablets",
     keywords: ["tablet for students lebanon", "ipad price lebanon", "samsung tablet lebanon", "best tablet lebanon", "ipad for school lebanon", "cheap tablet lebanon"],
-    image: "/blog/tablet-students.jpg",
+    image: "/og-image.svg",
     content: [
       "Tablets have become essential tools for students in Lebanon. Whether you're taking notes in class, reading textbooks, or attending online lectures, the right tablet can transform your learning experience.",
 
@@ -427,7 +427,7 @@ const posts: Record<string, {
     author: "Technodel Team",
     category: "Gaming",
     keywords: ["gaming chair lebanon", "gaming setup lebanon", "ergonomic chair lebanon", "dxracer lebanon", "secretlab lebanon", "gaming chair price lebanon"],
-    image: "/blog/gaming-chair.jpg",
+    image: "/og-image.svg",
     content: [
       "A good gaming chair is one of the most important investments for any gamer. It affects your comfort, posture, and performance during long gaming sessions. In Lebanon's warm climate, breathable materials are especially important.",
 
@@ -482,7 +482,7 @@ const posts: Record<string, {
     author: "Technodel Team",
     category: "Gaming",
     keywords: ["gaming laptop Lebanon", "best gaming laptop 2026", "ASUS ROG Lebanon", "MSI laptop Lebanon", "Lenovo Legion Lebanon", "gaming PC Lebanon"],
-    image: "/blog/gaming-laptop-guide.jpg",
+    image: "/og-image.svg",
     content: [
       "Are you looking for the best gaming laptop in Lebanon in 2026? Whether you're a competitive gamer, a content creator, or someone who wants a powerful machine for both work and play, choosing the right gaming laptop can be overwhelming with so many options available.",
 

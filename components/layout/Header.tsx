@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-// import Image from "next/image";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useCartStore } from "@/store/cart";
 import { useThemeStore } from "@/store/theme";
@@ -18,7 +17,17 @@ export default function Header() {
   const { currency, setCurrency } = useCurrencyStore();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [lastSync, setLastSync] = useState<string | null>(null);
   const shouldReduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    fetch('/new/api/sys/sync').then(r => r.json()).then(d => {
+      if (d.lastSync) {
+        const date = new Date(d.lastSync);
+        setLastSync(date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }));
+      }
+    }).catch(() => {});
+  }, []);
   const scrolledRef = useRef(false);
   const lastYRef = useRef(0);
 
@@ -128,6 +137,12 @@ export default function Header() {
               >
                 {currency === "USD" ? "LBP" : "USD"}
               </motion.button>
+              {/* Last Sync */}
+              {lastSync && (
+                <div style={{ fontSize: 11, color: "var(--c-muted)", fontWeight: 500, display: "flex", alignItems: "center", padding: "0 8px" }}>
+                  Last Update : {lastSync}
+                </div>
+              )}
               {/* Theme toggle */}
               <motion.button
                 onClick={toggle}
@@ -164,7 +179,7 @@ export default function Header() {
           >
             <Link href="/" style={{ textDecoration: "none", flexShrink: 0, display: "flex", alignItems: "center" }}>
               <Image
-                src="/new/logo.png"
+                src="/logo.png?v=2" unoptimized
                 alt="Technodel"
                 width={220}
                 height={110}

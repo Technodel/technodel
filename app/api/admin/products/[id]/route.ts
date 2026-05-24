@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { generateSlug } from "@/lib/utils";
+import { applyImportCategoryGuard, getImportGuardCategoryIds } from "@/lib/category-guard";
+import {
+  buildCanonicalDescription,
+  buildCanonicalShortDescription,
+  buildCanonicalTitle,
+  normalizeMojibake,
+} from "@/lib/product-copy";
 
 async function requireAdmin() {
   const session = await getSession();
@@ -30,10 +37,47 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const body = await req.json();
 
     const data: any = { ...body };
+    const canonicalTitle = body.title || body.shortDescription || body.description
+      ? buildCanonicalTitle({
+          title: body.title,
+          brand: body.brand,
+          sourceUrl: body.sourceUrl,
+        })
+      : "";
+    if (canonicalTitle) {
+      data.title = normalizeMojibake(canonicalTitle);
+    }
+    if (body.shortDescription !== undefined || canonicalTitle) {
+      data.shortDescription = body.shortDescription
+        ? normalizeMojibake(body.shortDescription)
+        : buildCanonicalShortDescription({
+            title: canonicalTitle,
+            brand: body.brand,
+            sourceUrl: body.sourceUrl,
+          });
+    }
+    if (body.description !== undefined || canonicalTitle) {
+      data.description = buildCanonicalDescription({
+        title: canonicalTitle,
+        brand: body.brand,
+        sourceUrl: body.sourceUrl,
+        description: body.description,
+      });
+    }
     if (body.images) data.images = JSON.stringify(body.images);
     if (body.specs) data.specs = JSON.stringify(body.specs);
     if (body.highlights) data.highlights = JSON.stringify(body.highlights);
-    if (body.title && !body.slug) data.slug = generateSlug(body.title);
+    if (canonicalTitle && !body.slug) data.slug = generateSlug(canonicalTitle);
+
+    if (body.categoryId) {
+      const guardIds = await getImportGuardCategoryIds();
+      let effectiveTitle = String(body.title || "");
+      if (!effectiveTitle) {
+        const existing = await prisma.product.findUnique({ where: { id }, select: { title: true } });
+        effectiveTitle = existing?.title || "";
+      }
+      data.categoryId = applyImportCategoryGuard(body.categoryId, effectiveTitle, guardIds);
+    }
 
     delete data.id; delete data.category; delete data.variants; delete data.competitor;
 

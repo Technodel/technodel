@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { apiPath } from "@/lib/api-path";
 
 type Zone = {
   id: string;
@@ -74,7 +75,7 @@ export default function DeliveryZonesClient({ initialZones }: { initialZones: Zo
 
   async function remove(id: string) {
     if (!confirm("Delete this zone?")) return;
-    const res = await fetch(`/api/admin/delivery/${id}`, { method: "DELETE" });
+    const res = await fetch(apiPath(`/api/admin/delivery/${id}`), { method: "DELETE" });
     if (res.ok) setZones((prev) => prev.filter((z) => z.id !== id));
   }
 

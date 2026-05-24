@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { generateSlug, generateSku } from "@/lib/utils";
+import { apiPath } from "@/lib/api-path";
 
 interface Category { id: string; name: string; slug: string; icon?: string | null; }
 interface Competitor { id: string; name: string; }
@@ -110,7 +111,7 @@ export default function ProductForm({ categories, competitors, initialData, prod
     setError("");
     setEnriching((p) => ({ ...p, [fieldKey]: true }));
     try {
-      const res = await fetch("/api/admin/seo-enrich", {
+      const res = await fetch(apiPath("/api/admin/seo-enrich"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: currentVal, type, context: form.title }),

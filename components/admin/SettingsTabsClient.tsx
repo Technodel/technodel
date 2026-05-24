@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { apiPath } from "@/lib/api-path";
 
 type ProviderMap = Record<string, string[]>;
 
@@ -70,7 +71,7 @@ export default function SettingsTabsClient({ initialTab }: { initialTab?: string
     if (tab !== "api-keys") return;
     let mounted = true;
     setLoading(true);
-    fetch("/api/admin/settings/api-keys")
+    fetch(apiPath("/api/admin/settings/api-keys"))
       .then((r) => r.json())
       .then((data) => {
         if (!mounted) return;
@@ -113,7 +114,7 @@ export default function SettingsTabsClient({ initialTab }: { initialTab?: string
     setSaving(true);
     setMsg("");
     try {
-      const res = await fetch("/api/admin/settings/api-keys", {
+      const res = await fetch(apiPath("/api/admin/settings/api-keys"), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ config }),

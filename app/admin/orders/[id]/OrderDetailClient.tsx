@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiPath } from "@/lib/api-path";
 
 const STATUS_OPTIONS = ["pending","confirmed","processing","shipped","delivered","cancelled","refunded"];
 const STATUS_COLORS: Record<string, string> = {
@@ -15,7 +16,7 @@ export default function OrderDetailClient({ order }: { order: any }) {
 
   async function updateStatus() {
     setSaving(true);
-    await fetch(`/api/admin/orders/${order.id}`, {
+    await fetch(apiPath(`/api/admin/orders/${order.id}`), {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),

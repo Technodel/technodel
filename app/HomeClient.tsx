@@ -34,6 +34,7 @@ interface Props {
   banners: Banner[];
   newArrivals: HomeProduct[];
   deals: HomeProduct[];
+  exploreMore: HomeProduct[];
   catalogStats: {
     productCount: number;
     brandCount: number;
@@ -200,7 +201,7 @@ function CountUp({ end, duration = 2000, prefix = "", suffix = "" }: {
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export default function HomeClient({ featured, categories, banners, newArrivals, deals, catalogStats }: Props) {
+export default function HomeClient({ featured, categories, banners, newArrivals, deals, exploreMore, catalogStats }: Props) {
   const router = useRouter();
   const performanceMode = true;
   const [showBelowFold, setShowBelowFold] = useState(false);
@@ -726,7 +727,7 @@ export default function HomeClient({ featured, categories, banners, newArrivals,
 
       <div ref={belowFoldRef}>
         {showBelowFold ? (
-          <HomeBelowFold featured={featuredProducts} categories={categories} deals={dealProducts} newArrivals={newArrivalProducts} />
+          <HomeBelowFold featured={featuredProducts} categories={categories} deals={dealProducts} newArrivals={newArrivalProducts} exploreMore={exploreMore} />
         ) : (
           <div className="section-lazy" style={{ maxWidth: "var(--max-w)", margin: "0 auto", padding: "0 24px 80px" }}>
             <div style={{ height: 800, borderRadius: "var(--r-xl)", border: "1px solid var(--c-border)", background: "var(--c-surface)" }} />

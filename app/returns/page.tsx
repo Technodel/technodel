@@ -113,7 +113,7 @@ export default function ReturnsPage() {
 
           <h2>📞 Start a Return</h2>
           <p>
-            Need to start a return? <a href="https://wa.me/961XXXXXXXX">Message us on WhatsApp</a>{" "}
+            Need to start a return? <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || ""}`}>Message us on WhatsApp</a>{" "}
             or visit our <Link href="/contact">Contact page</Link>.
             Our team will guide you through the process.
           </p>
