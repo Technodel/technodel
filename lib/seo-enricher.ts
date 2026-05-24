@@ -22,7 +22,15 @@ const PROMPTS: Record<EnrichType, (text: string, ctx: string) => string> = {
     `You are an SEO copywriter. Rewrite this product short description to be engaging and SEO-optimized (under 160 characters). Highlight key benefits. Return ONLY the text.\n\nOriginal: "${text}"\nContext: ${ctx}`,
 
   description: (text, ctx) =>
-    `You are an SEO copywriter. Enhance this product description to be more SEO-friendly and persuasive. Keep key facts, add relevant keywords naturally. Return ONLY the improved HTML text.\n\nOriginal: "${text}"\nContext: ${ctx}`,
+    `You are an expert SEO copywriter and e-commerce conversion specialist. Substantially enhance this product description to be engaging, highly SEO-friendly, and visually appealing. 
+REQUIREMENTS: 
+1. Use professional HTML formatting, breaking long paragraphs into readable chunks.
+2. Incorporate relevant, modern emojis to make it scannable and engaging (e.g. ⚡, 🚀, 📦, 🔋).
+3. If specs are present, create a clean HTML table (<table style="width:100%; border-collapse: collapse;">) for quick reference.
+4. Include a "Frequently Asked Questions" (H3) section with 2-3 relevant questions and answers.
+5. Create naturally flowing internal links to broader category concepts if applicable.
+6. Make it highly persuasive and emphasize key benefits to drive conversions.
+Return ONLY the final HTML string, no markdown codeblocks (\`\`\`).\n\nOriginal: "${text}"\nContext: ${ctx}`,
 
   seoTitle: (text, ctx) =>
     `Write an SEO meta title for this product. Under 60 characters, include the main keyword. Return ONLY the title.\n\nProduct: "${text}"\nContext: ${ctx}`,

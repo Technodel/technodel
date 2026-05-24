@@ -10,17 +10,17 @@ export async function middleware(req: NextRequest) {
 
   const token = req.cookies.get("tn_session")?.value;
   if (!token || !process.env.JWT_SECRET) {
-    return NextResponse.redirect(new URL("/admin/login", req.url));
+    return NextResponse.redirect(new URL("/new/admin/login", req.url));
   }
 
   try {
     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
     const { payload } = await jwtVerify(token, secret);
     if (payload?.role !== "admin") {
-      return NextResponse.redirect(new URL("/admin/login", req.url));
+      return NextResponse.redirect(new URL("/new/admin/login", req.url));
     }
   } catch {
-    return NextResponse.redirect(new URL("/admin/login", req.url));
+    return NextResponse.redirect(new URL("/new/admin/login", req.url));
   }
 
   return NextResponse.next();

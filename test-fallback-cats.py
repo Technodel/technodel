@@ -1,0 +1,1 @@
+import sqlite3; d = sqlite3.connect("/var/www/technodel.net/new/prisma/dev.db"); d.row_factory = sqlite3.Row; r = d.execute("SELECT p.title, c.slug as categorySlug, p.sourceUrl FROM Product p LEFT JOIN Category c ON c.id=p.categoryId WHERE p.isVisible=1 AND p.title LIKE '%mars%' LIMIT 10").fetchall(); print([dict(x) for x in r])

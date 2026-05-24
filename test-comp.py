@@ -1,0 +1,1 @@
+import sqlite3; db = sqlite3.connect("prisma/dev.db"); db.row_factory = sqlite3.Row; print([dict(r) for r in db.execute("SELECT name, markupPct FROM Competitor").fetchall()])

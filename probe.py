@@ -1,0 +1,1 @@
+import sqlite3; db = sqlite3.connect("/var/www/all-mall/dev.db"); db.row_factory = sqlite3.Row; r=db.execute("SELECT title, displayPrice, sourceUrl, imageUrls FROM Product WHERE id = ? LIMIT 1", ("cmot9xtbk000rpoungvrzyib8",)).fetchone(); print(dict(r) if r else "Not found")

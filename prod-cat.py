@@ -1,0 +1,1 @@
+import sqlite3; d = sqlite3.connect("/var/www/technodel.net/new/prisma/dev.db"); d.row_factory = sqlite3.Row; r=d.execute("SELECT p.isVisible, p.displayPrice, c.slug as categorySlug FROM Product p LEFT JOIN Category c ON c.id=p.categoryId WHERE p.title LIKE '%Mars Gaming MA-RSN%' LIMIT 1").fetchone(); print(dict(r) if r else "Not found")

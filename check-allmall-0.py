@@ -1,0 +1,1 @@
+import sqlite3; d = sqlite3.connect("/var/www/all-mall/dev.db"); d.row_factory = sqlite3.Row; r=d.execute("SELECT title, displayPrice, sourcePrice FROM Product WHERE sourceUrl = ?", ("https://ayoubcomputers.com/8bitdo-wireless-usb-adapter-for-nintendo-switch-windows-pc-macos",)).fetchone(); print(dict(r) if r else "Not found")

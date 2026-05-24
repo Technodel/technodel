@@ -1,0 +1,1 @@
+import sqlite3; d = sqlite3.connect("/var/www/all-mall/dev.db"); d.row_factory = sqlite3.Row; r=d.execute("SELECT title, displayPrice, sourcePrice FROM Product WHERE title LIKE '%Fantech HG29%' LIMIT 5").fetchall(); print([dict(x) for x in r])

@@ -145,9 +145,14 @@ export default async function ProductPage({ params }: Props) {
 
   const safeBrand = sanitizeProductBrand(product.brand, product.competitor?.name);
 
-  // Related products
-  const related = await prisma.product.findMany({
-    where: { categoryId: product.categoryId, isVisible: true, id: { not: product.id } },
+  // Related products (Try same category AND brand first)
+  let related = await prisma.product.findMany({
+    where: { 
+      categoryId: product.categoryId, 
+      isVisible: true, 
+      id: { not: product.id },
+      ...(product.brand ? { brand: product.brand } : {})
+    },
     select: {
       id: true,
       slug: true,
@@ -167,6 +172,36 @@ export default async function ProductPage({ params }: Props) {
     take: 6,
     orderBy: { orderCount: "desc" },
   }).catch(() => []);
+
+  // If we don't have enough, fill with other products in the same category
+  if (related.length < 6) {
+    const moreRelated = await prisma.product.findMany({
+      where: { 
+        categoryId: product.categoryId, 
+        isVisible: true, 
+        id: { not: product.id, notIn: related.map(r => r.id) } 
+      },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        brand: true,
+        displayPrice: true,
+        comparePrice: true,
+        images: true,
+        isNew: true,
+        isFeatured: true,
+        stock: true,
+        lowStockThresh: true,
+        sourcePrice: true,
+        category: { select: { name: true } },
+        competitor: { select: { name: true, url: true } },
+      },
+      take: 6 - related.length,
+      orderBy: { orderCount: "desc" },
+    }).catch(() => []);
+    related = [...related, ...moreRelated];
+  }
 
   // Determine verified purchases in one query instead of one query per review.
   const reviewUserIds = Array.from(new Set(product.reviews.map((r) => r.userId).filter(Boolean)));

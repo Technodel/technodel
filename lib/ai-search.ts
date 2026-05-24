@@ -316,6 +316,7 @@ async function fallbackContainsSearch(opts: {
          LEFT JOIN Category c ON c.id = p.categoryId
          LEFT JOIN Competitor cp ON cp.id = p.competitorId
          WHERE p.isVisible = 1
+           AND p.displayPrice > 0
            AND (p.title LIKE ? OR p.brand LIKE ? OR p.seoKeywords LIKE ? OR p.shortDescription LIKE ?)
          ORDER BY ${orderSql}
          LIMIT ?`,
@@ -359,6 +360,15 @@ export async function searchProductsWithAi(options: SearchOptions): Promise<AiSe
     take: 60,
   });
 
+  const baseTerms = q
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((t) => t.length > 1 && !NOISE_WORDS.has(t));
+
+  const likeSql = baseTerms.length > 0 
+    ? "AND (" + baseTerms.map(t => `p.title LIKE '%${t.replace(/'/g, "''")}%'`).join(" OR ") + ")"
+    : "";
+
   const productsPromise = prisma.$queryRawUnsafe<RawProductRow[]>(
     `SELECT p.id, p.slug, p.title, p.brand, p.displayPrice, p.images, p.orderCount,
          c.name AS categoryName, c.slug AS categorySlug,
@@ -366,7 +376,7 @@ export async function searchProductsWithAi(options: SearchOptions): Promise<AiSe
      FROM Product p
      LEFT JOIN Category c ON c.id = p.categoryId
        LEFT JOIN Competitor cp ON cp.id = p.competitorId
-     WHERE p.isVisible = 1 AND p.displayPrice > 0
+     WHERE p.isVisible = 1 AND p.displayPrice > 0 ${likeSql}
      ORDER BY p.orderCount DESC
      LIMIT ?`,
     2500,
@@ -383,11 +393,6 @@ export async function searchProductsWithAi(options: SearchOptions): Promise<AiSe
     categorySlug: row.categorySlug,
   }));
   const analysis = await analysisPromise;
-
-  const baseTerms = q
-    .toLowerCase()
-    .split(/\s+/)
-    .filter((t) => t.length > 1 && !NOISE_WORDS.has(t));
 
   const aiTerms = analysis
     ? [...analysis.canonicalTerms, ...analysis.expandedTerms]

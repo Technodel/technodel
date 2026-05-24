@@ -1,5 +1,5 @@
 "use client";
-import Image from "next/image";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -313,7 +313,7 @@ export default function SearchBar() {
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
                   {r.imageUrl ? (
-                    <Image src={r.imageUrl} alt={r.title} width={40} height={40} style={{ objectFit: "contain" }} />
+                    <OptimizedImage src={r.imageUrl} alt={r.title} width={40} height={40} style={{ objectFit: "contain" }} />
                   ) : (
                     <span style={{ fontSize: 18 }}>📦</span>
                   )}
@@ -332,7 +332,7 @@ export default function SearchBar() {
                   </div>
                 </div>
                 <span style={{ fontSize: 14, fontWeight: 700, color: "var(--c-accent)", flexShrink: 0 }}>
-                  ${Math.round(r.displayPrice || 0)}
+                    ${Math.ceil(r.displayPrice || 0)}
                 </span>
               </Link>
             ))}

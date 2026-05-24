@@ -380,11 +380,6 @@ export default function ProductDetail({ product, related }: { product: Product; 
               style={{ fontSize: 15, color: "var(--c-muted)", lineHeight: 1.7, marginBottom: 20 }}
             >
               {cleanShortDescription}
-              {supplierCode && (
-                <span style={{ display: "block", fontSize: 10, color: "var(--c-muted)", opacity: 0.6, marginTop: 4 }}>
-                  {supplierCode}
-                </span>
-              )}
             </motion.p>
           )}
 
@@ -716,6 +711,24 @@ export default function ProductDetail({ product, related }: { product: Product; 
                   style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--c-accent)", display: "inline-block" }}
                 />
                 {viewers} people viewing this
+              </motion.span>
+            )}
+
+            {/* Hidden SKU / Supplier Code */}
+            {supplierCode && (
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                style={{
+                  fontSize: 10,
+                  opacity: 0.3,
+                  marginLeft: "auto",
+                  userSelect: "all",
+                  cursor: "text"
+                }}
+                title="Supplier SKU"
+              >
+                SKU: {supplierCode}
               </motion.span>
             )}
           </motion.div>

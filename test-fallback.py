@@ -1,0 +1,1 @@
+import sqlite3; d = sqlite3.connect("/var/www/technodel.net/new/prisma/dev.db"); d.row_factory = sqlite3.Row; r = d.execute("SELECT id, title, sourceUrl, displayPrice FROM Product WHERE isVisible=1 AND title LIKE '%mars%' LIMIT 10").fetchall(); print([dict(x) for x in r])

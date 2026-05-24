@@ -1,0 +1,1 @@
+import sqlite3; db = sqlite3.connect("/var/www/technodel.net/new/prisma/dev.db"); db.row_factory = sqlite3.Row; r=db.execute("SELECT title, id, slug, sku, sourceUrl, images, displayPrice FROM Product WHERE title LIKE ? LIMIT 1", ("%Mars Gaming MA-RSN%",)).fetchone(); print(dict(r) if r else "Not found")

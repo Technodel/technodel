@@ -1,0 +1,1 @@
+const fs = require("fs"); let content = fs.readFileSync("middleware.ts", "utf8"); content = content.replace(/new URL\("\/admin\/login", req\.url\)/g, "new URL(\"/new/admin/login\", req.url)"); fs.writeFileSync("middleware.ts", content);

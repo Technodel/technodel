@@ -1,0 +1,1 @@
+import sqlite3; db = sqlite3.connect("prisma/dev.db"); db.row_factory = sqlite3.Row; [print(dict(r)) for r in db.execute("SELECT id, slug, images, sourceId FROM Product WHERE slug LIKE '%pacm-remarkable-folio-type-cover-ink-lznz%' OR slug LIKE '%transcend-512gb%' LIMIT 5").fetchall()]

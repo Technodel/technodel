@@ -1,0 +1,1 @@
+import sqlite3; db = sqlite3.connect("prisma/dev.db"); db.row_factory = sqlite3.Row; [print(dict(r)) for r in db.execute("SELECT id, title, images FROM Product WHERE images LIKE '%logo%' LIMIT 10").fetchall()]
